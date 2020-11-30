@@ -1,0 +1,3 @@
+[submodule "native_extension/src/base-libs"]
+	path = native_extension/src/base-libs
+	url = git@github.com:LitingLin/base-libs.git
