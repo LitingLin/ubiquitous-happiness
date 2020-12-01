@@ -1,0 +1,170 @@
+DATASET_DEFINITIONS:
+  BDD100k_Images:
+    TYPE: DET
+    SPLITS:
+      - train
+      - val
+
+  Cityscapes:
+    TYPE: DET
+    SPLITS:
+      - train
+      - val
+
+  COCO:
+    TYPE: DET
+    SPLITS:
+      - train
+      - val
+
+  ILSVRC_DET:
+    TYPE: DET
+    SPLITS:
+      - train
+      - val
+
+  KITTI_Detection:
+    TYPE: DET
+    SPLITS:
+      - train
+
+  OpenImages:
+    TYPE: DET
+    SPLITS:
+      - train
+      - val
+      - test
+
+  VisDrone_2019_DET:
+    TYPE: DET
+    SPLITS:
+      - train
+
+  AIC19_Track1:
+    TYPE: MOT
+    SPLITS:
+      - train
+
+  ILSVRC_VID:
+    TYPE: MOT
+    SPLITS:
+      - train
+      - val
+
+  KITTI_Tracking:
+    TYPE: MOT
+    SPLITS:
+      - train
+
+  MOT17:
+    TYPE: MOT
+    SPLITS:
+      - full
+
+  MOT20:
+    TYPE: MOT
+    SPLITS:
+      - full
+
+  UAV_Benchmark_M:
+    TYPE: MOT
+    SPLITS:
+      - train
+      - val
+
+  UCF_101:
+    TYPE: MOT
+    SPLITS:
+      - full
+
+  VisDrone_2019_MOT:
+    TYPE: MOT
+    SPLITS:
+      - train
+      - val
+      - test
+
+  WebCamT:
+    TYPE: MOT
+    SPLITS:
+      - train
+      - val
+
+  YoutubeBB:
+    TYPE: MOT
+    SPLITS:
+      - train
+      - val
+
+  DeformSOT:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  DTB70:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  GOT10k:
+    TYPE: SOT
+    SPLITS:
+      - train
+      - val
+
+  LaSOT:
+    TYPE: SOT
+    SPLITS:
+      - train
+      - val
+
+  LaSOT_Extension:
+    TYPE: SOT
+    SPLITS:
+      - train
+
+  NFS:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  NUS_PRO:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  OTB100:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  PTB:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  TempleColor:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  TrackingNet:
+    TYPE: SOT
+    SPLITS:
+      - train
+      - test
+
+  UAV123:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  UAV_Benchmark_S:
+    TYPE: SOT
+    SPLITS:
+      - full
+
+  VisDrone_2019_SOT:
+    TYPE: SOT
+    SPLITS:
+      - train

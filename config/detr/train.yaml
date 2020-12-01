@@ -1,0 +1,26 @@
+train:
+  lr: 1.e-4
+  lr_backbone: 1.e-5
+  batch_size: 2
+  weight_decay: 1.e-4
+  epochs: 300
+  lr_drop: 200
+  clip_max_norm: 0.1
+  image_size_limit: 1280
+
+  matcher:
+    cost_class: 1
+    cost_bbox: 5
+    cost_giou: 2
+
+  loss:
+    mask_coef: 1
+    dice_coef: 1
+    bbox_coef: 5
+    giou_coef: 2
+    eos_coef: 0.1
+
+
+val:
+  batch_size: 4
+  samples_per_epoch: 1000

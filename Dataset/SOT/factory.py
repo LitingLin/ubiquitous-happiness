@@ -33,7 +33,7 @@ class SingleObjectTrackingDatasetFactory:
         else:
             return apply_filters(dataset, filters)
 
-    def construct_memory_mapped(self, filters=None):
+    def constructMemoryMapped(self, filters=None):
         dataset = SingleObjectTrackingDataset_MemoryMapped()
         constructor = dataset.getConstructor()
         constructor.setDatasetName(self.seed.name)

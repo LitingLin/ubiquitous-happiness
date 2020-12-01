@@ -21,6 +21,7 @@ def construct_COCO(constructor, seed):
         categories = {}
         for category in categories_:
             categories[category['id']] = {'name': category['name'], 'supercategory': category['supercategory']}
+
         for annotation in json_objects['annotations']:
             if not include_crowd:
                 if annotation['iscrowd'] != 0:

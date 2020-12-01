@@ -32,5 +32,5 @@ class TrackerFactory:
 
     @staticmethod
     def create(name: str = 'siamfc-v2', device: str = 'cuda:0'):
-        from algorithms.tracker.siamfc.factory import build_siamfc_tracker
+        from algorithms.tracker.siamfc.builder import build_siamfc_tracker
         return build_siamfc_tracker(device=torch.device(device), **TrackerFactory.tracker_list[name])

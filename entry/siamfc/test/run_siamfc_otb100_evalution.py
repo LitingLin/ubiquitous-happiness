@@ -18,7 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cuda:0', help="Pytorch device string.")
     args = parser.parse_args()
     tracker = TrackerFactory.create(device=args.device)
-    dataset = SingleObjectTrackingDatasetFactory(OTB100_Seed(args.otb100_path)).construct_memory_mapped(
+    dataset = SingleObjectTrackingDatasetFactory(OTB100_Seed(args.otb100_path)).constructMemoryMapped(
         [DataCleaner_BoundingBox(), DataCleaner_Integrity()])
     dataset = SimpleTrackingDatasetIterator(dataset, False)
 

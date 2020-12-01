@@ -1,0 +1,16 @@
+backbone:
+  type: resnet50
+  position_embedding: sine
+  dilation: false
+transformer:
+  encoder:
+    num_layers: 6
+  decoder:
+    num_layers: 6
+  feed_forward:
+    dim: 2048
+  hidden_dim: 256
+  dropout: 0.1
+  num_heads: 8
+  num_queries: 64
+  pre_norm: false

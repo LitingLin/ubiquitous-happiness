@@ -1,0 +1,19 @@
+train:
+  lr: 1.e-4
+  lr_backbone: 1.e-5
+  batch_size: 4
+  weight_decay: 1.e-4
+  epochs: 30
+  samples_per_epoch: 50000
+  lr_drop: 20
+  clip_max_norm: 0.1
+  image_size_limit: 1280
+
+  loss:
+    weights:
+      bbox: 5
+      giou: 2
+
+val:
+  batch_size: 4
+  samples_per_epoch: 1000
