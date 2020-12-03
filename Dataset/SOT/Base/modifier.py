@@ -1,5 +1,5 @@
 from .dataset import SingleObjectTrackingDataset
-from ._impl import _get_or_allocate_category_id, _set_image_path
+from ._impl import _set_image_path
 import pathlib
 
 
@@ -116,7 +116,7 @@ class SingleObjectDatasetModifier:
         self.dataset.name = name
 
     def applyIndicesFilter(self, indices):
-        self.dataset.sequences = self.dataset.sequences[indices]
+        self.dataset.sequences = [self.dataset.sequences[index] for index in indices]
 
     def __len__(self):
         return len(self.dataset)
