@@ -36,7 +36,7 @@ class DETRDataset(Dataset):
         target['size'] = torch.as_tensor([int(h), int(w)])
         target['orig_size'] = torch.as_tensor([int(h), int(w)])
         if image_in_dataset.hasAttribute('image_id'):
-            target['image_id'] = image_in_dataset.getAttribute('image_id')
+            target['image_id'] = torch.as_tensor(image_in_dataset.getAttribute('image_id'))
 
         if self.transforms is not None:
             image, target = self.transforms(image, target)
