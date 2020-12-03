@@ -27,6 +27,9 @@ class DetectionDataset:
     def getNumberOfCategories(self):
         return len(self.category_id_name_mapper)
 
+    def getMaxCategoryId(self):
+        return max(self.category_id_name_mapper.keys())
+
     def getCategoryName(self, id_: int):
         return self.category_id_name_mapper[id_]
 
