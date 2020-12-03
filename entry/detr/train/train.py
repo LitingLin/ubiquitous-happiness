@@ -46,7 +46,7 @@ def get_args_parser():
     return parser
 
 
-def build_training_actor(args, net_config: dict, train_config: dict, num_classes: int):
+def build_training_actor(args, net_config: dict, train_config: dict, num_classes: int, device):
     from models.network.detection.detr import build_detr_train
     from training.detr.actor import DETRActor
     model, criterion, postprocessors = build_detr_train(net_config, train_config, num_classes)
@@ -70,6 +70,9 @@ def build_training_actor(args, net_config: dict, train_config: dict, num_classes
     optimizer = torch.optim.AdamW(param_dicts, lr=train_config['train']['lr'],
                                   weight_decay=train_config['train']['weight_decay'])
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, train_config['train']['lr_drop'])
+
+    model.to(device)
+    criterion.to(device)
 
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
@@ -130,8 +133,7 @@ def main(args):
     coco_val_annofile = coco_root / "annotations" / 'instances_val2017.json'
     coco_val_anno = COCO(coco_val_annofile)
 
-    actor, postprocessors = build_training_actor(args, net_config, train_config, max_category_id)
-    actor.to(device)
+    actor, postprocessors = build_training_actor(args, net_config, train_config, max_category_id, device)
 
     output_dir = Path(args.output_dir)
     if args.resume:
