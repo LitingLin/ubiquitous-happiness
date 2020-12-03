@@ -82,5 +82,6 @@ class HungarianMatcher(nn.Module):
         return [(torch.as_tensor(i, dtype=torch.int64), torch.as_tensor(j, dtype=torch.int64)) for i, j in indices]
 
 
-def build_matcher(args):
-    return HungarianMatcher(cost_class=args.set_cost_class, cost_bbox=args.set_cost_bbox, cost_giou=args.set_cost_giou)
+def build_matcher(train_config: dict):
+    matcher_config = train_config['train']['matcher']
+    return HungarianMatcher(cost_class=matcher_config['cost_class'], cost_bbox=matcher_config['cost_bbox'], cost_giou=matcher_config['cost_giou'])

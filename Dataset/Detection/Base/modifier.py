@@ -120,27 +120,6 @@ class DetectionDatasetModifier:
         assert isinstance(name, str)
         self.dataset.name = name
 
-    def shrinkCategoryNames(self):
-        assert self.context.has_object_category
-
-        category_ids = set()
-
-        for image in self.dataset.images:
-            for object_ in image.objects:
-                category_ids.add(object_.category_id)
-
-        if len(category_ids) == len(self.dataset.category_names):
-            return
-        category_ids = sorted(category_ids)
-        old_new_category_id_mapper = {old: new for new, old in enumerate(category_ids)}
-        new_category_names = [self.dataset.category_names[old_category_id] for old_category_id in category_ids]
-        new_category_name_id_mapper = {name: id_ for id_, name in enumerate(new_category_names)}
-        self.dataset.category_names = new_category_names
-        self.dataset.category_name_id_mapper = new_category_name_id_mapper
-        for image in self.dataset.images:
-            for object_ in image.objects:
-                object_.category_id = old_new_category_id_mapper[object_.category_id]
-
     def removeAbsentObjects(self):
         if not self.context.has_is_present:
             return
@@ -160,42 +139,6 @@ class DetectionDatasetModifier:
             for object_ in image:
                 if object_.object_.bounding_box is None:
                     object_.delete()
-
-    def applyCategoryMapping(self, map: Dict[str, str]):
-        for old_name, new_name in map.items():
-            if old_name == new_name:
-                continue
-            if new_name not in self.dataset.category_name_id_mapper:
-                id_ = self.dataset.category_name_id_mapper[old_name]
-                self.dataset.category_name_id_mapper.pop(old_name)
-                self.dataset.category_name_id_mapper[new_name] = id_
-                self.dataset.category_names[id_] = new_name
-            else:
-                old_id = self.dataset.category_name_id_mapper[old_name]
-                new_id = self.dataset.category_name_id_mapper[new_name]
-
-                for image in self.dataset.images:
-                    for object_ in image.objects:
-                        if object_.category_id == old_id:
-                            object_.category_id = new_id
-
-    def filterCategories(self, includes=None, excludes=None):
-        assert self.context.has_object_category
-
-        if includes is not None:
-            includes = [self.dataset.category_name_id_mapper[name] for name in includes]
-            includes = set(includes)
-            for image in self:
-                for object_ in image:
-                    if object_.object_.category_id not in includes:
-                        object_.delete()
-        if excludes is not None:
-            excludes = [self.dataset.category_name_id_mapper[name] for name in excludes]
-            excludes = set(excludes)
-            for image in self:
-                for object_ in image:
-                    if object_.object_.category_id in excludes:
-                        object_.delete()
 
     def sortByImageRatio(self):
         image_sizes = []

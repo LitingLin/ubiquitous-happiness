@@ -15,7 +15,7 @@ class DetectionDatasetObjectView_MemoryMapped:
         return self.dataset.bounding_boxes[self.attribute_index, :]
 
     def getCategoryName(self):
-        return self.dataset.category_names[self.getCategoryId()]
+        return self.dataset.category_id_name_mapper[self.getCategoryId()]
 
     def getCategoryId(self):
         return self.dataset.category_ids[self.attribute_index]

@@ -15,16 +15,16 @@ endif()
 
 set(PYTHON_MODULE_NAME _C)
 
+find_package(pybind11 REQUIRED)
 Python3_add_library(${PYTHON_MODULE_NAME} MODULE ${SRC_FILES})
 add_dependencies(${PYTHON_MODULE_NAME} native)
 target_compile_definitions(${PYTHON_MODULE_NAME} PUBLIC ${PYNATIVE_COMPILE_DEFINITIONS})
 if (WIN32)
     target_compile_definitions(${PYTHON_MODULE_NAME} PRIVATE _WINDLL)
 endif()
-target_include_directories(${PYTHON_MODULE_NAME} PRIVATE ${PYNATIVE_INCLUDE_DIRECTORIES}
-        ${CMAKE_CURRENT_LIST_DIR}/include/)
-target_link_directories(${PYTHON_MODULE_NAME} PRIVATE ${PYNATIVE_LINK_DIRECTORIES})
-target_link_libraries(${PYTHON_MODULE_NAME} PRIVATE ${PYNATIVE_LINK_LIBRARIES} native)
+target_include_directories(${PYTHON_MODULE_NAME} PRIVATE ${PYNATIVE_INCLUDE_DIRECTORIES} ${pybind11_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS} ${CMAKE_CURRENT_LIST_DIR}/include/)
+target_link_directories(${PYTHON_MODULE_NAME} PRIVATE ${PYNATIVE_LINK_DIRECTORIES} ${Python3_LIBRARY_DIRS})
+target_link_libraries(${PYTHON_MODULE_NAME} PRIVATE ${PYNATIVE_LINK_LIBRARIES} native ${Python3_LIBRARIES})
 
 if (${RELEASE_INSTALL})
     install(TARGETS ${PYTHON_MODULE_NAME}

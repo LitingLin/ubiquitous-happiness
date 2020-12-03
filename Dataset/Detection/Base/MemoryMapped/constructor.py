@@ -23,8 +23,7 @@ class DetectionDatasetConstructor_MemoryMapped(DatasetConstructor_CacheService_B
             self.dataset.root_path = dataset.root_path
         self.dataset.root_path = str(self.dataset.root_path)
         if has_attribute_category:
-            self.dataset.category_names = dataset.category_names
-            self.dataset.category_name_id_mapper = dataset.category_name_id_mapper
+            self.dataset.category_id_name_mapper = dataset.category_id_name_mapper
 
         cache_path, cache_file_prefix = _getCachePath(self.dataset)
         if not os.path.exists(cache_path):

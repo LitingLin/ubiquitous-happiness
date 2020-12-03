@@ -7,8 +7,7 @@ class DetectionDataset:
     root_path: str
     attributes: Dict
 
-    category_names: List
-    category_name_id_mapper: Dict
+    category_id_name_mapper: Dict
 
     def __init__(self):
         self.structure_version = 3
@@ -20,17 +19,16 @@ class DetectionDataset:
         self.images = []
         self.attributes = {}
 
-        self.category_names = []
-        self.category_name_id_mapper = {}
+        self.category_id_name_mapper = {}
 
     def getCategoryNameList(self):
-        return self.category_names
+        return self.category_id_name_mapper.values()
 
     def getNumberOfCategories(self):
-        return len(self.category_names)
+        return len(self.category_id_name_mapper)
 
     def getCategoryName(self, id_: int):
-        return self.category_names[id_]
+        return self.category_id_name_mapper[id_]
 
     def getDataSplit(self):
         return self.data_split
@@ -73,10 +71,6 @@ class DetectionDataset:
     def getConstructor(self):
         from Dataset.Detection.Base.constructor import DetectionDatasetConstructor
         return DetectionDatasetConstructor(self)
-
-    def getFlattenView(self):
-        from .flatten_view import DetectionDatasetFlattenView
-        return DetectionDatasetFlattenView(self)
 
     def hasAttributeCategory(self):
         return self.attributes['has_object_category_attr']

@@ -1,5 +1,5 @@
 import scipy.io
-from Dataset.MetaInformation.cityscapes_person import id2labelCp
+from Dataset.MetaInformation.cityscapes_person import id2labelCp, labelsCp
 import numpy
 import os
 from typing import Dict
@@ -12,6 +12,8 @@ def construct_cityPersons(constructor, seed):
     cityscapes_path = seed.root_path
     annotation_path = seed.annotation_path
     things_only = seed.things_only
+
+    constructor.mergeCategoryIdNameMapper({label.id: label.name for label in labelsCp})
 
     def _parse_cityPersons(path: str, mat: Dict):
         if 'anno_train_aligned' in mat:
@@ -51,8 +53,8 @@ def construct_cityPersons(constructor, seed):
                     if not class_label.hasInstances:
                         continue
                 bounding_box = bbs[index_of_object][6:10].tolist()
-                category_name = class_label.name
-                constructor.addObject(bounding_box, category_name)
+                category_id = class_label.id
+                constructor.addObject(bounding_box, category_id)
             constructor.endInitializeImage()
 
     if data_split & DataSplit.Training:

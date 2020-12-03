@@ -2,19 +2,20 @@
 import argparse
 import datetime
 import json
-import random
 import time
 from pathlib import Path
 
-import numpy as np
 import torch
+from torch.utils.data import DataLoader, DistributedSampler
 import os
-from torch.utils.data import DataLoader
 import Utils.detr_misc as utils
-from detr.training.step import train_one_epoch
-from detr.eval.step import evaluate
+from train.detr.train_step import train_one_epoch
+from train.detr.eval_step import evaluate
 
 from Utils.yaml_config import load_config
+
+
+from workarounds.all import apply_all_workarounds
 
 
 def get_args_parser():
@@ -22,16 +23,17 @@ def get_args_parser():
     parser.add_argument('--net_config', type=str, default=None, help='Path to the net config')
     parser.add_argument('--train_config', type=str, default=None, help='Path to the train config')
     parser.add_argument('--train_dataset_config', type=str, help='Path to the train dataset config')
-    parser.add_argument('--val_dataset_config', type=str, help='Path to the val dataset config')
 
     parser.add_argument('--output_dir', default='',
                         help='path where to save, empty for no saving')
+    parser.add_argument('--coco_path', type=str)
     parser.add_argument('--device', default='cuda',
                         help='device to use for training / testing')
     parser.add_argument('--seed', default=42, type=int)
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
+    parser.add_argument('--eval', action='store_true')
     parser.add_argument('--num_workers', default=2, type=int)
 
     # distributed training parameters
@@ -41,10 +43,66 @@ def get_args_parser():
     return parser
 
 
-from detr.training.actor.detr import build_detr_training_actor
-from detr.data.sampler.siamfc import TrkDataset
-from debugging.numpy_fix import apply_numpy_performance_fix
-from debugging.cv2_fix import fix_strange_opencv_crash
+def build_training_actor(args, net_config: dict, train_config: dict, num_classes: int):
+    from models.network.detection.detr import build_detr_train
+    from train.detr.actor import DETRActor
+    model, criterion, postprocessors = build_detr_train(net_config, train_config, num_classes)
+
+    n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print('number of params:', n_parameters)
+
+    train_backbone = train_config['train']['lr_backbone'] > 0
+    for name, parameter in model.backbone.named_parameters():
+        if not train_backbone or 'layer2' not in name and 'layer3' not in name and 'layer4' not in name:
+            parameter.requires_grad_(False)
+
+    param_dicts = [
+        {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
+        {
+            "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
+            "lr": train_config['train']['lr_backbone'],
+        },
+    ]
+
+    optimizer = torch.optim.AdamW(param_dicts, lr=train_config['train']['lr'],
+                                  weight_decay=train_config['train']['weight_decay'])
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, train_config['train']['lr_drop'])
+
+    if args.distributed:
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+
+    return DETRActor(model, criterion, optimizer, lr_scheduler), postprocessors
+
+
+def build_dataloader(coco_path: str):
+    from Dataset.Detection.factory import DetectionDatasetFactory
+    from Dataset.Detection.FactorySeeds.COCO import COCO_Seed, COCOVersion
+    from Dataset.DataSplit import DataSplit
+    from data.detr_wrapper.wrapper import DETRDataset
+    from data.augmentation.detr import make_detr_transforms
+    dataset_train = DetectionDatasetFactory(COCO_Seed(coco_path, data_split=DataSplit.Training, version=COCOVersion._2017)).construct()
+    num_classes = dataset_train.getNumberOfCategories()
+    dataset_train = DETRDataset(dataset_train, make_detr_transforms('train'))
+
+    dataset_val = DetectionDatasetFactory(COCO_Seed(coco_path, data_split=DataSplit.Validation, version=COCOVersion._2017)).construct()
+    assert num_classes == dataset_val.getNumberOfCategories()
+    dataset_val = DETRDataset(dataset_val, make_detr_transforms('val'))
+
+    if args.distributed:
+        sampler_train = DistributedSampler(dataset_train)
+        sampler_val = DistributedSampler(dataset_val, shuffle=False)
+    else:
+        sampler_train = torch.utils.data.RandomSampler(dataset_train)
+        sampler_val = torch.utils.data.SequentialSampler(dataset_val)
+
+    batch_sampler_train = torch.utils.data.BatchSampler(
+        sampler_train, args.batch_size, drop_last=True)
+
+    data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train,
+                                   collate_fn=utils.collate_fn, num_workers=args.num_workers)
+    data_loader_val = DataLoader(dataset_val, args.batch_size, sampler=sampler_val,
+                                 drop_last=False, collate_fn=utils.collate_fn, num_workers=args.num_workers)
+    return data_loader_train, data_loader_val, num_classes
 
 
 def main(args):
@@ -53,50 +111,63 @@ def main(args):
 
     print(args)
 
-    device = torch.device(args.device)
-
-    net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'transformer', 'prototype1', 'network.yaml'), args.net_config)
-    train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'transformer', 'prototype1', 'train.yaml'), args.train_config)
-    train_dataset = TrkDataset(args.train_dataset_config, train_config['train']['samples_per_epoch'],
-                               net_config['exemplar_size'], train_config['train']['image_size_limit'])
-    val_dataset = TrkDataset(args.val_dataset_config, train_config['val']['samples_per_epoch'],
-                             net_config['exemplar_size'], train_config['train']['image_size_limit'])
-
-    device = torch.device(args.device)
-
     # fix the seed for reproducibility
     seed = args.seed + utils.get_rank()
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-    random.seed(seed)
+    apply_all_workarounds(seed)
 
-    actor = build_detr_training_actor(args, net_config, train_config)
+    device = torch.device(args.device)
+
+    data_loader_train, data_loader_val, num_classes = build_dataloader(args.coco_path)
+
+    from pycocotools.coco import COCO
+    coco_root = Path(args.coco_path)
+    coco_val_annofile = coco_root / "annotations" / 'instances_val2017.json'
+    coco_val_anno = COCO(coco_val_annofile)
+
+    net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'network.yaml'), args.net_config)
+    train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'train.yaml'), args.train_config)
+
+    actor, postprocessors = build_training_actor(args, net_config, train_config, num_classes)
     actor.to(device)
 
-    data_loader_train = DataLoader(train_dataset, batch_size=train_config['train']['batch_size'],
-                                   collate_fn=utils.collate_fn, num_workers=args.num_workers, worker_init_fn=worker_init_fn)
-    data_loader_val = DataLoader(val_dataset, batch_size=train_config['val']['batch_size'],
-                                 collate_fn=utils.collate_fn, num_workers=args.num_workers, worker_init_fn=worker_init_fn)
-
     output_dir = Path(args.output_dir)
+    if args.resume:
+        if args.resume.startswith('https'):
+            checkpoint = torch.hub.load_state_dict_from_url(
+                args.resume, map_location='cpu', check_hash=True)
+        else:
+            checkpoint = torch.load(args.resume, map_location='cpu')
+        if args.eval:
+            actor.load_state_dict(checkpoint, True)
+        else:
+            actor.load_state_dict(checkpoint, False)
+            args.start_epoch = checkpoint['epoch'] + 1
+
+    if args.eval:
+        test_stats, coco_evaluator = evaluate(actor.model, actor.criterion, postprocessors,
+                                              data_loader_val, coco_val_anno, device, args.output_dir)
+        if args.output_dir:
+            utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
+        return
 
     print("Start training")
     start_time = time.time()
-    for epoch in range(args.start_epoch, train_config['train']['epochs']):
-        train_stats = train_one_epoch(
-            actor, data_loader_train, device, epoch,
+    for epoch in range(args.start_epoch, args.epochs):
+        if args.distributed:
+            data_loader_train.batch_sampler.sampler.set_epoch(epoch)
+        train_stats = train_one_epoch(actor, data_loader_train, device, epoch,
             train_config['train']['clip_max_norm'])
         actor.new_epoch()
         if args.output_dir:
             checkpoint_paths = [output_dir / 'checkpoint.pth']
             # extra checkpoint before LR drop and every 100 epochs
-            if (epoch + 1) % train_config['train']['lr_drop'] == 0 or (epoch + 1) % 100 == 0:
+            if (epoch + 1) % args.lr_drop == 0 or (epoch + 1) % 100 == 0:
                 checkpoint_paths.append(output_dir / f'checkpoint{epoch:04}.pth')
             for checkpoint_path in checkpoint_paths:
                 utils.save_on_master(actor.state_dict(), checkpoint_path)
 
-        test_stats = evaluate(
-            actor, data_loader_val, device
+        test_stats, coco_evaluator = evaluate(
+            actor.model, actor.criterion, postprocessors, data_loader_val, coco_val_anno, device, args.output_dir
         )
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
@@ -108,16 +179,26 @@ def main(args):
             with (output_dir / "log.txt").open("a") as f:
                 f.write(json.dumps(log_stats) + "\n")
 
+            # for evaluation logs
+            if coco_evaluator is not None:
+                (output_dir / 'eval').mkdir(exist_ok=True)
+                if "bbox" in coco_evaluator.coco_eval:
+                    filenames = ['latest.pth']
+                    if epoch % 50 == 0:
+                        filenames.append(f'{epoch:03}.pth')
+                    for name in filenames:
+                        torch.save(coco_evaluator.coco_eval["bbox"].eval,
+                                   output_dir / "eval" / name)
+
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
 
 
 if __name__ == '__main__':
-    apply_numpy_performance_fix()
-    fix_strange_opencv_crash()
     parser = argparse.ArgumentParser('DETR training and evaluation script', parents=[get_args_parser()])
     args = parser.parse_args()
     if args.output_dir:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
+
     main(args)

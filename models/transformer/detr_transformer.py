@@ -273,15 +273,16 @@ def _get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
 
 
-def build_transformer(args):
+def build_transformer(net_config: dict):
+    transformer_config = net_config['transformer']
     return Transformer(
-        d_model=args.hidden_dim,
-        dropout=args.dropout,
-        nhead=args.nheads,
-        dim_feedforward=args.dim_feedforward,
-        num_encoder_layers=args.enc_layers,
-        num_decoder_layers=args.dec_layers,
-        normalize_before=args.pre_norm,
+        d_model=transformer_config['hidden_dim'],
+        dropout=transformer_config['dropout'],
+        nhead=transformer_config['num_heads'],
+        dim_feedforward=transformer_config['feed_forward']['dim'],
+        num_encoder_layers=transformer_config['encoder']['num_layers'],
+        num_decoder_layers=transformer_config['decoder']['num_layers'],
+        normalize_before=transformer_config['pre_norm'],
         return_intermediate_dec=True,
     )
 

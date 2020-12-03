@@ -35,10 +35,7 @@ class DetectionDataset_MemoryMapped_FlattenView:
         return DetectionDatasetObjectView_MemoryMapped(self.dataset, self.flatten_sequence_indices[index], index)
 
     def getCategoryNameList(self):
-        return self.dataset.category_names
+        return self.dataset.category_id_name_mapper.values()
 
     def getCategoryName(self, id_: int):
-        return self.dataset.category_names[id_]
-
-    def getCategoryId(self, name: str):
-        return self.dataset.category_name_id_mapper[name]
+        return self.dataset.category_id_name_mapper[id_]

@@ -7,6 +7,10 @@ def construct_VisDrone2019_DET(constructor: DetectionDatasetConstructor, seed):
     annotation_path = seed.annotation_path
     images = os.listdir(images_path)
     images.sort()
+
+    categories = ['ignored regions', 'pedestrian', 'people', 'bicycle', 'car', 'van', 'truck', 'tricycle', 'awning-tricycle', 'bus', 'motor', 'others']
+    constructor.mergeCategoryIdNameMapper({index: name for index, name in enumerate(categories)})
+
     for image_file_name in images:
         image_name = image_file_name[: -4]
         constructor.beginInitializeImage()
@@ -55,32 +59,6 @@ def construct_VisDrone2019_DET(constructor: DetectionDatasetConstructor, seed):
             words = [word for word in words if len(word) > 0]
             assert len(words) == 8
             object_category = int(words[5])
-            if object_category == 0:
-                continue
-            elif object_category == 1:
-                object_category = 'pedestrian'
-            elif object_category == 2:
-                object_category = 'people'
-            elif object_category == 3:
-                object_category = 'bicycle'
-            elif object_category == 4:
-                object_category = 'car'
-            elif object_category == 5:
-                object_category = 'van'
-            elif object_category == 6:
-                object_category = 'truck'
-            elif object_category == 7:
-                object_category = 'tricycle'
-            elif object_category == 8:
-                object_category = 'awning-tricycle'
-            elif object_category == 9:
-                object_category = 'bus'
-            elif object_category == 10:
-                object_category = 'motor'
-            elif object_category == 11:
-                object_category = 'others'
-            else:
-                raise ValueError
             truncation = int(words[6])
             occlusion = int(words[7])
             constructor.addObject([int(words[0]) - 1, int(words[1]) - 1, int(words[2]), int(words[3])], object_category,

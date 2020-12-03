@@ -14,12 +14,10 @@ train:
     cost_giou: 2
 
   loss:
-    mask_coef: 1
-    dice_coef: 1
     bbox_coef: 5
     giou_coef: 2
     eos_coef: 0.1
-
+    aux: true
 
 val:
   batch_size: 4

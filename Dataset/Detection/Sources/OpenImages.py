@@ -18,7 +18,8 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
     if data_split & DataSplit.Testing:
         splits.append('test')
 
-    mid_name_mapper = {}
+    class_mids = []
+    class_names = []
 
     for line in open(os.path.join(root_path, 'class-descriptions-boxable.csv'), 'r', encoding='utf-8'):
         line = line.strip()
@@ -26,7 +27,11 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
             continue
         words = line.split(',')
         assert len(words) == 2
-        mid_name_mapper[words[0]] = words[1]
+        class_mids.append(words[0])
+        class_names.append(words[1])
+
+    constructor.mergeCategoryIdNameMapper({index: name for index, name in enumerate(class_names)})
+    mid_index_mapper = {mid: index for index, mid in enumerate(class_mids)}
 
     def _construct_sub_dataset(images_path: str, annotation_file_path: str):
         with open(annotation_file_path, 'r', encoding='utf-8') as fid:
@@ -45,7 +50,7 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
                     constructor.setImageName(image_name)
                     last_image_size = constructor.setImagePath(os.path.join(images_path, image_name + '.jpg'))
                     last_row_image = image_name
-                object_category = mid_name_mapper[row.LabelName]
+                object_category = mid_index_mapper[row.LabelName]
                 bounding_box = [float(row.XMin) * last_image_size[0], float(row.XMax) * last_image_size[0], float(row.YMin) * last_image_size[1], float(row.YMax) * last_image_size[1]]
                 bounding_box = [bounding_box[0], bounding_box[2], bounding_box[1] - bounding_box[0], bounding_box[3] - bounding_box[2]]
 

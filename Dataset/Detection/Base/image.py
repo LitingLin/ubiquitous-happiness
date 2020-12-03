@@ -27,6 +27,9 @@ class DetectionDatasetImageViewer:
     def getAttribute(self, name: str):
         return self.image.attributes[name]
 
+    def hasAttribute(self, name: str):
+        return name in self.image.attributes
+
     def getNumberObjects(self):
         return len(self.image.objects)
 

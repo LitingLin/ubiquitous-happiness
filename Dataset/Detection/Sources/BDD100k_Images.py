@@ -9,6 +9,8 @@ def construct_BDD100k_Images(constructor: DetectionDatasetConstructor, seed):
     data_split = seed.data_split
     labels_path = os.path.join(root_path, '..', '..', 'labels')
 
+    auto_category_id_allocator = constructor.getAutoCategoryIdAllocationTool()
+
     def _construct(images_path: str, annotation_file_path: str):
         with open(annotation_file_path, 'r', encoding='utf-8') as fid:
             annotations = json.load(fid)
@@ -31,7 +33,7 @@ def construct_BDD100k_Images(constructor: DetectionDatasetConstructor, seed):
                 object_attributes = label['attributes']
                 occluded = object_attributes['occluded']
                 truncated = object_attributes['truncated']
-                constructor.addObject(bounding_box, object_category, not(occluded or truncated), object_attributes)
+                constructor.addObject(bounding_box, auto_category_id_allocator.getOrAllocateCategoryId(object_category), not(occluded or truncated), object_attributes)
             constructor.endInitializeImage()
 
     if data_split & DataSplit.Training:

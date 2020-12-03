@@ -27,7 +27,10 @@ class DetectionDatasetObjectViewer:
         return self.object_.bounding_box
 
     def getCategoryName(self):
-        return self.dataset.category_names[self.object_.category_id]
+        return self.dataset.category_id_name_mapper[self.object_.category_id]
+
+    def getCategoryId(self):
+        return self.object_.category_id
 
     def getAttribute(self, name):
         return self.object_.attributes[name]

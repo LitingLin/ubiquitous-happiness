@@ -18,9 +18,7 @@ def construct_COCO(constructor, seed):
             json_objects = json.load(fid)
 
         categories_ = json_objects['categories']
-        categories = {}
-        for category in categories_:
-            categories[category['id']] = {'name': category['name'], 'supercategory': category['supercategory']}
+        constructor.mergeCategoryIdNameMapper({category['id']: category['name'] for category in categories_})
 
         for annotation in json_objects['annotations']:
             if not include_crowd:
@@ -32,7 +30,7 @@ def construct_COCO(constructor, seed):
                 images[image_id] = ['', '', [], [], []]
             bbox = list(annotation['bbox'])
             images[image_id][2].append(bbox)
-            images[image_id][3].append(categories[category_id]['name'])
+            images[image_id][3].append(category_id)
             if include_crowd:
                 images[image_id][4].append({'iscrowd': annotation['iscrowd'] > 0})
 
@@ -44,16 +42,17 @@ def construct_COCO(constructor, seed):
             images[image_id][0] = os.path.join('images', image_folder_name, file_name)
             images[image_id][1] = file_name
 
-        for image_info in images.values():
+        for image_id, image_info in images.items():
             constructor.beginInitializeImage()
             constructor.setImagePath(os.path.join(root_path, image_info[0]))
             constructor.setImageName(image_info[1])
             if include_crowd:
-                for bounding_box, category_name, attributes in zip(image_info[2], image_info[3], image_info[4]):
-                    constructor.addObject(bounding_box, category_name, attributes=attributes)
+                for bounding_box, category_id, attributes in zip(image_info[2], image_info[3], image_info[4]):
+                    constructor.addObject(bounding_box, category_id, attributes=attributes)
             else:
-                for bounding_box, category_name in zip(image_info[2], image_info[3]):
-                    constructor.addObject(bounding_box, category_name)
+                for bounding_box, category_id in zip(image_info[2], image_info[3]):
+                    constructor.addObject(bounding_box, category_id)
+            constructor.setImageAttribute('image_id', image_id)
             constructor.endInitializeImage()
 
     if version == COCOVersion._2014:

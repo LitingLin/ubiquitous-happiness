@@ -1,5 +1,5 @@
 from Dataset.Detection.FactorySeeds.Cityscapes import CityscapesAnnotationSource
-from Dataset.MetaInformation.cityscapes import name2label
+from Dataset.MetaInformation.cityscapes import name2label, labels
 from Dataset.DataSplit import DataSplit
 import os
 import json
@@ -10,6 +10,8 @@ def construct_CityScapes(constructor, seed):
     data_split = seed.data_split
     annotation_source = seed.annotation_source
     things_only = seed.things_only
+
+    constructor.mergeCategoryIdNameMapper({label.id: label.name for label in labels})
 
     annotation_paths = []
 
@@ -51,7 +53,7 @@ def construct_CityScapes(constructor, seed):
                 img_height = json_objects['imgHeight']
 
                 bounding_boxes = []
-                classes = []
+                class_ids = []
 
                 for object in json_objects['objects']:
                     class_ = object['label']
@@ -66,6 +68,8 @@ def construct_CityScapes(constructor, seed):
                     xmax = 0
                     ymax = 0
 
+                    label = name2label[class_]
+
                     for x, y in object['polygon']:
                         if xmin > x:
                             xmin = x
@@ -78,7 +82,7 @@ def construct_CityScapes(constructor, seed):
 
                     bounding_box = [xmin, ymin, xmax-xmin, ymax-ymin]
                     bounding_boxes.append(bounding_box)
-                    classes.append(class_)
+                    class_ids.append(label.id)
 
                 if len(bounding_boxes) > 0:
                     file_name_parts = json_file[:-5].split('_')
@@ -91,6 +95,6 @@ def construct_CityScapes(constructor, seed):
                     constructor.beginInitializeImage()
                     constructor.setImageName(image_file_name)
                     constructor.setImagePath(image_file_path)
-                    for bounding_box, class_ in zip(bounding_boxes, classes):
+                    for bounding_box, class_ in zip(bounding_boxes, class_ids):
                         constructor.addObject(bounding_box, class_)
                     constructor.endInitializeImage()

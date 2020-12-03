@@ -7,6 +7,8 @@ def construct_KITTI_Detection(constructor, seed):
     root_path = seed.root_path
     exclude_dontcare = seed.exclude_dontcare
 
+    assert data_split == DataSplit.Training
+
     # https://github.com/NVIDIA/DIGITS/blob/master/digits/extensions/data/objectDetection/README.md
     constructor.setDatasetAttribute('annotation description',
                                     '''
@@ -30,7 +32,13 @@ def construct_KITTI_Detection(constructor, seed):
                      detection, needed for p/r curves, higher is better.
 ''')
 
-    assert data_split == DataSplit.Training
+    category_list = ['Car', 'Van', 'Truck',
+                     'Pedestrian', 'Person_sitting', 'Cyclist', 'Tram',
+                     'Misc', 'DontCare']
+
+    constructor.mergeCategoryIdNameMapper({index: name for index, name in enumerate(category_list)})
+
+    category_name_id_mapper = {name: id_ for id_, name in enumerate(category_list)}
 
     annotation_root_path = os.path.join(root_path, '..', 'label_2')
     annotation_files = os.listdir(annotation_root_path)
@@ -61,7 +69,7 @@ def construct_KITTI_Detection(constructor, seed):
             location = [float(words[11]), float(words[12]), float(words[13])]
             rotation_y = float(words[14])
 
-            constructor.addObject(bounding_box, label, not (truncated > 0.8 or occlusion == 2),
+            constructor.addObject(bounding_box, category_name_id_mapper[label], not (truncated > 0.8 or occlusion == 2),
                                   {'truncated': truncated, 'occlusion': occlusion, 'alpha': alpha,
                                    'dimensions': dimensions, 'location': location, 'rotation_y': rotation_y})
         constructor.endInitializeImage()

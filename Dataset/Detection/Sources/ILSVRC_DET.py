@@ -4,9 +4,11 @@ from Dataset.imagenet_200 import ImageNet200
 
 
 def construct_ILSVRC_DET(constructor, seed):
-    imagenet_id_name_map = {id_: name for id_, name in zip(ImageNet200.wn_id, ImageNet200.names)}
+    imagenet_id_index_map = {id_: index for index, id_ in enumerate(ImageNet200.wn_id)}
     root_path = seed.root_path
     data_split = seed.data_split
+
+    constructor.mergeCategoryIdNameMapper({index: name for index, name in enumerate(ImageNet200.names)})
 
     annotation_path = os.path.join(root_path, 'Annotations', 'DET')
     annotation_paths = []
@@ -31,7 +33,7 @@ def construct_ILSVRC_DET(constructor, seed):
 
             offset = 0
             bounding_boxes = []
-            object_classes = []
+            object_category_indices = []
 
             def _findNextObject(file_content: str, begin_index: int):
                 object_name_begin_index = file_content.find('<name>', begin_index)
@@ -48,7 +50,7 @@ def construct_ILSVRC_DET(constructor, seed):
                 ymax_end_index = file_content.find('</ymax>', ymax_begin_index)
 
                 object_name = file_content[object_name_begin_index + len('<name>'): object_name_end_index]
-                object_name = imagenet_id_name_map[object_name]
+                object_category_index = imagenet_id_index_map[object_name]
 
                 xmax = int(file_content[xmax_begin_index + 6: xmax_end_index])
                 xmin = int(file_content[xmin_begin_index + 6: xmin_end_index])
@@ -60,21 +62,21 @@ def construct_ILSVRC_DET(constructor, seed):
                 w = xmax - xmin
                 h = ymax - ymin
 
-                return object_name, x, y, w, h, ymax_end_index + 7
+                return object_category_index, x, y, w, h, ymax_end_index + 7
 
             while True:
                 next_object_in_annotation_file = _findNextObject(file_content, offset)
                 if next_object_in_annotation_file is None:
                     break
-                object_name, x, y, w, h, offset = next_object_in_annotation_file
+                object_category_index, x, y, w, h, offset = next_object_in_annotation_file
                 bounding_boxes.append((x, y, w, h))
-                object_classes.append(object_name)
+                object_category_indices.append(object_category_index)
             if len(bounding_boxes) > 0:
                 image_name = annotation_file_name[:annotation_file_name.rfind('.')]
                 current_image = os.path.join(root_path, image_path, image_name + '.JPEG')
                 constructor.beginInitializeImage()
                 constructor.setImageName(image_name)
                 constructor.setImagePath(current_image)
-                for bounding_box, object_category in zip(bounding_boxes, object_classes):
-                    constructor.addObject(bounding_box, object_category)
+                for bounding_box, object_category_index in zip(bounding_boxes, object_category_indices):
+                    constructor.addObject(bounding_box, object_category_index)
                 constructor.endInitializeImage()

@@ -6,16 +6,16 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from util import box_ops
-from util.misc import (NestedTensor, nested_tensor_from_tensor_list,
+import Utils.boxes_ops as box_ops
+from Utils.detr_misc import (NestedTensor, nested_tensor_from_tensor_list,
                        accuracy, get_world_size, interpolate,
                        is_dist_avail_and_initialized)
 
-from .backbone import build_backbone
-from .matcher import build_matcher
+from models.backbone.detr.detr import build_backbone
+from models.head.detr.matcher import build_matcher
 from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm,
                            dice_loss, sigmoid_focal_loss)
-from .transformer import build_transformer
+from models.transformer.detr_transformer import build_transformer
 
 
 class DETR(nn.Module):
@@ -301,7 +301,26 @@ class MLP(nn.Module):
         return x
 
 
-def build(args):
+def build_detr(net_config: dict, num_classes: int):
+    num_classes = num_classes + 1
+
+    backbone = build_backbone(net_config)
+
+    transformer = build_transformer(net_config)
+
+    transformer_config = net_config['transformer']
+
+    model = DETR(
+        backbone,
+        transformer,
+        num_classes=num_classes,
+        num_queries=transformer_config['num_queries'],
+        aux_loss=False,
+    )
+    return model
+
+
+def build_detr_train(net_config: dict, train_config: dict, num_classes: int):
     # the `num_classes` naming here is somewhat misleading.
     # it indeed corresponds to `max_obj_id + 1`, where max_obj_id
     # is the maximum id for a class in your dataset. For example,
@@ -310,50 +329,35 @@ def build(args):
     # you should pass `num_classes` to be 2 (max_obj_id + 1).
     # For more details on this, check the following discussion
     # https://github.com/facebookresearch/detr/issues/108#issuecomment-650269223
-    num_classes = 20 if args.dataset_file != 'coco' else 91
-    if args.dataset_file == "coco_panoptic":
-        # for panoptic, we just add a num_classes that is large enough to hold
-        # max_obj_id + 1, but the exact value doesn't really matter
-        num_classes = 250
-    device = torch.device(args.device)
+    num_classes = num_classes + 1
 
-    backbone = build_backbone(args)
+    backbone = build_backbone(net_config)
 
-    transformer = build_transformer(args)
+    transformer = build_transformer(net_config)
+
+    transformer_config = net_config['transformer']
+    loss_config = train_config['train']['loss']
 
     model = DETR(
         backbone,
         transformer,
         num_classes=num_classes,
-        num_queries=args.num_queries,
-        aux_loss=args.aux_loss,
+        num_queries=transformer_config['num_queries'],
+        aux_loss=loss_config['aux'],
     )
-    if args.masks:
-        model = DETRsegm(model, freeze_detr=(args.frozen_weights is not None))
-    matcher = build_matcher(args)
-    weight_dict = {'loss_ce': 1, 'loss_bbox': args.bbox_loss_coef}
-    weight_dict['loss_giou'] = args.giou_loss_coef
-    if args.masks:
-        weight_dict["loss_mask"] = args.mask_loss_coef
-        weight_dict["loss_dice"] = args.dice_loss_coef
+    matcher = build_matcher(train_config)
+    weight_dict = {'loss_ce': 1, 'loss_bbox': loss_config['bbox_coef']}
+    weight_dict['loss_giou'] = loss_config['giou_coef']
     # TODO this is a hack
-    if args.aux_loss:
+    if loss_config['aux']:
         aux_weight_dict = {}
-        for i in range(args.dec_layers - 1):
+        for i in range(transformer_config['decoder']['num_layers'] - 1):
             aux_weight_dict.update({k + f'_{i}': v for k, v in weight_dict.items()})
         weight_dict.update(aux_weight_dict)
 
     losses = ['labels', 'boxes', 'cardinality']
-    if args.masks:
-        losses += ["masks"]
     criterion = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
-                             eos_coef=args.eos_coef, losses=losses)
-    criterion.to(device)
+                             eos_coef=loss_config['eos_coef'], losses=losses)
     postprocessors = {'bbox': PostProcess()}
-    if args.masks:
-        postprocessors['segm'] = PostProcessSegm()
-        if args.dataset_file == "coco_panoptic":
-            is_thing_map = {i: i <= 90 for i in range(201)}
-            postprocessors["panoptic"] = PostProcessPanoptic(is_thing_map, threshold=0.85)
 
     return model, criterion, postprocessors

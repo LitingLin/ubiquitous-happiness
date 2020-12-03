@@ -22,13 +22,12 @@ class DetectionDataset_MemoryMapped:
 
     # the following is optional
     category_ids: np.ndarray
-    category_names: List
-    category_name_id_mapper: Dict
+    category_id_name_mapper: Dict
 
     is_presents: np.ndarray
 
     def __init__(self):
-        self.structure_version = 3
+        self.structure_version = 4
         self.filters = []
         self.data_type = DataSplit.Full
         self.attributes = {}
@@ -77,10 +76,10 @@ class DetectionDataset_MemoryMapped:
         return DetectionDatasetImageView_MemoryMapped(self, index, attribute_index, length)
 
     def getCategoryNameList(self):
-        return self.category_names
+        return self.category_id_name_mapper.values()
 
     def getCategoryName(self, id_: int):
-        return self.category_names[id_]
+        return self.category_id_name_mapper[id_]
 
     def getAttribute(self, name):
         return self.attributes[name]
@@ -90,9 +89,6 @@ class DetectionDataset_MemoryMapped:
 
     def getAttributes(self):
         return self.attributes
-
-    def getCategoryId(self, name: str):
-        return self.category_name_id_mapper[name]
 
     def getConstructor(self):
         from Dataset.Detection.Base.MemoryMapped.constructor import DetectionDatasetConstructor_MemoryMapped
