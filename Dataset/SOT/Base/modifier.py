@@ -123,6 +123,9 @@ class SingleObjectDatasetModifier:
         assert isinstance(name, str)
         self.dataset.name = name
 
+    def applyIndicesFilter(self, indices):
+        self.dataset.sequences = self.dataset.sequences[indices]
+
     def __len__(self):
         return len(self.dataset)
 

@@ -1,9 +1,5 @@
-class SortByImageRatio:
-    def __str__(self):
-        return "SortByImageRatio"
+from ._common import _BaseFilter
 
-    def __eq__(self, other):
-        return isinstance(other, SortByImageRatio)
 
-    def __repr__(self):
-        return str(self)
+class SortByImageRatio(_BaseFilter):
+    pass

@@ -1,4 +1,7 @@
-class DataCleaner_BoundingBox:
+from ._common import _BaseFilter
+
+
+class DataCleaner_BoundingBox(_BaseFilter):
     def __call__(self, bounding_box, image_size):
         assert len(bounding_box) == 4
         assert len(image_size) == 2
@@ -22,12 +25,3 @@ class DataCleaner_BoundingBox:
         if bounding_box[1] + bounding_box[3] > image_size[1]:
             bounding_box[3] = image_size[1] - bounding_box[1]
         return bounding_box
-
-    def __str__(self):
-        return "DataCleaner_BoundingBox"
-
-    def __eq__(self, other):
-        return isinstance(other, DataCleaner_BoundingBox)
-
-    def __repr__(self):
-        return str(self)

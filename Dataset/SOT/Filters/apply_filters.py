@@ -1,6 +1,7 @@
 from Dataset.Filter.DataCleaner_BoundingBox import DataCleaner_BoundingBox
 from Dataset.Filter.DataCleaner_Integrity import DataCleaner_Integrity
 from Dataset.Filter.DataCleaner_NoAbsentObjects import DataCleaner_NoAbsentObjects
+from Dataset.Filter.Selector import Selector
 import copy
 
 from Dataset.SOT.Base.dataset import SingleObjectTrackingDataset
@@ -50,6 +51,10 @@ def apply_filters(dataset: SingleObjectTrackingDataset, filters: list, make_cach
                 for sequence in modifier:
                     if len(sequence) == 0:
                         sequence.delete()
+        elif isinstance(filter_, Selector):
+            modifier.applyIndicesFilter(filter_(len(modifier)))
+        else:
+            raise Exception
 
     new_dataset.filters = new_filters
     if make_cache:

@@ -1,9 +1,5 @@
-class DataCleaner_NoAbsentObjects:
-    def __str__(self):
-        return "DataCleaner_NoAbsentObjects"
+from ._common import _BaseFilter
 
-    def __eq__(self, other):
-        return isinstance(other, DataCleaner_NoAbsentObjects)
 
-    def __repr__(self):
-        return str(self)
+class DataCleaner_NoAbsentObjects(_BaseFilter):
+    pass

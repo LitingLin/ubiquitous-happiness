@@ -19,6 +19,9 @@ class SingleObjectTrackingDatasetFrameViewer:
     def getImagePath(self):
         return join_and_get_platform_style_path(self.dataset.root_path, self.frame.image_path)
 
+    def getImageSize(self):
+        return self.frame.size
+
     def hasAttributes(self):
         return hasattr(self.frame, 'bounding_box')
 

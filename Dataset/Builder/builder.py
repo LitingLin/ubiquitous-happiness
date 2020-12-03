@@ -75,7 +75,7 @@ def build_datasets(config_path: str):
             seed = seed_class()
             seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
             factory = DetectionDatasetFactory(seed)
-            dataset = factory.constructMemoryMappedVersion(filters)
+            dataset = factory.construct(filters)
             forward_parameters(dataset, dataset_building_parameter)
             datasets.append(dataset)
         elif dataset_type == 'SOT':
@@ -85,7 +85,7 @@ def build_datasets(config_path: str):
             seed = seed_class()
             seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
             factory = SingleObjectTrackingDatasetFactory(seed)
-            dataset = factory.constructMemoryMapped(filters)
+            dataset = factory.construct(filters)
             forward_parameters(dataset, dataset_building_parameter)
             datasets.append(dataset)
         elif dataset_type == 'MOT':

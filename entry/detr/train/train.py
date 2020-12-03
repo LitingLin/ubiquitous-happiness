@@ -86,6 +86,7 @@ def build_dataloader(is_distributed: bool, num_workers: int, coco_path: str, bat
     from Dataset.DataSplit import DataSplit
     from data.detr_wrapper.wrapper import DETRDataset
     from data.augmentation.detr import make_detr_transforms
+
     dataset_train = DetectionDatasetFactory(COCO_Seed(coco_path, data_split=DataSplit.Training, version=COCOVersion._2017)).construct()
     max_category_id = dataset_train.getMaxCategoryId()
     dataset_train = DETRDataset(dataset_train, make_detr_transforms('train'))
@@ -166,7 +167,7 @@ def main(args):
         if args.output_dir:
             checkpoint_paths = [output_dir / 'checkpoint.pth']
             # extra checkpoint before LR drop and every 100 epochs
-            if (epoch + 1) % args.lr_drop == 0 or (epoch + 1) % 100 == 0:
+            if (epoch + 1) % train_config['train']['lr_drop'] == 0 or (epoch + 1) % 100 == 0:
                 checkpoint_paths.append(output_dir / f'checkpoint{epoch:04}.pth')
             for checkpoint_path in checkpoint_paths:
                 utils.save_on_master(actor.state_dict(), checkpoint_path)

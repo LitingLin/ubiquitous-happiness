@@ -6,6 +6,7 @@ from Dataset.Filter.DataCleaner_BoundingBox import DataCleaner_BoundingBox
 from Dataset.Filter.DataCleaner_Integrity import DataCleaner_Integrity
 from Dataset.Filter.DataCleaner_NoAbsentObjects import DataCleaner_NoAbsentObjects
 from Dataset.Filter.SortByImageRatio import SortByImageRatio
+from Dataset.Filter.Selector import Selector
 
 
 def apply_filters(dataset: DetectionDataset, filters, make_cache = True):
@@ -33,6 +34,8 @@ def apply_filters(dataset: DetectionDataset, filters, make_cache = True):
             modifier.removeAbsentObjects()
         elif isinstance(filter, SortByImageRatio):
             modifier.sortByImageRatio()
+        elif isinstance(filter, Selector):
+            modifier.applyIndicesFilter(filter(len(modifier)))
         else:
             raise ValueError('Unsupported')
 
