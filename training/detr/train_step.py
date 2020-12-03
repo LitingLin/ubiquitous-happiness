@@ -15,7 +15,7 @@ def train_one_epoch(actor,
 
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         samples = samples.to(device)
-        targets = [{k: v.to(device) for k, v in t.items() if isinstance(v, torch.Tensor)} for t in targets]
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         forward_stats = actor.forward(samples, targets)
         backward_stats = actor.backward(max_norm)
