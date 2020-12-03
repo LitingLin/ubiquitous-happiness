@@ -81,11 +81,11 @@ def build_dataloader(is_distributed: bool, num_workers: int, coco_path: str, bat
     from data.detr_wrapper.wrapper import DETRDataset
     from data.augmentation.detr import make_detr_transforms
     dataset_train = DetectionDatasetFactory(COCO_Seed(coco_path, data_split=DataSplit.Training, version=COCOVersion._2017)).construct()
-    num_classes = dataset_train.getNumberOfCategories()
+    max_category_id = dataset_train.getMaxCategoryId()
     dataset_train = DETRDataset(dataset_train, make_detr_transforms('train'))
 
     dataset_val = DetectionDatasetFactory(COCO_Seed(coco_path, data_split=DataSplit.Validation, version=COCOVersion._2017)).construct()
-    assert num_classes == dataset_val.getNumberOfCategories()
+    max_category_id = max(dataset_val.getNumberOfCategories(), max_category_id)
     dataset_val = DETRDataset(dataset_val, make_detr_transforms('val'))
 
     if is_distributed:
@@ -102,7 +102,7 @@ def build_dataloader(is_distributed: bool, num_workers: int, coco_path: str, bat
                                    collate_fn=utils.collate_fn, num_workers=num_workers)
     data_loader_val = DataLoader(dataset_val, batch_size, sampler=sampler_val,
                                  drop_last=False, collate_fn=utils.collate_fn, num_workers=num_workers)
-    return data_loader_train, data_loader_val, num_classes
+    return data_loader_train, data_loader_val, max_category_id
 
 
 def main(args):
@@ -120,14 +120,14 @@ def main(args):
     net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'network.yaml'), args.net_config)
     train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'train.yaml'), args.train_config)
 
-    data_loader_train, data_loader_val, num_classes = build_dataloader(args.distributed, args.num_workers, args.coco_path, train_config['train']['batch_size'])
+    data_loader_train, data_loader_val, max_category_id = build_dataloader(args.distributed, args.num_workers, args.coco_path, train_config['train']['batch_size'])
 
     from pycocotools.coco import COCO
     coco_root = Path(args.coco_path)
     coco_val_annofile = coco_root / "annotations" / 'instances_val2017.json'
     coco_val_anno = COCO(coco_val_annofile)
 
-    actor, postprocessors = build_training_actor(args, net_config, train_config, num_classes)
+    actor, postprocessors = build_training_actor(args, net_config, train_config, max_category_id)
     actor.to(device)
 
     output_dir = Path(args.output_dir)
