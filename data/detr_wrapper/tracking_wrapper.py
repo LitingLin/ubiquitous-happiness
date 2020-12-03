@@ -21,5 +21,5 @@ class DETRSOTDataset(Dataset):
         image_size = frame.getImageSize()
 
         box = [frame.getBoundingBox()]
-        class_ = [sequence.getCategoryName()]
+        class_ = [sequence.getCategoryId()]
         return _detr_processing(image_path, image_size, None, box, class_, self.transforms)

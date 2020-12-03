@@ -98,7 +98,7 @@ def build_dataloader(is_distributed: bool, num_workers: int, got_path: str, coco
     dataset_train = SingleObjectTrackingDatasetFactory(GOT10k_Seed(got_path, data_split=DataSplit.Training)).construct(
         [DataCleaner_BoundingBox(), DataCleaner_NoAbsentObjects(), DataCleaner_Integrity(), Selector(range_by_ratio={'start': 0., 'stop': 0.6}, random=True, random_seed=0)])
     max_category_id = dataset_train.getMaxCategoryId()
-    dataset_train = DETRSOTDataset(dataset_train, make_detr_transforms('train'))
+    dataset_train = DETRSOTDataset(dataset_train, make_detr_transforms('train'), samples_per_vid=2)
 
     dataset_val = DetectionDatasetFactory(COCO_Seed(coco_path, data_split=DataSplit.Validation, version=COCOVersion._2017)).construct()
     max_category_id = max(dataset_val.getNumberOfCategories(), max_category_id)
