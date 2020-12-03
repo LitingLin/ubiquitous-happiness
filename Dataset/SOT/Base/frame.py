@@ -31,11 +31,17 @@ class SingleObjectTrackingDatasetFrameViewer:
     def getAttributeIsPresent(self):
         return self.frame.is_present
 
-    def getClassName(self):
-        return self.dataset.class_label_names[self.sequence.class_label]
+    def getCategoryName(self):
+        return self.dataset.category_id_name_mapper[self.sequence.category_id]
+
+    def getCategoryId(self):
+        return self.sequence.category_id
 
     def getAttribute(self, name):
         return self.frame.attributes[name]
+
+    def hasAttribute(self, name):
+        return name in self.frame.attributes
 
     def __iter__(self):
         yield from [self.getImagePath(), self.getBoundingBox(), self.getAttributeIsPresent()]

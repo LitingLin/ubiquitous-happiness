@@ -1,6 +1,5 @@
-import torch
 from torch.utils.data.dataset import Dataset
-from PIL import Image
+from ._common import _detr_processing
 import random
 
 
@@ -18,6 +17,9 @@ class DETRSOTDataset(Dataset):
         sequence = self.dataset[index_of_sequence]
         index_of_frame = random.randint(0, len(sequence) - 1)
         frame = sequence[index_of_frame]
-        image = Image.open(frame.getImagePath()).convert('RGB')
-        w, h = frame.getImageSize()
+        image_path = frame.getImagePath()
+        image_size = frame.getImageSize()
 
+        box = [frame.getBoundingBox()]
+        class_ = [sequence.getCategoryName()]
+        return _detr_processing(image_path, image_size, None, box, class_, self.transforms)

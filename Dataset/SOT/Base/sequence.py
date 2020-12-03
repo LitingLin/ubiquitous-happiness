@@ -33,7 +33,7 @@ class SingleObjectTrackingDatasetSequenceViewer:
         return self.sequence.category_id
 
     def getCategoryName(self):
-        return self.dataset.category_names[self.sequence.category_id]
+        return self.dataset.category_id_name_mapper[self.sequence.category_id]
 
     def getFrame(self, index: int):
         return SingleObjectTrackingDatasetFrameViewer(self.dataset, self.sequence, self.sequence.frames[index])

@@ -69,10 +69,6 @@ class SingleObjectDatasetSequenceModifier:
         self.sequence = self.dataset.sequences[index]
         self.parent_iterator = iterator
 
-    def setCategoryName(self, category: str):
-        assert self.context.has_object_category
-        self.sequence.category_id = _get_or_allocate_category_id(category, self.dataset.category_names, self.dataset.category_name_id_mapper)
-
     def setName(self, name: str):
         self.sequence.name = name
 
@@ -81,10 +77,6 @@ class SingleObjectDatasetSequenceModifier:
         if self.parent_iterator is not None:
             self.parent_iterator.index -= 1
         del self
-
-    def getCategoryName(self):
-        assert self.context.has_object_category
-        return self.dataset.category_names[self.sequence.category_id]
 
     def __len__(self):
         return len(self.sequence.frames)

@@ -3,6 +3,27 @@ from Dataset import DataSplit
 from tqdm import tqdm
 
 
+def _get_category_names(root_path):
+    category_names = []
+    for folder in ['train', 'val']:
+        for sequence_name in tqdm(open(os.path.join(root_path, folder, 'list.txt'), 'r')):
+            sequence_name = sequence_name.strip()
+            current_sequence_path = os.path.join(root_path, folder, sequence_name)
+
+            objectClass = None
+            for line in open(os.path.join(current_sequence_path, 'meta_info.ini'), 'r'):
+                if line.startswith('object_class: '):
+                    objectClass = line[len('object_class: '):]
+                    objectClass = objectClass.strip()
+                    if len(objectClass) == 0:
+                        objectClass = None
+                    break
+            category_names.append(objectClass)
+
+    category_names.sort()
+    return category_names
+
+
 def construct_GOT10k(constructor, seed):
     root_path = seed.root_path
     data_type = seed.data_split
@@ -14,7 +35,9 @@ def construct_GOT10k(constructor, seed):
     if data_type & DataSplit.Validation:
         folders.append('val')
 
-    records = {}
+    category_names = _get_category_names(root_path)
+    constructor.mergeCategoryIdNameMapper({k: v for k, v in enumerate(category_names)})
+    category_name_id_map = {v: k for k, v in enumerate(category_names)}
 
     for folder in folders:
         for sequence_name in tqdm(open(os.path.join(root_path, folder, 'list.txt'), 'r')):
@@ -53,15 +76,12 @@ def construct_GOT10k(constructor, seed):
             if objectClass is None:
                 raise Exception
 
-            if objectClass not in records:
-                records[objectClass] = []
-            records[objectClass].append((folder, sequence_name, images, boundingBoxes, is_presents))
-
-    for objectClass, sequences in records.items():
-        for folder, sequence_name, images, boundingBoxes, is_presents in sequences:
             constructor.beginInitializingSequence()
             constructor.setSequenceName(sequence_name)
-            constructor.setSequenceObjectCategory(objectClass)
+            constructor.setSequenceObjectCategory(category_name_id_map[objectClass])
+
             for image, boundingBox, is_present in zip(images, boundingBoxes, is_presents):
-                constructor.setFrameAttributes(constructor.addFrame(os.path.join(root_path, folder, sequence_name, image)), boundingBox, is_present)
+                constructor.setFrameAttributes(
+                    constructor.addFrame(os.path.join(root_path, folder, sequence_name, image)),
+                    boundingBox, is_present)
             constructor.endInitializingSequence()

@@ -6,6 +6,8 @@ def construct_DeformSOT(constructor, seed):
     assert seed.data_split == DataSplit.Full
     root_path = seed.root_path
 
+    auto_category_id_allocator = constructor.getAutoCategoryIdAllocationTool()
+
     sequences = os.listdir(root_path)
     sequences = [sequence for sequence in sequences if os.path.isdir(os.path.join(root_path, sequence)) and sequence != 'Annotations']
 
@@ -39,7 +41,8 @@ def construct_DeformSOT(constructor, seed):
 
         constructor.beginInitializingSequence()
         constructor.setSequenceName(sequence)
-        constructor.setSequenceObjectCategory(class_label)
+        category_id = auto_category_id_allocator.getOrAllocateCategoryId(class_label)
+        constructor.setSequenceObjectCategory(category_id)
         for image, bounding_box in zip(images, bounding_boxes):
             image_path = os.path.join(sequence_dir, image)
             constructor.setFrameAttributes(constructor.addFrame(image_path), bounding_box)

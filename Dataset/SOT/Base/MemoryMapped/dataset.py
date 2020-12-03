@@ -25,8 +25,7 @@ class SingleObjectTrackingDataset_MemoryMapped:
 
     sequence_fps_s: np.ndarray
 
-    category_names: List
-    category_name_id_mapper: Dict
+    category_id_name_mapper: Dict[int, str]
 
     def __init__(self):
         self.structure_version = 2
@@ -50,13 +49,16 @@ class SingleObjectTrackingDataset_MemoryMapped:
         return hasattr(self, 'sequence_fps_s')
 
     def getCategoryNameList(self):
-        return self.category_names
+        return self.category_id_name_mapper.values()
 
     def getNumberOfCategories(self):
-        return len(self.category_names)
+        return len(self.category_id_name_mapper)
+
+    def getMaxCategoryId(self):
+        return max(self.category_id_name_mapper.keys())
 
     def getCategoryName(self, id_: int):
-        return self.category_names[id_]
+        return self.category_id_name_mapper[id_]
 
     def getAttribute(self, name):
         return self.attributes[name]

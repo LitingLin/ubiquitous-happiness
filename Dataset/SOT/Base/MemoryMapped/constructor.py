@@ -18,8 +18,7 @@ class SingleObjectTrackingDatasetConstructor_MemoryMapped(DatasetConstructor_Cac
         sequences_has_object_category_attribute = dataset.attributes['has_object_category_attr']
         sequences_has_fps_attribute = dataset.attributes['has_fps_attr']
         if sequences_has_object_category_attribute:
-            self.dataset.category_names = dataset.category_names
-            self.dataset.category_name_id_mapper = dataset.category_name_id_mapper
+            self.dataset.category_id_name_mapper = dataset.category_id_name_mapper
         self.dataset.filters = dataset.filters
         self.dataset.data_type = dataset.data_split
         self.dataset.data_version = dataset.data_version
