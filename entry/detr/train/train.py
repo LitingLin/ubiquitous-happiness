@@ -9,8 +9,8 @@ import torch
 from torch.utils.data import DataLoader, DistributedSampler
 import os
 import Utils.detr_misc as utils
-from train.detr.train_step import train_one_epoch
-from train.detr.eval_step import evaluate
+from training.detr.train_step import train_one_epoch
+from training.detr.eval_step import evaluate
 
 from Utils.yaml_config import load_config
 
@@ -45,7 +45,7 @@ def get_args_parser():
 
 def build_training_actor(args, net_config: dict, train_config: dict, num_classes: int):
     from models.network.detection.detr import build_detr_train
-    from train.detr.actor import DETRActor
+    from training.detr.actor import DETRActor
     model, criterion, postprocessors = build_detr_train(net_config, train_config, num_classes)
 
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -74,7 +74,7 @@ def build_training_actor(args, net_config: dict, train_config: dict, num_classes
     return DETRActor(model, criterion, optimizer, lr_scheduler), postprocessors
 
 
-def build_dataloader(coco_path: str):
+def build_dataloader(is_distributed: bool, num_workers: int, coco_path: str, batch_size: int):
     from Dataset.Detection.factory import DetectionDatasetFactory
     from Dataset.Detection.FactorySeeds.COCO import COCO_Seed, COCOVersion
     from Dataset.DataSplit import DataSplit
@@ -88,7 +88,7 @@ def build_dataloader(coco_path: str):
     assert num_classes == dataset_val.getNumberOfCategories()
     dataset_val = DETRDataset(dataset_val, make_detr_transforms('val'))
 
-    if args.distributed:
+    if is_distributed:
         sampler_train = DistributedSampler(dataset_train)
         sampler_val = DistributedSampler(dataset_val, shuffle=False)
     else:
@@ -96,12 +96,12 @@ def build_dataloader(coco_path: str):
         sampler_val = torch.utils.data.SequentialSampler(dataset_val)
 
     batch_sampler_train = torch.utils.data.BatchSampler(
-        sampler_train, args.batch_size, drop_last=True)
+        sampler_train, batch_size, drop_last=True)
 
     data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train,
-                                   collate_fn=utils.collate_fn, num_workers=args.num_workers)
-    data_loader_val = DataLoader(dataset_val, args.batch_size, sampler=sampler_val,
-                                 drop_last=False, collate_fn=utils.collate_fn, num_workers=args.num_workers)
+                                   collate_fn=utils.collate_fn, num_workers=num_workers)
+    data_loader_val = DataLoader(dataset_val, batch_size, sampler=sampler_val,
+                                 drop_last=False, collate_fn=utils.collate_fn, num_workers=num_workers)
     return data_loader_train, data_loader_val, num_classes
 
 
@@ -117,15 +117,15 @@ def main(args):
 
     device = torch.device(args.device)
 
-    data_loader_train, data_loader_val, num_classes = build_dataloader(args.coco_path)
+    net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'network.yaml'), args.net_config)
+    train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'train.yaml'), args.train_config)
+
+    data_loader_train, data_loader_val, num_classes = build_dataloader(args.distributed, args.num_workers, args.coco_path, train_config['train']['batch_size'])
 
     from pycocotools.coco import COCO
     coco_root = Path(args.coco_path)
     coco_val_annofile = coco_root / "annotations" / 'instances_val2017.json'
     coco_val_anno = COCO(coco_val_annofile)
-
-    net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'network.yaml'), args.net_config)
-    train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'train.yaml'), args.train_config)
 
     actor, postprocessors = build_training_actor(args, net_config, train_config, num_classes)
     actor.to(device)
@@ -152,7 +152,7 @@ def main(args):
 
     print("Start training")
     start_time = time.time()
-    for epoch in range(args.start_epoch, args.epochs):
+    for epoch in range(args.start_epoch, train_config['train']['epochs']):
         if args.distributed:
             data_loader_train.batch_sampler.sampler.set_epoch(epoch)
         train_stats = train_one_epoch(actor, data_loader_train, device, epoch,
