@@ -57,7 +57,7 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         import subprocess
         if sys.platform == 'win32':
             cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja',
-                             '-DCUDA_ROOT={}'.format(cuda_path),
+                             '-DCMAKE_CUDA_COMPILER={}'.format(os.path.join(cuda_path, 'bin', 'nvcc.exe')),
                              '-DPython3_ROOT_DIR={}'.format(python_root_path),
                              '-DCMAKE_INSTALL_PREFIX={}'.format(install_path)]
             if is_anaconda_dist():
@@ -72,18 +72,18 @@ def build_extension_cmake(cuda_path=None, verbose=False):
             subprocess.check_call(['ninja', 'install'])
         else:
             cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
-                             '-DCUDA_ROOT={}'.format(cuda_path),
+                             '-DCMAKE_CUDA_COMPILER={}'.format(os.path.join(cuda_path, 'bin', 'nvcc')),
                              '-DPython3_ROOT_DIR={}'.format(python_root_path),
                              '-DCMAKE_INSTALL_PREFIX={}'.format(install_path)]
             if is_anaconda_dist():
                 cmake_command.append('-DCMAKE_PREFIX_PATH={}'.format(python_root_path))
-            subprocess.check_call(cmake_command)
+            subprocess.check_call(cmake_command, cwd=_build_path)
             import multiprocessing
             make_kwargs = {}
             if verbose:
                 make_kwargs = {'env': {'VERBOSE': '1'}}
-            subprocess.check_call(['make', '-j{}'.format(multiprocessing.cpu_count())], **make_kwargs)
-            subprocess.check_call(['make', 'install'])
+            subprocess.check_call(['make', '-j{}'.format(multiprocessing.cpu_count()), 'VERBOSE=1'], cwd=_build_path)
+            subprocess.check_call(['make', 'install'], cwd=_build_path)
     finally:
         os.chdir(original_wd)
 
@@ -100,8 +100,8 @@ def clean_up():
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('clean', action='store_true')
-    parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--clean', action='store_true')
+    parser.add_argument('--verbose', '-v', action='store_true')
     parser.add_argument('--cuda_path', type=str, default=None)
     args = parser.parse_args()
     if args.clean:

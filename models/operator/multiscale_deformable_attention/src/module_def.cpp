@@ -8,7 +8,7 @@
 **************************************************************************************************
 */
 
-#include "ms_deform_attn.h"
+#include "cuda/ms_deform_attn_cuda.h"
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("ms_deform_attn_cuda_forward", &ms_deform_attn_cuda_forward);

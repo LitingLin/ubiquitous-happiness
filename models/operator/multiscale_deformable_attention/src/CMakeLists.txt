@@ -4,11 +4,7 @@ project(ms_deform_atten)
 set(PYTHON_MODULE_NAME _C)
 
 set(SRC_FILES
-    "${CMAKE_CURRENT_LIST_DIR}/ms_deform_attn.h"
-    "${CMAKE_CURRENT_LIST_DIR}/vision.cpp"
-
-    "${CMAKE_CURRENT_LIST_DIR}/cpu/ms_deform_attn_cpu.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/cpu/ms_deform_attn_cpu.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/module_def.cpp"
     )
 set(CUDA_SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/cuda/ms_deform_attn_cuda.cu"
@@ -26,4 +22,4 @@ endif()
 
 target_include_directories(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_INCLUDE_PATHS} ${pybind11_INCLUDE_DIRS})
 target_link_directories(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_LIBRARY_PATHS})
-target_link_libraries(${PYTHON_MODULE_NAME} PRIVATE ${Python3_LIBRARIES})
+target_link_libraries(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_LIBRARIES})

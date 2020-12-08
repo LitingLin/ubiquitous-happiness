@@ -18,6 +18,9 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 find_package(Python3 COMPONENTS Interpreter Development)
 
@@ -144,18 +147,6 @@ list(APPEND EXTRA_LIBRARY_PATHS ${PYTORCH_LIBRARY_PATHS})
 find_package(Torch REQUIRED PATHS ${PYTHON_SITE_PACKAGE_PATH}/torch/share/cmake/Torch)
 list(APPEND EXTRA_LIBRARIES ${TORCH_LIBRARIES})
 
-execute_process(
-        COMMAND "${Python3_EXECUTABLE}" -c "if True:
-    from torch.utils.cpp_extension import _prepare_ldflags
-    print(' '.join(_prepare_ldflags([], True, False)))"
-        OUTPUT_VARIABLE PYTORCH_LD_FLAGS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE RETVAL)
-
-if (NOT ${RETVAL} EQUAL "0")
-    message(FATAL_ERROR "Failed to get torch ld_flags")
-endif()
-
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}" "${EXTRA_LIBRARY_PATHS}")
 
 if (NOT WIN32)
@@ -188,18 +179,18 @@ if (NOT WIN32)
     string(REPLACE "-Wstrict-prototypes" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-ffast-math")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-ffast-math")
-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--no-undefined -pthread ${PYTORCH_LD_FLAGS}")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined -pthread ${PYTORCH_LD_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--no-undefined -pthread ${PYTORCH_LD_FLAGS}")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--no-undefined -pthread")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined -pthread")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--no-undefined -pthread")
 endif()
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast /D_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING /wd4251 /wd4275 /Zc:referenceBinding /Zc:throwingNew /Zc:strictStrings /Zc:inline /Zc:rvalueCast")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /O2 /Ob2 /GL /GS- /Oi /Zi")
     set(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
     set(CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
-    set(CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO "/LTCG ${PYTORCH_LD_FLAGS}")
-    set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "/MANIFEST /LTCG:incremental /DEBUG:FULL /OPT:REF /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /OPT:ICF ${PYTORCH_LD_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/MANIFEST /LTCG:incremental /DEBUG:FULL /OPT:REF /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /OPT:ICF ${PYTORCH_LD_FLAGS}")
+    set(CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO "/LTCG")
+    set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "/MANIFEST /LTCG:incremental /DEBUG:FULL /OPT:REF /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /OPT:ICF")
+    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/MANIFEST /LTCG:incremental /DEBUG:FULL /OPT:REF /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /OPT:ICF")
 endif()
 
 add_subdirectory(src)
