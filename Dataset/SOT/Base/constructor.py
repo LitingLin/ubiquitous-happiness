@@ -4,7 +4,7 @@ from Dataset.SOT.Base.dataset import SingleObjectTrackingDataset
 from Dataset.SOT.Base.sequence import SingleObjectTrackingDatasetSequence
 from Dataset.SOT.Base.frame import SingleObjectTrackingDatasetFrame
 from Dataset.CacheService.constructor import DatasetConstructor_CacheService_Base
-from ._impl import _set_image_path, _get_or_allocate_category_id
+from ._impl import _set_image_path
 
 
 class SingleObjectTrackingDatasetConstructor(DatasetConstructor_CacheService_Base):
@@ -20,6 +20,43 @@ class SingleObjectTrackingDatasetConstructor(DatasetConstructor_CacheService_Bas
     def __del__(self):
         if self.sequence is not None:
             raise Exception("Call endInitializeSequence() before destroying the Constructor")
+
+    def getAutoCategoryIdAllocationTool(self):
+        class AutoCategoryIdAllocationTool:
+            def __init__(self, dataset):
+                self.dataset = dataset
+                self.category_name_id_mapper = {}
+                self.max_id = 0 if len(self.dataset.category_id_name_mapper) == 0 else next(iter(self.dataset.category_id_name_mapper.keys()))
+                for category_id, category_name in self.dataset.category_id_name_mapper.items():
+                    assert category_name not in self.category_name_id_mapper, "Auto allocation tool only fit for id<-->name 1:1 mapping"
+                    self.category_name_id_mapper[category_name] = category_id
+                    self.max_id = max(self.max_id, category_id)
+
+            def getOrAllocateCategoryId(self, category_name):
+                if category_name not in self.category_name_id_mapper:
+                    # allocate
+                    id_ = self.max_id + 1
+                    assert id_ not in self.dataset.category_id_name_mapper
+                    self.dataset.category_id_name_mapper[id_] = category_name
+                    self.category_name_id_mapper[category_name] = id_
+                    self.max_id = id_
+                else:
+                    id_ = self.category_name_id_mapper[category_name]
+                return id_
+        return AutoCategoryIdAllocationTool(self.dataset)
+
+    def mergeCategoryIdNameMapper(self, mapper: Dict[int, str], no_conflict:bool=True):
+        if not no_conflict:
+            self.dataset.category_id_name_mapper.update(mapper)
+        else:
+            for new_id, new_name in mapper.items():
+                if new_id in self.dataset.category_id_name_mapper:
+                    assert new_name != self.dataset.category_id_name_mapper[new_id]
+                else:
+                    self.dataset.category_id_name_mapper[new_id] = new_name
+
+    def setCategoryIdName(self, id_: int, name: str):
+        self.dataset.category_id_name_mapper[id_] = name
 
     def beginInitializingSequence(self):
         if self.sequence is not None:
@@ -38,11 +75,12 @@ class SingleObjectTrackingDatasetConstructor(DatasetConstructor_CacheService_Bas
     def setSequenceAttribute(self, name: str, value):
         self.sequence.attributes[name] = value
 
-    def setSequenceObjectCategory(self, category: str):
+    def setSequenceObjectCategory(self, category_id: int):
+        assert isinstance(category_id, int)
         if self.sequence.category_id is not None:
-            raise Exception("Calling setSequenceClassLabel() twice before endInitializeSequence()")
+            raise Exception("Calling setSequenceObjectCategoryId() twice before endInitializeSequence()")
 
-        self.sequence.category_id = _get_or_allocate_category_id(category, self.dataset.category_names, self.dataset.category_name_id_mapper)
+        self.sequence.category_id = category_id
 
     def addFrame(self, path: str):
         frame = SingleObjectTrackingDatasetFrame()

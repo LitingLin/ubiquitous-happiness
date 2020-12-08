@@ -25,10 +25,13 @@ class Selector(_BaseFilter):
             self.random_engine.shuffle(indices)
 
         if self.action_name == 'range':
-            return indices[slice(**self.action_value)]
+            slice_params = {'start': 0, 'stop': length, 'step': 1}
+            slice_params.update(self.action_value)
+            return indices[slice(slice_params['start'], slice_params['stop'], slice_params['step'])]
         elif self.action_name == 'range_by_ratio':
-            slice_params = {k: int(round(v*length)) for k, v in self.action_value.items()}
-            return indices[slice(**slice_params)]
+            slice_params = {'start': 0, 'stop': length, 'step': 1}
+            slice_params.update({k: int(round(v*length)) for k, v in self.action_value.items()})
+            return indices[slice(slice_params['start'], slice_params['stop'], slice_params['step'])]
         elif self.action_name == 'indices':
             return indices[self.action_value]
         else:

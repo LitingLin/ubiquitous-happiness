@@ -5,20 +5,18 @@ from Dataset.DataSplit import DataSplit
 class SingleObjectTrackingDataset:
     sequences: List['SingleObjectTrackingDatasetSequence']
     root_path: str
-    category_names: List[str]
-    category_name_id_mapper: Dict[str, int]
+    category_id_name_mapper: Dict[int, str]
     name: str
     attributes: Dict
 
     def __init__(self):
         self.data_version = None
-        self.structure_version = 5
+        self.structure_version = 6
         self.data_split = DataSplit.Full
         self.filters = []
         self.sequences = []
         self.root_path = None
-        self.category_name_id_mapper = {}
-        self.category_names = []
+        self.category_id_name_mapper = {}
         self.name = None
         self.attributes = {}
 
@@ -33,17 +31,16 @@ class SingleObjectTrackingDataset:
         return self.name
 
     def getCategoryNameList(self):
-        return self.category_names
+        return self.category_id_name_mapper.values()
 
     def getNumberOfCategories(self):
-        return len(self.category_names)
+        return len(self.category_id_name_mapper)
+
+    def getMaxCategoryId(self):
+        return max(self.category_id_name_mapper.keys())
 
     def getCategoryName(self, id_: int):
-        return self.category_names[id_]
-
-    def getView(self):
-        from .view import SingleObjectTrackingDatasetView
-        return SingleObjectTrackingDatasetView(self)
+        return self.category_id_name_mapper[id_]
 
     def __getitem__(self, index: int):
         from .sequence import SingleObjectTrackingDatasetSequenceViewer

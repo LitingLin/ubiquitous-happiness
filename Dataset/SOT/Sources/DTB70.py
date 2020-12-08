@@ -6,6 +6,7 @@ def construct_DTB70(constructor, seed):
     assert seed.data_split == DataSplit.Full
     root_path = seed.root_path
 
+    auto_category_id_allocator = constructor.getAutoCategoryIdAllocationTool()
     sequence_list = os.listdir(root_path)
     sequence_list = [dirname for dirname in sequence_list if os.path.isdir(os.path.join(root_path, dirname))]
     sequence_list.sort()
@@ -34,7 +35,9 @@ def construct_DTB70(constructor, seed):
                 class_label = class_label[:-1]
             else:
                 break
-        constructor.setSequenceObjectCategory(class_label)
+
+        category_id = auto_category_id_allocator.getOrAllocateCategoryId(class_label)
+        constructor.setSequenceObjectCategory(category_id)
 
         for line_index, line in enumerate(open(os.path.join(path, ground_truth_files[0]), 'r')):
             line = line.strip()

@@ -151,7 +151,7 @@ class DetectionDatasetModifier:
         self.dataset.images = [images[index] for index in indices]
 
     def applyIndicesFilter(self, indices):
-        self.dataset.images = self.dataset.images[indices]
+        self.dataset.images = [self.dataset.images[index] for index in indices]
 
     def __iter__(self):
         return DetectionDatasetModifier_ImagesIterator(self.dataset, self.context)

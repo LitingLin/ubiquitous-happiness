@@ -1,5 +1,5 @@
 from .dataset import SingleObjectTrackingDataset
-from ._impl import _get_or_allocate_category_id, _set_image_path
+from ._impl import _set_image_path
 import pathlib
 
 
@@ -69,10 +69,6 @@ class SingleObjectDatasetSequenceModifier:
         self.sequence = self.dataset.sequences[index]
         self.parent_iterator = iterator
 
-    def setCategoryName(self, category: str):
-        assert self.context.has_object_category
-        self.sequence.category_id = _get_or_allocate_category_id(category, self.dataset.category_names, self.dataset.category_name_id_mapper)
-
     def setName(self, name: str):
         self.sequence.name = name
 
@@ -81,10 +77,6 @@ class SingleObjectDatasetSequenceModifier:
         if self.parent_iterator is not None:
             self.parent_iterator.index -= 1
         del self
-
-    def getCategoryName(self):
-        assert self.context.has_object_category
-        return self.dataset.category_names[self.sequence.category_id]
 
     def __len__(self):
         return len(self.sequence.frames)
@@ -124,7 +116,7 @@ class SingleObjectDatasetModifier:
         self.dataset.name = name
 
     def applyIndicesFilter(self, indices):
-        self.dataset.sequences = self.dataset.sequences[indices]
+        self.dataset.sequences = [self.dataset.sequences[index] for index in indices]
 
     def __len__(self):
         return len(self.dataset)
