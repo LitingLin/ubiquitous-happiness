@@ -62,6 +62,8 @@ if(${IS_ANACONDA_DISTRIBUTION})
     endif()
 endif()
 
+set(EXTRA_LIBRARIES ${Python3_LIBRARIES})
+
 execute_process(
         COMMAND "${Python3_EXECUTABLE}" -c "if True:
     from distutils import sysconfig as sc
@@ -82,8 +84,6 @@ set(CMAKE_PREFIX_PATH ${EXTRA_ROOT_PATHS} ${CMAKE_PREFIX_PATH})
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/")
-
-# find_package(Torch REQUIRED PATHS ${PYTHON_SITE_PACKAGE_PATH}/torch/share/cmake/Torch)
 
 execute_process(
         COMMAND "${Python3_EXECUTABLE}" -c "if True:
@@ -108,6 +108,10 @@ execute_process(
 if (NOT ${RETVAL} EQUAL "0")
     message(FATAL_ERROR "Torch not compiled with CUDA enabled")
 endif()
+
+enable_language(CUDA)
+
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${PYTORCH_CUDA_ARCH_FLAGS}")
 
 execute_process(
         COMMAND "${Python3_EXECUTABLE}" -c "if True:
@@ -136,6 +140,9 @@ if (NOT ${RETVAL} EQUAL "0")
 endif()
 
 list(APPEND EXTRA_LIBRARY_PATHS ${PYTORCH_LIBRARY_PATHS})
+
+find_package(Torch REQUIRED PATHS ${PYTHON_SITE_PACKAGE_PATH}/torch/share/cmake/Torch)
+list(APPEND EXTRA_LIBRARIES ${TORCH_LIBRARIES})
 
 execute_process(
         COMMAND "${Python3_EXECUTABLE}" -c "if True:
@@ -194,9 +201,5 @@ if (MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "/MANIFEST /LTCG:incremental /DEBUG:FULL /OPT:REF /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /OPT:ICF ${PYTORCH_LD_FLAGS}")
     set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "/MANIFEST /LTCG:incremental /DEBUG:FULL /OPT:REF /MANIFESTUAC:\"level='asInvoker' uiAccess='false'\" /OPT:ICF ${PYTORCH_LD_FLAGS}")
 endif()
-
-enable_language(CUDA)
-
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${PYTORCH_CUDA_ARCH_FLAGS}")
 
 add_subdirectory(src)
