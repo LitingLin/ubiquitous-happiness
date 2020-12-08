@@ -1,21 +1,21 @@
-def build_extension_cmake(argv=()):
+import os
+
+_current_path = os.path.abspath(os.path.join(__file__, os.pardir))
+_build_path = os.path.join(_current_path, 'cmake-build')
+
+
+def build_extension_cmake(cuda_path=None, verbose=False):
     import shutil
     import sys
     import os
 
     original_wd = os.getcwd()
-    current_path = os.path.abspath(os.path.join(__file__, os.pardir))
-    build_path = os.path.join(current_path, 'cmake-build')
-    install_path = current_path
-    source_path = os.path.abspath(current_path)
+    install_path = _current_path
+    source_path = os.path.abspath(_current_path)
 
-    if 'clean' in argv:
-        import shutil
-        try:
-            shutil.rmtree(build_path)
-        except:
-            pass
-        return
+    if cuda_path is None:
+        from torch.utils.cpp_extension import _find_cuda_home
+        cuda_path = _find_cuda_home()
 
     def is_anaconda_dist():
         return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
@@ -50,13 +50,14 @@ def build_extension_cmake(argv=()):
                 import distutils._msvccompiler
                 apply_envs(distutils._msvccompiler._get_vc_env('x64 -vcvars_ver={}'.format(get_vc_version())))
 
-        if not os.path.exists(build_path):
-            os.mkdir(build_path)
+        if not os.path.exists(_build_path):
+            os.mkdir(_build_path)
 
-        os.chdir(build_path)
+        os.chdir(_build_path)
         import subprocess
         if sys.platform == 'win32':
             cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja',
+                             '-DCUDA_ROOT={}'.format(cuda_path),
                              '-DPython3_ROOT_DIR={}'.format(python_root_path),
                              '-DCMAKE_INSTALL_PREFIX={}'.format(install_path)]
             if is_anaconda_dist():
@@ -65,12 +66,13 @@ def build_extension_cmake(argv=()):
             subprocess.check_call(cmake_command)
 
             build_command = ['ninja']
-            if '-v' in argv:
+            if verbose:
                 build_command.append('-v')
             subprocess.check_call(build_command)
             subprocess.check_call(['ninja', 'install'])
         else:
             cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+                             '-DCUDA_ROOT={}'.format(cuda_path),
                              '-DPython3_ROOT_DIR={}'.format(python_root_path),
                              '-DCMAKE_INSTALL_PREFIX={}'.format(install_path)]
             if is_anaconda_dist():
@@ -78,7 +80,7 @@ def build_extension_cmake(argv=()):
             subprocess.check_call(cmake_command)
             import multiprocessing
             make_kwargs = {}
-            if '-v' in argv:
+            if verbose:
                 make_kwargs = {'env': {'VERBOSE': '1'}}
             subprocess.check_call(['make', '-j{}'.format(multiprocessing.cpu_count())], **make_kwargs)
             subprocess.check_call(['make', 'install'])
@@ -86,6 +88,23 @@ def build_extension_cmake(argv=()):
         os.chdir(original_wd)
 
 
+def clean_up():
+    import shutil
+    try:
+        shutil.rmtree(_build_path)
+    except:
+        pass
+    return
+
+
 if __name__ == '__main__':
-    import sys
-    build_extension_cmake(sys.argv)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('clean', action='store_true')
+    parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--cuda_path', type=str, default=None)
+    args = parser.parse_args()
+    if args.clean:
+        clean_up()
+    else:
+        build_extension_cmake(args.cuda_path, args.verbose)
