@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 
 project(native_extension)
 
@@ -21,6 +21,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
+set(TORCH_EXTRA_NVCC_FLAGS "" CACHE STRING)
+set(TORCH_CUDA_ARCHS "" CACHE STRING)
+set(TORCH_INCLUDE_PATHS "" CACHE STRING)
+set(TORCH_LIBRARY_PATHS "" CACHE STRING)
+set(TORCH_LIBRARIES "" CACHE STRING)
 
 find_package(Python3 COMPONENTS Interpreter Development)
 
@@ -86,64 +92,13 @@ set(CMAKE_PREFIX_PATH ${EXTRA_ROOT_PATHS} ${CMAKE_PREFIX_PATH})
 
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/")
-
-execute_process(
-        COMMAND "${Python3_EXECUTABLE}" ${CMAKE_CURRENT_LIST_DIR}/_get_torch_cuda_archs.py
-        OUTPUT_VARIABLE PYTORCH_CUDA_ARCHITECTURES
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE RETVAL)
-
-message(STATUS ${PYTORCH_CUDA_ARCHITECTURES})
-if (NOT ${RETVAL} EQUAL "0")
-    message(FATAL_ERROR "Torch not compiled with CUDA enabled")
-endif()
-
-#set(CMAKE_CUDA_ARCHITECTURES "${PYTORCH_CUDA_ARCHITECTURES}")
-
-execute_process(
-        COMMAND "${Python3_EXECUTABLE}" -c "if True:
-    from torch.utils.cpp_extension import COMMON_NVCC_FLAGS
-    print(';'.join(COMMON_NVCC_FLAGS), end='')"
-        OUTPUT_VARIABLE PYTORCH_COMMON_NVCC_FLAGS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE RETVAL)
-
-if (NOT ${RETVAL} EQUAL "0")
-    message(FATAL_ERROR "Torch not compiled with CUDA enabled")
-endif()
-
+set(CMAKE_CUDA_ARCHITECTURES "${TORCH_CUDA_ARCHS}")
 enable_language(CUDA)
 
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${PYTORCH_CUDA_ARCH_FLAGS}")
-
-execute_process(
-        COMMAND "${Python3_EXECUTABLE}" ${CMAKE_CURRENT_LIST_DIR}/_get_torch_include_paths.py
-        OUTPUT_VARIABLE PYTORCH_INCLUDE_PATHS
-        RESULT_VARIABLE RETVAL)
-string(STRIP "${PYTORCH_INCLUDE_PATHS}" PYTORCH_INCLUDE_PATHS)
-message(STATUS "${PYTORCH_INCLUDE_PATHS}")
-if (NOT ${RETVAL} EQUAL "0")
-    message(FATAL_ERROR "Failed to get torch include paths")
-endif()
-
-list(APPEND EXTRA_INCLUDE_PATHS "${PYTORCH_INCLUDE_PATHS}")
-
-execute_process(
-        COMMAND "${Python3_EXECUTABLE}" -c "if True:
-    from torch.utils.cpp_extension import library_paths
-    print(';'.join(library_paths(False)), end='')"
-        OUTPUT_VARIABLE PYTORCH_LIBRARY_PATHS
-        RESULT_VARIABLE RETVAL)
-
-if (NOT ${RETVAL} EQUAL "0")
-    message(FATAL_ERROR "Failed to get torch library paths")
-endif()
-
-list(APPEND EXTRA_LIBRARY_PATHS ${PYTORCH_LIBRARY_PATHS})
-
-#find_package(Torch REQUIRED PATHS ${PYTHON_SITE_PACKAGE_PATH}/torch/share/cmake/Torch)
-#list(APPEND EXTRA_LIBRARIES ${TORCH_LIBRARIES})
+set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${TORCH_EXTRA_NVCC_FLAGS}")
+list(APPEND EXTRA_INCLUDE_PATHS "${TORCH_INCLUDE_PATHS}")
+list(APPEND EXTRA_LIBRARY_PATHS "${TORCH_LIBRARY_PATHS}")
+list(APPEND EXTRA_LIBRARIES ${TORCH_LIBRARIES})
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}" "${EXTRA_LIBRARY_PATHS}")
 

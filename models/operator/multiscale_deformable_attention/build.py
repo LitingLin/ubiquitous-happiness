@@ -1,4 +1,5 @@
 import os
+from ._get_torch_build_conf import _get_torch_cuda_flags, _get_torch_cuda_archs, _get_torch_include_paths, _get_torch_library_paths, _get_torch_libraries
 
 _current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 _build_path = os.path.join(_current_path, 'cmake-build')
@@ -21,6 +22,11 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         from torch.utils.cpp_extension import _find_cuda_home
         cuda_path = _find_cuda_home()
 
+    if sys.platform == 'win32':
+        cuda_compiler_path = os.path.join(cuda_path, 'bin', 'nvcc.exe')
+    else:
+        cuda_compiler_path = os.path.join(cuda_path, 'bin', 'nvcc')
+
     def is_anaconda_dist():
         return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
 
@@ -28,6 +34,25 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir))
     else:
         python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir, os.pardir))
+
+    cmake_parameters = []
+    cmake_parameters.append('"-DTORCH_EXTRA_NVCC_FLAGS={}"'.format(' '.join(_get_torch_cuda_flags())))
+    cmake_parameters.append(
+        '"-DTORCH_CUDA_ARCHS={}"'.format(';'.join([str(arch) for arch in _get_torch_cuda_archs()])))
+    cmake_parameters.append(
+        '"-DTORCH_INCLUDE_PATHS={}"'.format(';'.join([_to_unix_style_path(path) for path in _get_torch_include_paths()])))
+    cmake_parameters.append(
+        '"-DTORCH_LIBRARY_PATHS={}"'.format(';'.join([_to_unix_style_path(path) for path in _get_torch_library_paths()])))
+    cmake_parameters.append(
+        '"-DTORCH_LIBRARIES={}"'.format(';'.join(_get_torch_libraries())))
+    cmake_parameters.append('"-DCMAKE_CUDA_COMPILER={}"'.format(_to_unix_style_path(cuda_compiler_path)))
+    cmake_parameters.append('"-DPython3_ROOT_DIR={}"'.format(_to_unix_style_path(python_root_path)))
+    cmake_parameters.append('"-DCMAKE_INSTALL_PREFIX={}"'.format(_to_unix_style_path(install_path)))
+    if is_anaconda_dist():
+        if sys.platform == 'win32':
+            cmake_parameters.append('"-DCMAKE_PREFIX_PATH={}"'.format(_to_unix_style_path(os.path.join(python_root_path, 'Library'))))
+        else:
+            cmake_parameters.append('"-DCMAKE_PREFIX_PATH={}"'.format(python_root_path))
 
     try:
         shutil.which('cmake')
@@ -60,13 +85,8 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         os.chdir(_build_path)
         import subprocess
         if sys.platform == 'win32':
-            cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja',
-                             '-DCMAKE_CUDA_COMPILER=\'{}\''.format(_to_unix_style_path(os.path.join(cuda_path, 'bin', 'nvcc.exe'))),
-                             '-DPython3_ROOT_DIR=\'{}\''.format(_to_unix_style_path(python_root_path)),
-                             '-DCMAKE_INSTALL_PREFIX=\'{}\''.format(_to_unix_style_path(install_path))]
-            if is_anaconda_dist():
-                cmake_command.append('-DCMAKE_PREFIX_PATH=\'{}\''.format(_to_unix_style_path(os.path.join(python_root_path, 'Library'))))
-
+            cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja']
+            cmake_command.extend(cmake_parameters)
             subprocess.check_call(cmake_command, cwd=_build_path)
 
             build_command = ['ninja']
@@ -75,12 +95,7 @@ def build_extension_cmake(cuda_path=None, verbose=False):
             subprocess.check_call(build_command, cwd=_build_path)
             subprocess.check_call(['ninja', 'install'], cwd=_build_path)
         else:
-            cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
-                             '-DCMAKE_CUDA_COMPILER={}'.format(os.path.join(cuda_path, 'bin', 'nvcc')),
-                             '-DPython3_ROOT_DIR={}'.format(python_root_path),
-                             '-DCMAKE_INSTALL_PREFIX={}'.format(install_path)]
-            if is_anaconda_dist():
-                cmake_command.append('-DCMAKE_PREFIX_PATH={}'.format(python_root_path))
+            cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo']
             subprocess.check_call(cmake_command, cwd=_build_path)
             import multiprocessing
             build_command = ['make', '-j{}'.format(multiprocessing.cpu_count())]
@@ -103,6 +118,7 @@ def clean_up():
 
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--clean', action='store_true')
     parser.add_argument('--verbose', '-v', action='store_true')
