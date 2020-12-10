@@ -85,7 +85,7 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         os.chdir(_build_path)
         import subprocess
         if sys.platform == 'win32':
-            cmake_command = ['cmake', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja']
+            cmake_command = ['cmake', '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=RelWithDebInfo']
             cmake_command.extend(cmake_parameters)
             cmake_command.append(_to_unix_style_path(source_path))
             subprocess.check_call(cmake_command, cwd=_build_path)
