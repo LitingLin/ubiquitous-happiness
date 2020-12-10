@@ -96,7 +96,9 @@ def build_extension_cmake(cuda_path=None, verbose=False):
             subprocess.check_call(build_command, cwd=_build_path)
             subprocess.check_call(['ninja', 'install'], cwd=_build_path)
         else:
-            cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo']
+            cmake_command = ['cmake', '-DCMAKE_BUILD_TYPE=RelWithDebInfo']
+            cmake_command.extend(cmake_parameters)
+            cmake_command.append(source_path)
             subprocess.check_call(cmake_command, cwd=_build_path)
             import multiprocessing
             build_command = ['make', '-j{}'.format(multiprocessing.cpu_count())]
