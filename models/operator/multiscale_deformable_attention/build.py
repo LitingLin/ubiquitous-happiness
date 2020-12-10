@@ -1,5 +1,5 @@
 import os
-from ._get_torch_build_conf import _get_torch_cuda_flags, _get_torch_cuda_archs, _get_torch_include_paths, _get_torch_library_paths, _get_torch_libraries
+from _get_torch_build_conf import _get_torch_cuda_flags, _get_torch_cuda_archs, _get_torch_include_paths, _get_torch_library_paths, _get_torch_libraries
 
 _current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 _build_path = os.path.join(_current_path, 'cmake-build')
@@ -36,23 +36,23 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir, os.pardir))
 
     cmake_parameters = []
-    cmake_parameters.append('"-DTORCH_EXTRA_NVCC_FLAGS={}"'.format(' '.join(_get_torch_cuda_flags())))
+    cmake_parameters.append('-DTORCH_EXTRA_NVCC_FLAGS:STRING={}'.format(' '.join(_get_torch_cuda_flags())))
     cmake_parameters.append(
-        '"-DTORCH_CUDA_ARCHS={}"'.format(';'.join([str(arch) for arch in _get_torch_cuda_archs()])))
+        '-DTORCH_CUDA_ARCHS:STRING={}'.format(';'.join([str(arch) for arch in _get_torch_cuda_archs()])))
     cmake_parameters.append(
-        '"-DTORCH_INCLUDE_PATHS={}"'.format(';'.join([_to_unix_style_path(path) for path in _get_torch_include_paths()])))
+        '-DTORCH_INCLUDE_PATHS:STRING={}'.format(';'.join([_to_unix_style_path(path) for path in _get_torch_include_paths()])))
     cmake_parameters.append(
-        '"-DTORCH_LIBRARY_PATHS={}"'.format(';'.join([_to_unix_style_path(path) for path in _get_torch_library_paths()])))
+        '-DTORCH_LIBRARY_PATHS:STRING={}'.format(';'.join([_to_unix_style_path(path) for path in _get_torch_library_paths()])))
     cmake_parameters.append(
-        '"-DTORCH_LIBRARIES={}"'.format(';'.join(_get_torch_libraries())))
-    cmake_parameters.append('"-DCMAKE_CUDA_COMPILER={}"'.format(_to_unix_style_path(cuda_compiler_path)))
-    cmake_parameters.append('"-DPython3_ROOT_DIR={}"'.format(_to_unix_style_path(python_root_path)))
-    cmake_parameters.append('"-DCMAKE_INSTALL_PREFIX={}"'.format(_to_unix_style_path(install_path)))
+        '-DTORCH_LIBRARIES:STRING={}'.format(';'.join(_get_torch_libraries())))
+    cmake_parameters.append('-DCMAKE_CUDA_COMPILER={}'.format(_to_unix_style_path(cuda_compiler_path)))
+    cmake_parameters.append('-DPython3_ROOT_DIR={}'.format(_to_unix_style_path(python_root_path)))
+    cmake_parameters.append('-DCMAKE_INSTALL_PREFIX={}'.format(_to_unix_style_path(install_path)))
     if is_anaconda_dist():
         if sys.platform == 'win32':
-            cmake_parameters.append('"-DCMAKE_PREFIX_PATH={}"'.format(_to_unix_style_path(os.path.join(python_root_path, 'Library'))))
+            cmake_parameters.append('-DCMAKE_PREFIX_PATH={}'.format(_to_unix_style_path(os.path.join(python_root_path, 'Library'))))
         else:
-            cmake_parameters.append('"-DCMAKE_PREFIX_PATH={}"'.format(python_root_path))
+            cmake_parameters.append('-DCMAKE_PREFIX_PATH={}'.format(python_root_path))
 
     try:
         shutil.which('cmake')
@@ -85,8 +85,9 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         os.chdir(_build_path)
         import subprocess
         if sys.platform == 'win32':
-            cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja']
+            cmake_command = ['cmake', '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja']
             cmake_command.extend(cmake_parameters)
+            cmake_command.append(_to_unix_style_path(source_path))
             subprocess.check_call(cmake_command, cwd=_build_path)
 
             build_command = ['ninja']
