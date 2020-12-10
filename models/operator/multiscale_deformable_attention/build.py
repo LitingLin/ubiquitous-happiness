@@ -4,6 +4,10 @@ _current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 _build_path = os.path.join(_current_path, 'cmake-build')
 
 
+def _to_unix_style_path(path: str):
+    return path.replace('\\', '/')
+
+
 def build_extension_cmake(cuda_path=None, verbose=False):
     import shutil
     import sys
@@ -57,19 +61,19 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         import subprocess
         if sys.platform == 'win32':
             cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo', '-G', 'Ninja',
-                             '-DCMAKE_CUDA_COMPILER={}'.format(os.path.join(cuda_path, 'bin', 'nvcc.exe')),
-                             '-DPython3_ROOT_DIR={}'.format(python_root_path),
-                             '-DCMAKE_INSTALL_PREFIX={}'.format(install_path)]
+                             '-DCMAKE_CUDA_COMPILER=\'{}\''.format(_to_unix_style_path(os.path.join(cuda_path, 'bin', 'nvcc.exe'))),
+                             '-DPython3_ROOT_DIR=\'{}\''.format(_to_unix_style_path(python_root_path)),
+                             '-DCMAKE_INSTALL_PREFIX=\'{}\''.format(_to_unix_style_path(install_path))]
             if is_anaconda_dist():
-                cmake_command.append('-DCMAKE_PREFIX_PATH={}'.format(os.path.join(python_root_path, 'Library')))
+                cmake_command.append('-DCMAKE_PREFIX_PATH=\'{}\''.format(_to_unix_style_path(os.path.join(python_root_path, 'Library'))))
 
-            subprocess.check_call(cmake_command)
+            subprocess.check_call(cmake_command, cwd=_build_path)
 
             build_command = ['ninja']
             if verbose:
                 build_command.append('-v')
-            subprocess.check_call(build_command)
-            subprocess.check_call(['ninja', 'install'])
+            subprocess.check_call(build_command, cwd=_build_path)
+            subprocess.check_call(['ninja', 'install'], cwd=_build_path)
         else:
             cmake_command = ['cmake', source_path, '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
                              '-DCMAKE_CUDA_COMPILER={}'.format(os.path.join(cuda_path, 'bin', 'nvcc')),
@@ -79,10 +83,10 @@ def build_extension_cmake(cuda_path=None, verbose=False):
                 cmake_command.append('-DCMAKE_PREFIX_PATH={}'.format(python_root_path))
             subprocess.check_call(cmake_command, cwd=_build_path)
             import multiprocessing
-            make_kwargs = {}
+            build_command = ['make', '-j{}'.format(multiprocessing.cpu_count())]
             if verbose:
-                make_kwargs = {'env': {'VERBOSE': '1'}}
-            subprocess.check_call(['make', '-j{}'.format(multiprocessing.cpu_count()), 'VERBOSE=1'], cwd=_build_path)
+                build_command.append('VERBOSE=1')
+            subprocess.check_call(build_command, cwd=_build_path)
             subprocess.check_call(['make', 'install'], cwd=_build_path)
     finally:
         os.chdir(original_wd)

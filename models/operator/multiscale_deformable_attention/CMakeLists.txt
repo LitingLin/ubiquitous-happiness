@@ -86,24 +86,25 @@ set(CMAKE_PREFIX_PATH ${EXTRA_ROOT_PATHS} ${CMAKE_PREFIX_PATH})
 
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/")
+# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/")
 
 execute_process(
-        COMMAND "${Python3_EXECUTABLE}" -c "if True:
-    from torch.utils.cpp_extension import _get_cuda_arch_flags
-    print(' '.join(_get_cuda_arch_flags()))"
-        OUTPUT_VARIABLE PYTORCH_CUDA_ARCH_FLAGS
+        COMMAND "${Python3_EXECUTABLE}" ${CMAKE_CURRENT_LIST_DIR}/_get_torch_cuda_archs.py
+        OUTPUT_VARIABLE PYTORCH_CUDA_ARCHITECTURES
         OUTPUT_STRIP_TRAILING_WHITESPACE
         RESULT_VARIABLE RETVAL)
 
+message(STATUS ${PYTORCH_CUDA_ARCHITECTURES})
 if (NOT ${RETVAL} EQUAL "0")
     message(FATAL_ERROR "Torch not compiled with CUDA enabled")
 endif()
 
+#set(CMAKE_CUDA_ARCHITECTURES "${PYTORCH_CUDA_ARCHITECTURES}")
+
 execute_process(
         COMMAND "${Python3_EXECUTABLE}" -c "if True:
     from torch.utils.cpp_extension import COMMON_NVCC_FLAGS
-    print(' '.join(COMMON_NVCC_FLAGS))"
+    print(';'.join(COMMON_NVCC_FLAGS), end='')"
         OUTPUT_VARIABLE PYTORCH_COMMON_NVCC_FLAGS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         RESULT_VARIABLE RETVAL)
@@ -117,25 +118,22 @@ enable_language(CUDA)
 set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${PYTORCH_CUDA_ARCH_FLAGS}")
 
 execute_process(
-        COMMAND "${Python3_EXECUTABLE}" -c "if True:
-    from torch.utils.cpp_extension import include_paths
-    print(';'.join(include_paths(True)))"
+        COMMAND "${Python3_EXECUTABLE}" ${CMAKE_CURRENT_LIST_DIR}/_get_torch_include_paths.py
         OUTPUT_VARIABLE PYTORCH_INCLUDE_PATHS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
         RESULT_VARIABLE RETVAL)
-
+string(STRIP "${PYTORCH_INCLUDE_PATHS}" PYTORCH_INCLUDE_PATHS)
+message(STATUS "${PYTORCH_INCLUDE_PATHS}")
 if (NOT ${RETVAL} EQUAL "0")
     message(FATAL_ERROR "Failed to get torch include paths")
 endif()
 
-list(APPEND EXTRA_INCLUDE_PATHS ${PYTORCH_INCLUDE_PATHS})
+list(APPEND EXTRA_INCLUDE_PATHS "${PYTORCH_INCLUDE_PATHS}")
 
 execute_process(
         COMMAND "${Python3_EXECUTABLE}" -c "if True:
     from torch.utils.cpp_extension import library_paths
-    print(';'.join(library_paths(True)))"
+    print(';'.join(library_paths(False)), end='')"
         OUTPUT_VARIABLE PYTORCH_LIBRARY_PATHS
-        OUTPUT_STRIP_TRAILING_WHITESPACE
         RESULT_VARIABLE RETVAL)
 
 if (NOT ${RETVAL} EQUAL "0")
@@ -144,8 +142,8 @@ endif()
 
 list(APPEND EXTRA_LIBRARY_PATHS ${PYTORCH_LIBRARY_PATHS})
 
-find_package(Torch REQUIRED PATHS ${PYTHON_SITE_PACKAGE_PATH}/torch/share/cmake/Torch)
-list(APPEND EXTRA_LIBRARIES ${TORCH_LIBRARIES})
+#find_package(Torch REQUIRED PATHS ${PYTHON_SITE_PACKAGE_PATH}/torch/share/cmake/Torch)
+#list(APPEND EXTRA_LIBRARIES ${TORCH_LIBRARIES})
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}" "${EXTRA_LIBRARY_PATHS}")
 
@@ -153,7 +151,7 @@ if (NOT WIN32)
     execute_process(
             COMMAND "${Python3_EXECUTABLE}" -c "if True:
         from distutils import sysconfig as sc
-        print(sc.get_config_var('CFLAGS'))"
+        print(sc.get_config_var('CFLAGS'), end='')"
             OUTPUT_VARIABLE PYTHON_CFLAGS
             OUTPUT_STRIP_TRAILING_WHITESPACE
             RESULT_VARIABLE RETVAL)
@@ -165,7 +163,7 @@ if (NOT WIN32)
     execute_process(
             COMMAND "${Python3_EXECUTABLE}" -c "if True:
         from distutils import sysconfig as sc
-        print(sc.get_config_var('LDFLAGS'))"
+        print(sc.get_config_var('LDFLAGS'), end='')"
             OUTPUT_VARIABLE PYTHON_LDFLAGS
             OUTPUT_STRIP_TRAILING_WHITESPACE
             RESULT_VARIABLE RETVAL)

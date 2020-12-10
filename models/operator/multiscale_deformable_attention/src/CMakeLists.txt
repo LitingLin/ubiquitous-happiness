@@ -20,6 +20,6 @@ if (WIN32)
     target_compile_definitions(${PYTHON_MODULE_NAME} PRIVATE _WINDLL)
 endif()
 
-target_include_directories(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_INCLUDE_PATHS} ${pybind11_INCLUDE_DIRS})
+target_include_directories(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_INCLUDE_PATHS})
 target_link_directories(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_LIBRARY_PATHS})
 target_link_libraries(${PYTHON_MODULE_NAME} PRIVATE ${EXTRA_LIBRARIES})
