@@ -11,11 +11,11 @@ set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-set(TORCH_EXTRA_NVCC_FLAGS "" CACHE STRING "Extra nvcc flags")
-set(TORCH_CUDA_ARCHS "" CACHE STRING "CUDA ARCHS")
-set(TORCH_INCLUDE_PATHS "" CACHE STRING "Extra include paths")
-set(TORCH_LIBRARY_PATHS "" CACHE STRING "Extra library paths")
-set(TORCH_LIBRARIES "" CACHE STRING "Extra link libraries")
+set(TORCH_EXTRA_NVCC_FLAGS "" CACHE STRING "Extra nvcc flags required for pytorch")
+set(TORCH_CUDA_ARCHS "" CACHE STRING "Prebuilt pytorch CUDA architectures")
+set(TORCH_INCLUDE_PATHS "" CACHE STRING "Pytorch include paths")
+set(TORCH_LIBRARY_PATHS "" CACHE STRING "Pytorch library paths")
+set(TORCH_LIBRARIES "" CACHE STRING "Pytorch link libraries")
 
 find_package(Python3 COMPONENTS Interpreter Development)
 
