@@ -11,7 +11,7 @@ def _get_torch_cuda_archs():
     configs = config.split('\n')
     archs = set()
     for conf in configs:
-        if 'NVCC arch' in conf:
+        if 'NVCC' in conf and 'arch' in conf:
             ss = conf.split(';')
             for s in ss:
                 s = s.strip()
@@ -33,4 +33,3 @@ def _get_torch_library_paths():
 
 def _get_torch_libraries():
     return CUDAExtension('', []).libraries
-

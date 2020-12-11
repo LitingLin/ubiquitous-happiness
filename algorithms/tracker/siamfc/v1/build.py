@@ -1,4 +1,4 @@
-from models.backbone.alexnet import AlexNetV1
+from models.backbone.siamfc.alexnet import AlexNetV1
 from models.head.siamfc import SiamFCLinearHead
 from models.network.siamfc import SiamFCNet
 
