@@ -2,6 +2,7 @@ backbone:
   type: alexnet
   position_embedding: sine
   output_layers: [2, 3, 4]
+  z_position_encoding_offset: 5000
 transformer:
   encoder:
     num_layers: 6

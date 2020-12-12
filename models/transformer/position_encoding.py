@@ -25,10 +25,12 @@ class PositionEmbeddingSine(nn.Module):
             scale = 2 * math.pi
         self.scale = scale
 
-    def forward(self, x, mask):
+    def forward(self, x, mask, offset=0):
         not_mask = ~mask
         y_embed = not_mask.cumsum(1, dtype=torch.float32)
         x_embed = not_mask.cumsum(2, dtype=torch.float32)
+        x_embed += offset
+        y_embed += offset
         if self.normalize:
             eps = 1e-6
             y_embed = y_embed / (y_embed[:, -1:, :] + eps) * self.scale
@@ -59,10 +61,12 @@ class PositionEmbeddingLearned(nn.Module):
         nn.init.uniform_(self.row_embed.weight)
         nn.init.uniform_(self.col_embed.weight)
 
-    def forward(self, x):
+    def forward(self, x, mask, offset=0):
         h, w = x.shape[-2:]
         i = torch.arange(w, device=x.device)
         j = torch.arange(h, device=x.device)
+        i += offset
+        j += offset
         x_emb = self.col_embed(i)
         y_emb = self.row_embed(j)
         pos = torch.cat([
