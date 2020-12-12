@@ -1,0 +1,18 @@
+backbone:
+  type: alexnet
+  position_embedding: sine
+  output_layers: [2, 3, 4]
+transformer:
+  encoder:
+    num_layers: 6
+    num_reference_points: 4
+  decoder:
+    num_layers: 6
+    num_reference_points: 4
+  feed_forward:
+    dim: 1024
+  hidden_dim: 256
+  dropout: 0.1
+  num_heads: 8
+  num_queries: 64
+  num_feature_levels: 3

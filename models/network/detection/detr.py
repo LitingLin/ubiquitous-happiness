@@ -11,7 +11,7 @@ from Utils.detr_misc import (NestedTensor, nested_tensor_from_tensor_list,
                        accuracy, get_world_size, interpolate,
                        is_dist_avail_and_initialized)
 
-from models.backbone.detr.detr import build_backbone
+from models.backbone.detr.resnet import build_backbone
 from models.head.detr.matcher import build_matcher
 from models.transformer.detr_transformer import build_transformer
 

@@ -13,7 +13,7 @@ from typing import Dict, List
 
 from Utils.detr_misc import NestedTensor, is_main_process
 
-from models.transformer.position_encoding import build_position_encoding
+from models.transformer.detr_position_encoding import build_position_encoding
 
 
 class FrozenBatchNorm2d(torch.nn.Module):

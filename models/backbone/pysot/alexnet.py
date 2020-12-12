@@ -6,7 +6,7 @@ import os
 class AlexNet(nn.Module):
     configs = [3, 96, 256, 384, 384, 256]
 
-    def __init__(self, width_mult=1):
+    def __init__(self, width_mult=1, output_layers=(5,)):
         configs = list(map(lambda x: 3 if x == 3 else
         int(x * width_mult), AlexNet.configs))
         super(AlexNet, self).__init__()
@@ -40,16 +40,22 @@ class AlexNet(nn.Module):
         self.feature_size = configs[5]
 
     def forward(self, x):
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
-        x = self.layer5(x)
-        return x
+        x1 = self.layer1(x)
+        x2 = self.layer2(x1)
+        x3 = self.layer3(x2)
+        x4 = self.layer4(x3)
+        x5 = self.layer5(x4)
+
+        out = [x1, x2, x3, x4, x5]
+        out = [out[i] for i in self.used_layers]
+        if len(out) == 1:
+            return out[0]
+        else:
+            return out
 
 
-def construct_alexnet(pretrained=True, width_mult=1):
-    net = AlexNet(width_mult=width_mult)
+def construct_alexnet(pretrained=True, width_mult=1, output_layers=(5,)):
+    net = AlexNet(width_mult=width_mult, output_layers=output_layers)
     if pretrained:
         net.load_state_dict(
             torch.load(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'weight', 'pysot', 'alexnet-bn.pth'),

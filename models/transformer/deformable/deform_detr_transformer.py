@@ -328,21 +328,6 @@ def _get_activation_fn(activation):
     raise RuntimeError(F"activation should be relu/gelu, not {activation}.")
 
 
-def build_deformable_transformer(args):
-    return DeformableTransformer(
-        d_model=args.hidden_dim,
-        nhead=args.nheads,
-        num_encoder_layers=args.enc_layers,
-        num_decoder_layers=args.dec_layers,
-        dim_feedforward=args.dim_feedforward,
-        dropout=args.dropout,
-        activation="relu",
-        return_intermediate_dec=True,
-        num_feature_levels=args.num_feature_levels,
-        dec_n_points=args.dec_n_points,
-        enc_n_points=args.enc_n_points)
-
-
 def build_deform_transformer(net_config: dict):
     transformer_config = net_config['transformer']
     return DeformableTransformer(
@@ -355,6 +340,6 @@ def build_deform_transformer(net_config: dict):
         activation="relu",
         return_intermediate_dec=True,
         num_feature_levels=transformer_config['num_feature_levels'],
-        dec_n_points=transformer_config[dec_n_points],
+        dec_n_points=transformer_config['decoder']['num_reference_points'],
         enc_n_points=transformer_config['encoder']['num_reference_points']
     )
