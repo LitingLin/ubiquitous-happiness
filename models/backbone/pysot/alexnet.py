@@ -38,6 +38,7 @@ class AlexNet(nn.Module):
             nn.BatchNorm2d(configs[5]),
         )
         self.feature_size = configs[5]
+        self.used_layers = output_layers
 
     def forward(self, x):
         x1 = self.layer1(x)
@@ -53,10 +54,48 @@ class AlexNet(nn.Module):
         else:
             return out
 
+    def reset_parameters(self, method='', params: dict=None):
+        if method == 'xavier':
+            gain = 1
+            if params is not None:
+                gain = params['gain']
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    nn.init.xavier_uniform_(m.weight, gain)
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.BatchNorm2d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.Linear):
+                    nn.init.xavier_uniform_(m.weight, gain)
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+        elif method == 'kaiming':
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    nn.init.kaiming_normal_(m.weight,
+                                            mode='fan_in',
+                                            nonlinearity='relu')
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.BatchNorm2d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.Linear):
+                    nn.init.kaiming_normal_(m.weight,
+                                            mode='fan_in',
+                                            nonlinearity='relu')
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
 
-def construct_alexnet(pretrained=True, width_mult=1, output_layers=(5,)):
-    net = AlexNet(width_mult=width_mult, output_layers=output_layers)
-    if pretrained:
-        net.load_state_dict(
+    def load_pretrained(self):
+        self.load_state_dict(
             torch.load(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'weight', 'pysot', 'alexnet-bn.pth'),
                        map_location='cpu'), strict=True)
+
+
+def construct_alexnet(width_mult=1, output_layers=(5,)):
+    net = AlexNet(width_mult=width_mult, output_layers=output_layers)
+    net.num_channels = net.configs[1:]
+    return net

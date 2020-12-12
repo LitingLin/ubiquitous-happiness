@@ -43,9 +43,7 @@ class DeformableTransformer(nn.Module):
 
         self.reference_points = nn.Linear(d_model, 2)
 
-        self._reset_parameters()
-
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
@@ -338,8 +336,8 @@ def build_deform_transformer(net_config: dict):
         dim_feedforward=transformer_config['feed_forward']['dim'],
         dropout=transformer_config['dropout'],
         activation="relu",
-        return_intermediate_dec=True,
-        num_feature_levels=transformer_config['num_feature_levels'],
+        return_intermediate_dec=False,
+        num_feature_levels=len(net_config['backbone']['output_layers']),
         dec_n_points=transformer_config['decoder']['num_reference_points'],
         enc_n_points=transformer_config['encoder']['num_reference_points']
     )

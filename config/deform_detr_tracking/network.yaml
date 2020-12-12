@@ -1,8 +1,8 @@
 backbone:
   type: alexnet
+  output_layers: [ 3, 4 ]
+  xcross_head: linear
   position_embedding: sine
-  output_layers: [2, 3, 4]
-  z_position_encoding_offset: 5000
 transformer:
   encoder:
     num_layers: 6
@@ -16,4 +16,3 @@ transformer:
   dropout: 0.1
   num_heads: 8
   num_queries: 64
-  num_feature_levels: 3

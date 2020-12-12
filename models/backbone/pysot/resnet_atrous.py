@@ -142,7 +142,7 @@ class ResNet(nn.Module):
         else:
             self.layer4 = lambda x: x  # identity
 
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -150,6 +150,12 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
+    def load_pretrained(self):
+        self.load_state_dict(
+            torch.load(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'weight', 'pysot', 'resnet50.model'),
+                       map_location='cpu'), strict=True)
+
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1):
         downsample = None
@@ -226,9 +232,7 @@ def resnet50(**kwargs):
     return model
 
 
-def construct_resnet50_atrous(pretrained=True, output_layers=(2, 3, 4)):
+def construct_resnet50_atrous(output_layers=(2, 3, 4)):
     net = ResNet(Bottleneck, [3, 4, 6, 3], output_layers)
-    if pretrained:
-        net.load_state_dict(
-            torch.load(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'weight', 'pysot', 'resnet50.model'),
-                       map_location='cpu'), strict=True)
+    net.num_channels = [64, 256, 512, 1024, 2048]
+    return net
