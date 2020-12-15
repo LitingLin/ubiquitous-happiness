@@ -1,16 +1,16 @@
 import torch
 import sys
 import math
-import Utils.detr_misc as utils
 
 
 class DETRTrackingActor:
-    def __init__(self, model, criterion, optimizer, lr_scheduler):
+    def __init__(self, model, criterion, optimizer, lr_scheduler, distributed_samplers=None):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
         self.epoch = 0
+        self.distributed_samplers = distributed_samplers
 
     def forward(self, samples, targets):
         outputs = self.model(samples)
@@ -30,6 +30,9 @@ class DETRTrackingActor:
     def new_epoch(self):
         self.epoch += 1
         self.lr_scheduler.step()
+        if self.distributed_samplers is not None:
+            for distributed_sampler in self.distributed_samplers:
+                distributed_sampler.set_epoch(self.epoch)
 
     def backward(self, max_norm):
         self.optimizer.zero_grad()
@@ -53,6 +56,9 @@ class DETRTrackingActor:
             self.optimizer.load_state_dict(state['optimizer'])
             self.lr_scheduler.load_state_dict(state['lr_scheduler'])
             self.epoch = state['epoch']
+            if self.distributed_samplers is not None:
+                for distributed_sampler in self.distributed_samplers:
+                    distributed_sampler.set_epoch(self.epoch)
 
     def to(self, device):
         self.model.to(device)
