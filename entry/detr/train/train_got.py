@@ -133,15 +133,10 @@ def main(args):
 
     device = torch.device(args.device)
 
-    net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'network.yaml'), args.net_config)
-    train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'detr', 'train.yaml'), args.train_config)
+    net_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'deform_datr_tracking', 'network.yaml'), args.net_config)
+    train_config = load_config(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'config', 'deform_datr_tracking', 'train.yaml'), args.train_config)
 
     data_loader_train, data_loader_val, max_category_id = build_dataloader(args.distributed, args.num_workers, args.got_path, args.coco_path, train_config['train']['batch_size'])
-
-    from pycocotools.coco import COCO
-    coco_root = Path(args.coco_path)
-    coco_val_annofile = coco_root / "annotations" / 'instances_val2017.json'
-    coco_val_anno = COCO(coco_val_annofile)
 
     actor, postprocessors = build_training_actor(args, net_config, train_config, max_category_id, device)
 

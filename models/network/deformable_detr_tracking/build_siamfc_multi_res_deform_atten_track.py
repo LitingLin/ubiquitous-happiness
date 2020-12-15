@@ -20,8 +20,20 @@ def _build_backbone(config: dict):
     return backbone, position_encoding
 
 
-def initialize_siamfc_multires_deform_atten_track(backbone_load_pretrained=True):
-    pass
+def initialize_siamfc_multires_deform_atten_track(net: DeformableDETRTracking, backbone_load_pretrained=True):
+    siamfc_frontend: DETRSiamFCWrapper = net.backbone
+    siamfc_net: SiamFCMultiResNet = siamfc_frontend.siamfc
+    postition_encoder = siamfc_frontend.position_encoder
+    if hasattr(postition_encoder, 'reset_parameters'):
+        postition_encoder.reset_parameters()
+    backbone = siamfc_net.backbone
+    if backbone_load_pretrained:
+        backbone.load_pretrained()
+    else:
+        backbone.reset_parameters()
+    for head in siamfc_net.heads:
+        head.reset_parameters()
+    net.reset_parameters()
 
 
 def build_siamfc_multires_deform_atten_track(config: dict):
