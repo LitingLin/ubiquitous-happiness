@@ -3,7 +3,7 @@ import numpy.random
 from .curation import curate_image_like_siamfc_with_aug, get_siamfc_curation_center_and_scale
 
 
-class SiamFCImagePreprocessor:
+class SiamFCImageProcessor:
     def __init__(self, exemplar_sz, instance_sz, context=0.5, max_translation=None, max_stretch_ratio=None,
                  z_rgb_variance=None, x_rgb_variance=None, random_gray_ratio=0., label_generator=None):
         self.exemplar_sz = exemplar_sz

@@ -5,7 +5,8 @@ from NativeExtension import InterpolationMethod, RGBImageTranslateAndScale, RGBI
 import cv2
 
 
-def curate_image_like_siamfc_with_aug(image, center, scale, out_size, max_translation=None, max_stretch_ratio=None, rgb_variance=None, gray_scale=False):
+def curate_image_like_siamfc_with_aug(image, center, scale, out_size, max_translation=None, max_stretch_ratio=None,
+                                      rgb_variance=None, gray_scale=False):
     if gray_scale:
         image = RGBImageToGrayScale(image)
 
@@ -57,8 +58,10 @@ def get_siamfc_curation_center_and_scale(bounding_box, context, exemplar_size):
 
 
 def siamfc_z_curation(image, bounding_box, context, exemplar_size):
-    return curate_image_like_siamfc_with_aug(image, *get_siamfc_curation_center_and_scale(bounding_box, context, exemplar_size), exemplar_size)
+    return curate_image_like_siamfc_with_aug(image, *get_siamfc_curation_center_and_scale(bounding_box, context,
+                                                                                          exemplar_size), exemplar_size)
 
 
 def siamfc_x_curation(image, bounding_box, context, exemplar_size, instance_size):
-    return curate_image_like_siamfc_with_aug(image, *get_siamfc_curation_center_and_scale(bounding_box, context, exemplar_size), instance_size)
+    return curate_image_like_siamfc_with_aug(image, *get_siamfc_curation_center_and_scale(bounding_box, context,
+                                                                                          exemplar_size), instance_size)

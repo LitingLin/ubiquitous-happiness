@@ -1,8 +1,14 @@
+input:
+  image:
+    size_limit: 1280
 backbone:
   type: alexnet
   output_layers: [ 3, 4 ]
   xcross_head: linear
   position_embedding: sine
+  siamfc:
+    context: 0.5
+    exemplar_size: 127
 transformer:
   encoder:
     num_layers: 6

@@ -12,6 +12,9 @@ class DETRTrackingActor:
         self.epoch = 0
         self.distributed_samplers = distributed_samplers
 
+    def reset_parameters(self):
+        self.model.reset_parameters()
+
     def forward(self, samples, targets):
         outputs = self.model(samples)
         loss, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, targets)
