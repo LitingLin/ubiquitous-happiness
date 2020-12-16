@@ -13,8 +13,8 @@ import torch
 from torch.utils.data import DataLoader, DistributedSampler
 import os
 import Utils.detr_misc as utils
-from training.detr.train_step import train_one_epoch
-from training.detr.eval_step import evaluate
+from training.deform_detr_tracking.train_step import train_one_epoch
+from training.deform_detr_tracking.eval_step import evaluate
 
 from Utils.yaml_config import load_config
 
@@ -78,8 +78,6 @@ def build_training_actor(args, net_config: dict, train_config: dict, num_classes
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
 
     return DETRActor(model, criterion, optimizer, lr_scheduler), postprocessors
-
-def build_dataloader(is_distributed: bool, num_workers: int, coco_path: str, batch_size: int):
 
 def build_dataloader(is_distributed: bool, num_workers: int, coco_path: str, batch_size: int):
 

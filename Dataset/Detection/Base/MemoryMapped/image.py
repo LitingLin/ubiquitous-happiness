@@ -30,7 +30,7 @@ class DetectionDatasetImageView_MemoryMapped:
         return self.dataset.bounding_boxes[self.attribute_index: self.attribute_index + self.length, :]
 
     def getAllAttributeIsPresent(self):
-        return self.dataset.is_presents[self.attribute_index]
+        return self.dataset.is_presents[self.attribute_index: self.attribute_index + self.length]
 
     def getImageSize(self):
         return self.dataset.image_sizes[self.index, :]

@@ -21,9 +21,11 @@ def build_extension_cmake(argv=()):
         return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
 
     if sys.platform == 'win32':
-        python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir))
+        python_root_path = os.path.dirname(sys.executable)
+        assert os.path.exists(os.path.join(python_root_path, 'python.exe'))
     else:
-        python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir, os.pardir))
+        python_root_path = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
+        assert os.path.exists(os.path.join(python_root_path, 'python'))
 
     try:
         shutil.which('cmake')

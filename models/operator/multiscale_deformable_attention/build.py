@@ -25,14 +25,17 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         cuda_compiler_path = os.path.join(cuda_path, 'bin', 'nvcc.exe')
     else:
         cuda_compiler_path = os.path.join(cuda_path, 'bin', 'nvcc')
+    assert os.path.exists(cuda_compiler_path)
 
     def is_anaconda_dist():
         return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
 
     if sys.platform == 'win32':
-        python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir))
+        python_root_path = os.path.dirname(sys.executable)
+        assert os.path.exists(os.path.join(python_root_path, 'python.exe'))
     else:
-        python_root_path = os.path.abspath(os.path.join(sys.executable, os.pardir, os.pardir))
+        python_root_path = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
+        assert os.path.exists(os.path.join(python_root_path, 'python'))
 
     cmake_parameters = []
     cmake_parameters.append('-DTORCH_EXTRA_NVCC_FLAGS:STRING={}'.format(' '.join(_get_torch_cuda_flags())))

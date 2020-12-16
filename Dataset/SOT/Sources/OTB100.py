@@ -348,6 +348,8 @@ def construct_OTB100(constructor, seed, split):
         start_frame = sequence_info['startFrame']
         end_frame = sequence_info['endFrame']
 
+        sequence_path = os.path.join(root_path, sequence_path)
+
         constructor.beginInitializingSequence()
         constructor.setSequenceName(sequence_name)
 
@@ -356,8 +358,6 @@ def construct_OTB100(constructor, seed, split):
             init_omit = sequence_info['initOmit']
 
         anno_path = '{}/{}'.format(root_path, sequence_info['anno_path'])
-
-        sequence_path = os.path.join(root_path, sequence_path)
 
         images = os.listdir(sequence_path)
         images = [image for image in images if image.endswith('.jpg')]
