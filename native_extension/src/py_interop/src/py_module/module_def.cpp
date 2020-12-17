@@ -21,6 +21,7 @@ PYBIND11_MODULE(_C, m)
 		.value("INTER_LANCZOS4", InterpolationMethod::INTER_LANCZOS4);
 
 	m.def("RGBImageTranslateAndScale", &PyModule::RGBImageTranslateAndScale);
+	m.def("RGBImageToGrayScale", &PyModule::RGBImageToGrayScale);
 #ifdef ENABLE_BASE_LIBS
 	pybind11::class_<PyModule::ImageDecoder>(m, "ImageDecoder")
 		.def(pybind11::init())
