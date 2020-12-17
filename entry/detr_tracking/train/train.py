@@ -1,6 +1,8 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(root_path)
+default_config_path = os.path.join(root_path, 'config', 'deform_detr_tracking')
 
 import argparse
 from pathlib import Path
@@ -15,10 +17,10 @@ from workarounds.all import apply_all_workarounds
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Set transformer detector', add_help=False)
-    parser.add_argument('--net_config', type=str, default=None, help='Path to the net config')
-    parser.add_argument('--train_config', type=str, default=None, help='Path to the train config')
-    parser.add_argument('--train_dataset_config', type=str, help='Path to the train dataset config')
-    parser.add_argument('--val_dataset_config', type=str, help='Path to the val dataset config')
+    parser.add_argument('--net_config', type=str, default=os.path.join(default_config_path, 'network.yaml'), help='Path to the net config')
+    parser.add_argument('--train_config', type=str, default=os.path.join(default_config_path, 'train.yaml'), help='Path to the train config')
+    parser.add_argument('--train_dataset_config', type=str, default=os.path.join(default_config_path, 'dataset', 'train.yaml'), help='Path to the train dataset config')
+    parser.add_argument('--val_dataset_config', type=str, default=os.path.join(default_config_path, 'dataset', 'val.yaml'), help='Path to the val dataset config')
 
     parser.add_argument('--output_dir', default='',
                         help='path where to save, empty for no saving')

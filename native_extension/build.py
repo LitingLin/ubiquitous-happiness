@@ -25,7 +25,7 @@ def build_extension_cmake(argv=()):
         assert os.path.exists(os.path.join(python_root_path, 'python.exe'))
     else:
         python_root_path = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
-        assert os.path.exists(os.path.join(python_root_path, 'python'))
+        assert os.path.exists(os.path.join(python_root_path, 'bin', 'python'))
 
     try:
         shutil.which('cmake')

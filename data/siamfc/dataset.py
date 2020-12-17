@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from Dataset.Builder.builder import build_datasets
 import copy
 
-from NativeExtension import ImageDecoder
+from native_extension import ImageDecoder
 from torchvision.transforms import ToTensor
 from .sampler import SOTDatasetSiamFCSampler, DetectionDatasetSiamFCSampler, MOTDatasetSiamFCSampler
 

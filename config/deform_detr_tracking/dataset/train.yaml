@@ -1,0 +1,13 @@
+DATA_CLEANING:
+  - BoundingBox
+  - NoAbsentObjects
+  - Integrity
+
+DATASETS:
+  GOT10k:
+    SPLITS:
+      - train
+
+  LaSOT:
+    SPLITS:
+      - train

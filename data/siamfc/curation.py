@@ -1,7 +1,7 @@
 import numpy
 import numpy.random
 import torch
-from NativeExtension import InterpolationMethod, RGBImageTranslateAndScale, RGBImageToGrayScale
+from native_extension import InterpolationMethod, RGBImageTranslateAndScale, RGBImageToGrayScale
 import cv2
 
 
