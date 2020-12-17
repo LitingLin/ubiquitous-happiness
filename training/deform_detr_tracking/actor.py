@@ -37,6 +37,9 @@ class DETRTrackingActor:
             for distributed_sampler in self.distributed_samplers:
                 distributed_sampler.set_epoch(self.epoch)
 
+    def get_epoch(self):
+        return self.epoch
+
     def backward(self, max_norm):
         self.optimizer.zero_grad()
         self.loss.backward()
@@ -59,6 +62,7 @@ class DETRTrackingActor:
             self.optimizer.load_state_dict(state['optimizer'])
             self.lr_scheduler.load_state_dict(state['lr_scheduler'])
             self.epoch = state['epoch']
+
             if self.distributed_samplers is not None:
                 for distributed_sampler in self.distributed_samplers:
                     distributed_sampler.set_epoch(self.epoch)

@@ -1,4 +1,4 @@
-from .curation import siamfc_z_curation
+from data.siamfc.curation import siamfc_z_curation
 from data.augmentation.size_limiter import ImageSizeLimiter
 from torchvision.transforms import ToTensor
 

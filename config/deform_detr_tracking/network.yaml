@@ -1,6 +1,3 @@
-input:
-  image:
-    size_limit: 1280
 backbone:
   type: alexnet
   output_layers: [ 3, 4 ]
@@ -9,6 +6,7 @@ backbone:
   siamfc:
     context: 0.5
     exemplar_size: 127
+    instance_size: 255
 transformer:
   encoder:
     num_layers: 6

@@ -8,10 +8,15 @@ train:
   clip_max_norm: 0.1
   optimizer: AdamW
 
+  data:
+    repeat_times_per_epoch: 2
+
   loss:
     bbox_coef: 5
     giou_coef: 2
 
 val:
   batch_size: 4
-  samples_per_epoch: 1000
+
+  data:
+    repeat_times_per_epoch: 1

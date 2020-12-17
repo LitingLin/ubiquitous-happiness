@@ -7,7 +7,6 @@ from torch.utils.data import Dataset
 from Dataset.Builder.builder import build_datasets
 import copy
 
-from .curation import siamfc_z_curation
 from NativeExtension import ImageDecoder
 from torchvision.transforms import ToTensor
 from .sampler import SOTDatasetSiamFCSampler, DetectionDatasetSiamFCSampler, MOTDatasetSiamFCSampler
@@ -31,14 +30,12 @@ class ConcateDatasetPositioning:
 
 
 class TrackingDataset(Dataset):
-    def __init__(self, dataset_config_path: str, samples_per_epoch, neg_ratio, post_processor=None, rng_seed: int=None):
+    def __init__(self, datasets: list, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor=None, rng_seed: int=None):
         super(TrackingDataset, self).__init__()
 
         self.rng_engine = np.random
         if rng_seed is not None:
             self.rng_engine = np.random.default_rng(rng_seed)
-
-        datasets = build_datasets(dataset_config_path)
 
         self.dataset_positioning = ConcateDatasetPositioning()
         self.pick = []
@@ -77,14 +74,16 @@ class TrackingDataset(Dataset):
                 raise Exception('Unknown dataset type')
             self.num += num_use
 
-        self.num = samples_per_epoch if samples_per_epoch > 0 else self.num
-        self.pick = self.shuffle()
+        self.num = samples_per_epoch if samples_per_epoch is not None and samples_per_epoch > 0 else self.num
+        if repeat_times_per_epoch is not None and repeat_times_per_epoch > 0:
+            self.num *= repeat_times_per_epoch
+        self.generate_shuffled_picks()
         self.image_decoder = ImageDecoder()
         self.to_tensor = ToTensor()
         self.post_processor = post_processor
         self.neg_ratio = neg_ratio
 
-    def shuffle(self):
+    def generate_shuffled_picks(self):
         pick = []
 
         m = 0
@@ -95,7 +94,7 @@ class TrackingDataset(Dataset):
             m = len(pick)
         print("shuffle done!")
         print("dataset length {}".format(self.num))
-        return np.array(pick[:self.num], dtype=np.uint32)
+        self.pick = np.array(pick[:self.num], dtype=np.uint32)
 
     def __len__(self):
         return self.num
@@ -142,3 +141,38 @@ class TrackingDataset(Dataset):
         if self.post_processor is None:
             return z_image, z_bbox, x_image, x_bbox, is_positive
         return self.post_processor(z_image, z_bbox, x_image, x_bbox, is_positive)
+
+
+def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rng_seed):
+    raw_datasets = build_datasets(dataset_config_path)
+    # default values
+    samples_per_epoch = None
+    repeat_times_per_epoch = None
+    neg_ratio = 0.
+
+    if data_config is not None:
+        if 'samples_per_epoch' in data_config:
+            samples_per_epoch = data_config['samples_per_epoch']
+        if 'repeat_times_per_epoch' in data_config:
+            repeat_times_per_epoch = data_config['repeat_times_per_epoch']
+        if 'neg_ratio' in data_config:
+            neg_ratio = data_config['neg_ratio']
+
+    dataset = TrackingDataset(raw_datasets, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor, rng_seed)
+    return dataset
+
+
+def build_tracking_dataset(train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str, train_post_processor, val_post_processor):
+    train_data_config = None
+    if 'data' in train_config['train']:
+        train_data_config = train_config['train']['data']
+
+    train_dataset = _build_tracking_dataset(train_data_config, train_dataset_config_path, train_post_processor, 33)
+
+    val_data_config = None
+    if 'data' in train_config['val']:
+        val_data_config = train_config['val']['data']
+
+    eval_dataset = _build_tracking_dataset(val_data_config, val_dataset_config_path, val_post_processor, 44)
+
+    return train_dataset, eval_dataset
