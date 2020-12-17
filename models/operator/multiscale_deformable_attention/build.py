@@ -35,7 +35,7 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         assert os.path.exists(os.path.join(python_root_path, 'python.exe'))
     else:
         python_root_path = os.path.abspath(os.path.join(os.path.dirname(sys.executable), os.pardir))
-        assert os.path.exists(os.path.join(python_root_path, 'python'))
+        assert os.path.exists(os.path.join(python_root_path, 'bin', 'python'))
 
     cmake_parameters = []
     cmake_parameters.append('-DTORCH_EXTRA_NVCC_FLAGS:STRING={}'.format(' '.join(_get_torch_cuda_flags())))

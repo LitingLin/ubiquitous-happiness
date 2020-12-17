@@ -46,4 +46,14 @@ namespace PyModule {
 			outputCenter[0], outputCenter[1], scaleRatio[0], scaleRatio[1], backgroundColor, method);
 		return output;
 	}
+
+	pybind11::array_t<uint8_t> RGBImageToGrayScale(const pybind11::array_t<uint8_t, pybind11::array::c_style | pybind11::array::forcecast>& input)
+	{
+		checkRGBImageArgument(input);
+
+		pybind11::array_t<uint8_t> output(std::vector<ssize_t>(input.shape(), input.shape() + 3));
+		::RGBImageToGrayScale(input.data(), getImageWidth(input), getImageHeight(input), output.mutable_data());
+
+		return output;
+	}
 }
