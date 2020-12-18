@@ -41,14 +41,10 @@ def build_siamfc_multires_deform_atten_track(config: dict):
     deformable_transformer = build_deform_transformer(config)
 
     output_layers = config['backbone']['output_layers']
-    num_feature_levels = len(output_layers)
 
-    if config['backbone']['xcross_head'] == 'linear':
-        from models.head.siamfc.siamfc import SiamFCLinearHead
-        heads = [SiamFCLinearHead() for _ in range(num_feature_levels)]
-    elif config['backbone']['xcross_head'] == 'batch_norm':
-        from models.head.siamfc.siamfc import SiamFCBNHead
-        heads = [SiamFCBNHead() for _ in range(num_feature_levels)]
+    if config['backbone']['xcross_head'] == 'batch_norm':
+        from models.head.siamfc.experimental.batch_norm import SiamFCBNConvHead
+        heads = [SiamFCBNConvHead(backbone.num_channels_output[i]) for i in output_layers]
     else:
         raise Exception(f"unsupported xcross_head {config['backbone']['xcross_head']}")
     siamfc_net = SiamFCMultiResNet(backbone, heads)
