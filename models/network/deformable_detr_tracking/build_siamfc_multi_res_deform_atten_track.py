@@ -34,6 +34,7 @@ def initialize_siamfc_multires_deform_atten_track(net: DeformableDETRTracking, b
     for head in siamfc_net.heads:
         head.reset_parameters()
     net.reset_parameters()
+    net.transformer.reset_parameters()
 
 
 def build_siamfc_multires_deform_atten_track(config: dict):

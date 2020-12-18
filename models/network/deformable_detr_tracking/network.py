@@ -24,8 +24,8 @@ class DeformableDETRTracking(nn.Module):
         self.num_queries = num_queries
         self.transformer = transformer
         hidden_dim = transformer.d_model
-        #self.bbox_embed = MLP(hidden_dim * num_queries, hidden_dim, 4, 3)
-        self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
+        # self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
+        self.bbox_embed = MLP(hidden_dim * num_queries, hidden_dim, 4, 3)
         self.num_feature_levels = len(backbone_output_layers)
         self.query_embed = nn.Embedding(num_queries, hidden_dim*2)
         if self.num_feature_levels > 1:
@@ -66,5 +66,6 @@ class DeformableDETRTracking(nn.Module):
         query_embeds = self.query_embed.weight
         hs, init_reference, inter_references = self.transformer(srcs, masks, position_encs, query_embeds)
 
-        outputs_coord = self.bbox_embed(hs[:, 0, :]).sigmoid()
+        #outputs_coord = self.bbox_embed(hs[:, 0, :]).sigmoid()
+        outputs_coord = self.bbox_embed(hs.flatten(start_dim=1)).sigmoid()
         return outputs_coord

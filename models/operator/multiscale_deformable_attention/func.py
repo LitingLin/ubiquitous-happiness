@@ -24,9 +24,9 @@ def ms_deform_attn_core_pytorch(value, value_spatial_shapes, sampling_locations,
     output = (torch.stack(sampling_value_list, dim=-2).flatten(-2) * attention_weights).sum(-1).view(N_, M_*D_, Lq_)
     return output.transpose(1, 2).contiguous()
 
-
+enable_cuda=True
 def ms_deform_attn_func(value, value_spatial_shapes, value_level_start_index, sampling_locations, attention_weights, im2col_step):
-    if value.is_cuda:
+    if enable_cuda and value.is_cuda:
         from .func_cuda import MSDeformAttnCUDAFunction
         return MSDeformAttnCUDAFunction.apply(value, value_spatial_shapes, value_level_start_index, sampling_locations, attention_weights, im2col_step)
     else:

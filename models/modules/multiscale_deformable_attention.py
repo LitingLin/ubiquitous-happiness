@@ -53,8 +53,6 @@ class MSDeformAttn(nn.Module):
         self.value_proj = nn.Linear(d_model, d_model)
         self.output_proj = nn.Linear(d_model, d_model)
 
-        self._reset_parameters()
-
     def _reset_parameters(self):
         constant_(self.sampling_offsets.weight.data, 0.)
         thetas = torch.arange(self.n_heads, dtype=torch.float32) * (2.0 * math.pi / self.n_heads)
@@ -63,7 +61,7 @@ class MSDeformAttn(nn.Module):
         for i in range(self.n_points):
             grid_init[:, :, i, :] *= i + 1
         with torch.no_grad():
-            self.sampling_offsets.bias = nn.Parameter(grid_init.view(-1))
+            self.sampling_offsets.bias.copy_(grid_init.view(-1))
         constant_(self.attention_weights.weight.data, 0.)
         constant_(self.attention_weights.bias.data, 0.)
         xavier_uniform_(self.value_proj.weight.data)

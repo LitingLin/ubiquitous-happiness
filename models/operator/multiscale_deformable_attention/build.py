@@ -52,6 +52,7 @@ def build_extension_cmake(cuda_path=None, verbose=False):
         '-DTORCH_LIBRARIES:STRING={}'.format(';'.join(_get_torch_libraries())))
     cmake_parameters.append('-DCMAKE_CUDA_COMPILER={}'.format(_to_unix_style_path(cuda_compiler_path)))
     cmake_parameters.append('-DPython3_ROOT_DIR={}'.format(_to_unix_style_path(python_root_path)))
+    cmake_parameters.append('-DPython3_FIND_STRATEGY=LOCATION')
     cmake_parameters.append('-DCMAKE_INSTALL_PREFIX={}'.format(_to_unix_style_path(install_path)))
     if is_anaconda_dist():
         if sys.platform == 'win32':

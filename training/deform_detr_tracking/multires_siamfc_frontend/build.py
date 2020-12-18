@@ -98,5 +98,7 @@ def build_training_actor_and_dataloader(args, network_config: dict, train_config
         checkpoint = torch.load(args.resume, map_location='cpu')
         actor.load_state_dict(checkpoint)
         args.start_epoch = actor.get_epoch()
+    else:
+        actor.reset_parameters()
 
     return actor, data_loader_train, data_loader_val

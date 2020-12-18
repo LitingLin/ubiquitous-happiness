@@ -8,7 +8,7 @@ from data.operator.image.to_torch_tensor import to_torch_tensor
 
 class SiamFCZCurateXResizeProcessor:
     def __init__(self, exemplar_sz, instance_sz, context=0.5, max_translation=None, max_stretch_ratio=None,
-                 z_rgb_variance=None, label_generator=None):
+                 z_rgb_variance=None, label_generator=None, normalize=True):
         self.exemplar_sz = exemplar_sz
         self.instance_sz = instance_sz
         self.context = context
@@ -20,6 +20,7 @@ class SiamFCZCurateXResizeProcessor:
             self.z_rgb_variance = numpy.array(z_rgb_variance, dtype=numpy.float32)
         self.label_generator = label_generator
         self.x_resizer = ImageResizer(instance_sz)
+        self.do_normalize = normalize
 
     def __call__(self, image_z, z_bounding_box, image_x, x_bounding_box, is_positive):
         z = curate_image_like_siamfc_with_aug(image_z,
@@ -30,4 +31,9 @@ class SiamFCZCurateXResizeProcessor:
 
         image_x, x_bounding_box = self.x_resizer(image_x, x_bounding_box)
         x_bounding_box = bbox_wyxh2xyxy_normalize(x_bounding_box, (self.instance_sz, self.instance_sz))
-        return to_torch_tensor(z), to_torch_tensor(image_x), x_bounding_box
+        z = to_torch_tensor(z)
+        x = to_torch_tensor(image_x)
+        if self.do_normalize:
+            z = z / 255.0
+            x = x / 255.0
+        return z, x, x_bounding_box

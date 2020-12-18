@@ -13,8 +13,8 @@ class MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor:
         self.epoch = 0
         self.distributed_samplers = distributed_samplers
 
-    def reset_parameters(self):
-        initialize_siamfc_multires_deform_atten_track(self.get_model())
+    def reset_parameters(self, backbone_load_pretrained=True):
+        initialize_siamfc_multires_deform_atten_track(self.get_model(), backbone_load_pretrained)
 
     def forward(self, z, x, x_bbox):
         outputs = self.model(z, x)

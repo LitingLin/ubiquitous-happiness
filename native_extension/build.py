@@ -37,6 +37,7 @@ def build_extension_cmake(verbose=False):
 
     cmake_parameters = []
     cmake_parameters.append('-DPython3_ROOT_DIR={}'.format(_to_unix_style_path(python_root_path)))
+    cmake_parameters.append('-DPython3_FIND_STRATEGY=LOCATION')
     cmake_parameters.append('-DCMAKE_INSTALL_PREFIX={}'.format(_to_unix_style_path(install_path)))
     if is_anaconda_dist():
         if sys.platform == 'win32':

@@ -11,8 +11,6 @@ set(CUDA_SRC_FILES
     "${CMAKE_CURRENT_LIST_DIR}/cuda/ms_deform_im2col_cuda.cuh"
     )
 
-find_package(pybind11 REQUIRED)
-
 Python3_add_library(${PYTHON_MODULE_NAME} MODULE ${SRC_FILES} ${CUDA_SRC_FILES})
 
 if (WIN32)

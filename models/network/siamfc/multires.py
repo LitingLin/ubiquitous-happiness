@@ -16,4 +16,5 @@ class SiamFCMultiResNet(nn.Module):
         output = []
         for i, (i_z, i_x) in enumerate(zip(z, x)):
             output.append(self.heads[i](i_z, i_x))
+            #output.append(self.heads[i](z[-1], i_x))
         return output
