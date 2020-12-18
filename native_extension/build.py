@@ -20,10 +20,8 @@ def build_extension_cmake(verbose=False):
     import sys
     import os
 
-    current_path = os.path.abspath(os.path.join(__file__, os.pardir))
-    build_path = os.path.join(current_path, 'cmake-build')
-    install_path = current_path
-    source_path = os.path.abspath(os.path.join(current_path, 'src'))
+    install_path = _current_path
+    source_path = os.path.abspath(os.path.join(_current_path, 'src'))
 
     def is_anaconda_dist():
         return os.path.exists(os.path.join(sys.prefix, 'conda-meta'))
@@ -69,10 +67,10 @@ def build_extension_cmake(verbose=False):
             import distutils._msvccompiler
             apply_envs(distutils._msvccompiler._get_vc_env('x64 -vcvars_ver={}'.format(get_vc_version())))
 
-    if not os.path.exists(build_path):
-        os.mkdir(build_path)
+    if not os.path.exists(_build_path):
+        os.mkdir(_build_path)
 
-    os.chdir(build_path)
+    os.chdir(_build_path)
     import subprocess
     if sys.platform == 'win32':
         cmake_command = ['cmake', '-G', 'Ninja', '-DCMAKE_BUILD_TYPE=RelWithDebInfo']
