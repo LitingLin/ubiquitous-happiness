@@ -3,7 +3,7 @@ import numpy.random
 from data.siamfc.curation import curate_image_like_siamfc_with_aug, get_siamfc_curation_center_and_scale
 from data.operator.image.resize import ImageResizer
 from data.operator.bbox.wyxh2xyxy_normalize import bbox_wyxh2xyxy_normalize
-from torchvision.transforms import ToTensor
+from data.operator.image.to_torch_tensor import to_torch_tensor
 
 
 class SiamFCZCurateXResizeProcessor:
@@ -20,7 +20,6 @@ class SiamFCZCurateXResizeProcessor:
             self.z_rgb_variance = numpy.array(z_rgb_variance, dtype=numpy.float32)
         self.label_generator = label_generator
         self.x_resizer = ImageResizer(instance_sz)
-        self.to_tensor = ToTensor()
 
     def __call__(self, image_z, z_bounding_box, image_x, x_bounding_box, is_positive):
         z = curate_image_like_siamfc_with_aug(image_z,
@@ -31,4 +30,4 @@ class SiamFCZCurateXResizeProcessor:
 
         image_x, x_bounding_box = self.x_resizer(image_x, x_bounding_box)
         x_bounding_box = bbox_wyxh2xyxy_normalize(x_bounding_box, (self.instance_sz, self.instance_sz))
-        return self.to_tensor(z), self.to_tensor(image_x), x_bounding_box
+        return to_torch_tensor(z), to_torch_tensor(image_x), x_bounding_box

@@ -40,7 +40,7 @@ def curate_image_like_siamfc_with_aug(image, center, scale, out_size, max_transl
         image -= rgb_variance.dot(numpy.random.randn(3).astype(numpy.float32))
         image = numpy.clip(image, 0., 255.)
 
-    return torch.from_numpy(image).permute((2, 0, 1))
+    return image
 
 
 def get_siamfc_curation_center_and_scale(bounding_box, context, exemplar_size):
