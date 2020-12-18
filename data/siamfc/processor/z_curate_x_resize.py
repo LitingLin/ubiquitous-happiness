@@ -1,7 +1,8 @@
 import numpy
 import numpy.random
 from data.siamfc.curation import curate_image_like_siamfc_with_aug, get_siamfc_curation_center_and_scale
-from data.augmentation.resize import ImageResizer
+from data.operator.image.resize import ImageResizer
+from data.operator.bbox.wyxh2xyxy_normalize import bbox_wyxh2xyxy_normalize
 
 
 class SiamFCZCurateXResizeProcessor:
@@ -27,5 +28,5 @@ class SiamFCZCurateXResizeProcessor:
                                               False)
 
         image_x, x_bounding_box = self.x_resizer(image_x, x_bounding_box)
-
+        x_bounding_box = bbox_wyxh2xyxy_normalize(x_bounding_box, (self.instance_sz, self.instance_sz))
         return z, image_x, x_bounding_box
