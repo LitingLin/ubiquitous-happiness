@@ -1,7 +1,7 @@
 import time
 import torch
-from training.deform_detr_tracking.train_step import train_one_epoch
-from training.deform_detr_tracking.eval_step import evaluate
+from .train_step import train_one_epoch
+from .eval_step import evaluate
 import Utils.detr_misc as utils
 import os
 import json
