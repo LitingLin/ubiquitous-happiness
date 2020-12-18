@@ -97,5 +97,6 @@ class AlexNet(nn.Module):
 
 def construct_alexnet(width_mult=1, output_layers=(5,)):
     net = AlexNet(width_mult=width_mult, output_layers=output_layers)
-    net.num_channels = net.configs[1:]
+    net.num_channels_output = net.configs[1:]
+    net.num_channels_output = [net.num_channels_output[i] for i in output_layers]
     return net

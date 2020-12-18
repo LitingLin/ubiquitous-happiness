@@ -6,6 +6,7 @@ class SiamFCMultiResNet(nn.Module):
         super(SiamFCMultiResNet, self).__init__()
         self.backbone = backbone
         self.heads = heads
+        self.num_channels_output = backbone.num_channels_output
 
     def forward(self, z, x):
         z = self.backbone(z)

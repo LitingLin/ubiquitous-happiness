@@ -5,6 +5,7 @@ class DETRSiamFCWrapper:
     def __init__(self, siamfc, position_encoder):
         self.siamfc = siamfc
         self.position_encoder = position_encoder
+        self.num_channels_output = self.siamfc.num_channels_output
 
     def _generate_mask_position_enc(self, response):
         b, h, w = response.shape
