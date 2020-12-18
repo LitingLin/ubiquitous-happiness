@@ -34,4 +34,4 @@ class DETRTrackingLoss(nn.Module):
             stats[func] = loss
             losses.append(loss * weight)
 
-        return sum(losses), *self._do_statistic(stats)
+        return (sum(losses), *self._do_statistic(stats))
