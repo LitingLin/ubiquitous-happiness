@@ -4,12 +4,12 @@ from torch.autograd.function import once_differentiable
 
 
 try:
-    from _C import ms_deform_attn_cuda_forward, ms_deform_attn_cuda_backward
+    from ._C import ms_deform_attn_cuda_forward, ms_deform_attn_cuda_backward
 except ImportError:
     from .build import build_extension_cmake
 
     build_extension_cmake()
-    from _C import ms_deform_attn_cuda_forward, ms_deform_attn_cuda_backward
+    from ._C import ms_deform_attn_cuda_forward, ms_deform_attn_cuda_backward
 
 
 class MSDeformAttnCUDAFunction(Function):

@@ -1,5 +1,8 @@
 import os
-from _get_torch_build_conf import _get_torch_cuda_flags, _get_torch_cuda_archs, _get_torch_include_paths, _get_torch_library_paths, _get_torch_libraries
+
+if __package__ is None:
+    __package__ = 'models.operator.multiscale_deformable_attention'
+from ._get_torch_build_conf import _get_torch_cuda_flags, _get_torch_cuda_archs, _get_torch_include_paths, _get_torch_library_paths, _get_torch_libraries
 
 _current_path = os.path.abspath(os.path.join(__file__, os.pardir))
 _build_path = os.path.join(_current_path, 'cmake-build')

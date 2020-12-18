@@ -44,7 +44,7 @@ def build_siamfc_multires_deform_atten_track(config: dict):
 
     if config['backbone']['xcross_head'] == 'batch_norm':
         from models.head.siamfc.experimental.batch_norm import SiamFCBNConvHead
-        heads = [SiamFCBNConvHead(backbone.num_channels_output[i]) for i in output_layers]
+        heads = [SiamFCBNConvHead(backbone.num_channels_output[i]) for i in range(len(output_layers))]
     else:
         raise Exception(f"unsupported xcross_head {config['backbone']['xcross_head']}")
     siamfc_net = SiamFCMultiResNet(backbone, heads)

@@ -5,6 +5,8 @@ class SiamFCMultiResNet(nn.Module):
     def __init__(self, backbone, heads):
         super(SiamFCMultiResNet, self).__init__()
         self.backbone = backbone
+        if isinstance(heads, list):
+            heads = nn.ModuleList(heads)
         self.heads = heads
         self.num_channels_output = backbone.num_channels_output
 

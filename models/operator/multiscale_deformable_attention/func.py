@@ -26,7 +26,7 @@ def ms_deform_attn_core_pytorch(value, value_spatial_shapes, sampling_locations,
 
 
 def ms_deform_attn_func(value, value_spatial_shapes, value_level_start_index, sampling_locations, attention_weights, im2col_step):
-    if value.is_cuda():
+    if value.is_cuda:
         from .func_cuda import MSDeformAttnCUDAFunction
         return MSDeformAttnCUDAFunction.apply(value, value_spatial_shapes, value_level_start_index, sampling_locations, attention_weights, im2col_step)
     else:

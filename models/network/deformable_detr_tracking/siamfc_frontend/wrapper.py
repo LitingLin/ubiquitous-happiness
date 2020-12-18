@@ -10,9 +10,9 @@ class DETRSiamFCWrapper(nn.Module):
         self.num_channels_output = self.siamfc.num_channels_output
 
     def _generate_mask_position_enc(self, response):
-        b, h, w = response.shape
-        mask = torch.ones((b, h, w), dtype=torch.bool, device=response.device)
-        position = self.position_encoder(response)
+        n, c, h, w = response.shape
+        mask = torch.ones((n, h, w), dtype=torch.bool, device=response.device)
+        position = self.position_encoder(response, mask)
         return mask, position
 
     def forward(self, z, x):
