@@ -1,6 +1,7 @@
 train:
-  lr: 1.e-4
-  lr_backbone: 1.e-5
+  lr: 2.e-4
+  lr_backbone: 2e-5
+  lr_linear_proj_mult: 0.1
   batch_size: 2
   weight_decay: 1.e-4
   epochs: 300
@@ -12,8 +13,9 @@ train:
     repeat_times_per_epoch: 2
 
   loss:
-    bbox_coef: 5
-    giou_coef: 2
+    weight:
+      bbox: 5
+      giou: 2
 
 val:
   batch_size: 4

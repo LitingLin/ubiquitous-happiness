@@ -29,7 +29,7 @@ class DeformableDETRTracking(nn.Module):
         if self.num_feature_levels > 1:
             input_proj_list = []
             for i in range(self.num_feature_levels):
-                in_channels = backbone.num_channels[backbone_output_layers[i]]
+                in_channels = backbone.num_channels_output[i]
                 input_proj_list.append(nn.Sequential(
                     nn.Conv2d(in_channels, hidden_dim, kernel_size=1),
                     nn.GroupNorm(32, hidden_dim),
@@ -38,7 +38,7 @@ class DeformableDETRTracking(nn.Module):
         else:
             self.input_proj = nn.ModuleList([
                 nn.Sequential(
-                    nn.Conv2d(backbone.num_channels[backbone_output_layers[0]], hidden_dim, kernel_size=1),
+                    nn.Conv2d(backbone.num_channels_output[0], hidden_dim, kernel_size=1),
                     nn.GroupNorm(32, hidden_dim),
                 )])
         self.backbone = backbone
