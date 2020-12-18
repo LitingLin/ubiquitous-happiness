@@ -1,3 +1,4 @@
+import torch
 import torch.nn.functional as F
 from torch import nn
 
@@ -64,6 +65,5 @@ class DeformableDETRTracking(nn.Module):
         query_embeds = self.query_embed.weight
         hs, init_reference, inter_references = self.transformer(srcs, masks, position_encs, query_embeds)
 
-        outputs_coord = self.bbox_embed(hs).sigmoid()
-        out = {'pred_boxes': outputs_coord}
-        return out
+        outputs_coord = self.bbox_embed(torch.flatten(hs, start_dim=1)).sigmoid()
+        return outputs_coord

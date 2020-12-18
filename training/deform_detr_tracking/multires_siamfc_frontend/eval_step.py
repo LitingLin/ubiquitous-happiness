@@ -15,7 +15,7 @@ def evaluate(actor, data_loader, device):
         x_bbox = x_bbox.to(device)
 
         with torch.no_grad():
-            forward_stats = actor.forward((z, x), x_bbox)
+            forward_stats = actor.forward(z, x, x_bbox)
 
         metric_logger.update(**forward_stats)
     # gather the stats from all processes

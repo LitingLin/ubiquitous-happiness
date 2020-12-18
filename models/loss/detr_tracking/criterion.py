@@ -21,10 +21,11 @@ class DETRTrackingLoss(nn.Module):
                                       for k, v in stats_reduced.items()}
 
         stats_reduced_scaled = {k.__name__: v * self.losses[k]
-                                    for k, v in stats_reduced_unscaled.items()}
+                                    for k, v in stats_reduced.items()}
         return stats_reduced_unscaled, stats_reduced_scaled
 
-    def forward(self, src_boxes, target_boxes, num_boxes):
+    def forward(self, src_boxes, target_boxes):
+        num_boxes = src_boxes.shape[0]
         # expects [num_boxes, 4]
         stats = {}
         losses = []

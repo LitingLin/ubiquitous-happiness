@@ -15,8 +15,6 @@ def training_loop(args, train_config, actor, data_loader_train, data_loader_val)
     start_time = time.time()
     device = torch.device(args.device)
     for epoch in range(args.start_epoch, train_config['train']['epochs']):
-        if args.distributed:
-            data_loader_train.batch_sampler.sampler.set_epoch(epoch)
         train_stats = train_one_epoch(actor, data_loader_train, device, epoch,
                                       train_config['train']['clip_max_norm'])
         actor.new_epoch()

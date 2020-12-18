@@ -1,8 +1,8 @@
 train:
   lr: 2.e-4
-  lr_backbone: 2e-5
+  lr_backbone: 2.e-5
   lr_linear_proj_mult: 0.1
-  batch_size: 2
+  batch_size: 16
   weight_decay: 1.e-4
   epochs: 300
   lr_drop: 200
@@ -18,7 +18,7 @@ train:
       giou: 2
 
 val:
-  batch_size: 4
+  batch_size: 16
 
   data:
     repeat_times_per_epoch: 1
