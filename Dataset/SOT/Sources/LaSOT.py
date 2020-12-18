@@ -26,6 +26,7 @@ def construct_LaSOT(constructor, seed):
     class_names = [class_name for class_name in class_names if os.path.isdir(os.path.join(root_path, class_name))]
     class_names.sort()
 
+    auto_category_id_allocator = constructor.getAutoCategoryIdAllocationTool()
     for class_name in class_names:
         if not any(sequenceName.startswith(class_name) for sequenceName in validSequenceNames):
             raise Exception
@@ -41,7 +42,8 @@ def construct_LaSOT(constructor, seed):
                 continue
             constructor.beginInitializingSequence()
             constructor.setSequenceName(sequence_name)
-            constructor.setSequenceObjectCategory(class_name)
+            category_id = auto_category_id_allocator.getOrAllocateCategoryId(sequence_name)
+            constructor.setSequenceObjectCategory(category_id)
             sequence_path = os.path.join(class_path, sequence_name)
             groundtruth_file_path = os.path.join(sequence_path, 'groundtruth.txt')
             bounding_boxes = []

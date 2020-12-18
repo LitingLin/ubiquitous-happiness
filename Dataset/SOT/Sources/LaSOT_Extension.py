@@ -11,6 +11,7 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
     class_names = [class_name for class_name in class_names if os.path.isdir(os.path.join(root_path, class_name))]
     class_names.sort()
 
+    auto_category_id_allocator = constructor.getAutoCategoryIdAllocationTool()
     for class_name in class_names:
         class_path = os.path.join(root_path, class_name)
         sequence_names = os.listdir(class_path)
@@ -21,7 +22,8 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
         for sequence_name in sequence_names:
             constructor.beginInitializingSequence()
             constructor.setSequenceName(sequence_name)
-            constructor.setSequenceObjectCategory(class_name)
+            category_id = auto_category_id_allocator.getOrAllocateCategoryId(class_name)
+            constructor.setSequenceObjectCategory(category_id)
             sequence_path = os.path.join(class_path, sequence_name)
             groundtruth_file_path = os.path.join(sequence_path, 'groundtruth.txt')
             bounding_boxes = []
