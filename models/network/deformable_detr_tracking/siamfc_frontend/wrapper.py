@@ -1,8 +1,10 @@
 import torch
+from torch import nn
 
 
-class DETRSiamFCWrapper:
+class DETRSiamFCWrapper(nn.Module):
     def __init__(self, siamfc, position_encoder):
+        super(DETRSiamFCWrapper, self).__init__()
         self.siamfc = siamfc
         self.position_encoder = position_encoder
         self.num_channels_output = self.siamfc.num_channels_output

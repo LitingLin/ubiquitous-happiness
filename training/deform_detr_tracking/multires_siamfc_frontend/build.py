@@ -1,16 +1,11 @@
 import torch
-from ..actor import DETRTrackingActor
+from .actor import MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor
 from models.network.deformable_detr_tracking.build_siamfc_multi_res_deform_atten_track import build_siamfc_multires_deform_atten_track, initialize_siamfc_multires_deform_atten_track
 from models.loss.detr_tracking.builder import build_detr_tracking_loss
 from data.siamfc.dataset import build_tracking_dataset
 from data.siamfc.processor.z_curate_x_resize import SiamFCZCurateXResizeProcessor
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.distributed import DistributedSampler
-
-
-class MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor(DETRTrackingActor):
-    def reset_parameters(self):
-        initialize_siamfc_multires_deform_atten_track(self.get_model())
 
 
 def build_multires_siamfc_frontend_deform_detr_tracking_training_actor(args, net_config: dict, train_config: dict, device, distributed_samplers):

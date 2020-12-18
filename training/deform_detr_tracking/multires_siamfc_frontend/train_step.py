@@ -17,7 +17,7 @@ def train_one_epoch(actor,
         x = x.to(device)
         x_bbox = x_bbox.to(device)
 
-        forward_stats = actor.forward((z, x), x_bbox)
+        forward_stats = actor.forward(z, x, x_bbox)
         backward_stats = actor.backward(max_norm)
 
         metric_logger.update(**forward_stats)
