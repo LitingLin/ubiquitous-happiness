@@ -35,6 +35,9 @@ class DetectionDataset_MemoryMapped:
     def setRootPath(self, root_path: str):
         self.root_path = root_path
 
+    def getAllImageSize(self):
+        return self.image_sizes
+
     def getName(self):
         return self.name
 

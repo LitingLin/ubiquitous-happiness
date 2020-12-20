@@ -8,15 +8,14 @@
 # ------------------------------------------------------------------------
 
 import copy
-from typing import Optional, List
 import math
 
 import torch
 import torch.nn.functional as F
-from torch import nn, Tensor
-from torch.nn.init import xavier_uniform_, constant_, uniform_, normal_
+from torch import nn
+from torch.nn.init import xavier_uniform_, constant_, normal_
 
-from models.modules.multiscale_deformable_attention import MSDeformAttn
+from models.modules.attention.multiscale_deformable_attention import MSDeformAttn
 
 
 class DeformableTransformer(nn.Module):
