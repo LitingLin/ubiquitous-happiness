@@ -1,6 +1,10 @@
+import torch
+
+
 class DeformableTracker:
     def __init__(self, network, device, data_processor):
         network.to(device)
+        network.eval()
         self.network = network
         self.device = device
         self.data_processor = data_processor
@@ -15,6 +19,8 @@ class DeformableTracker:
         x = self.data_processor.get_x_image(image)
         x = x.unsqueeze(0)
         x = x.to(self.device)
-        x_bbox = self.network(self.z, x)
+        with torch.no_grad():
+            x_bbox = self.network(self.z, x)
+        x_bbox = x_bbox.cpu()
         x_bbox = self.data_processor.reverse_x_bbox(x_bbox[0], (w, h))
         return x_bbox

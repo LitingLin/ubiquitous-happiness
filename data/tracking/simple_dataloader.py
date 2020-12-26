@@ -15,7 +15,7 @@ class _SimpleTrackingSequenceIterator:
             raise IndexError
 
         image_path, bbox = self.sequence[index]
-        image = self.decoder(image_path)
+        image = self.decoder.decode(image_path)
         return image, bbox
 
     def __getattr__(self, item):
