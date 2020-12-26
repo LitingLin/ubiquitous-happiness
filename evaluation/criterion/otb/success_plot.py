@@ -23,6 +23,10 @@ class SuccessPlotCriterion:
     def __init__(self, groundtruth_bboxes: np.ndarray, predicted_bboxes: np.ndarray):
         mask = _valid_gt_mask(groundtruth_bboxes)
         self.iou = np.ones(groundtruth_bboxes.shape[0], dtype=np.float)
+        predicted_bboxes = predicted_bboxes.copy()
+        predicted_bboxes[:, 0] += 1
+        predicted_bboxes[:, 1] += 1
+        predicted_bboxes = np.rint(predicted_bboxes)
         self.iou[mask] = _iou(groundtruth_bboxes[mask], predicted_bboxes[mask])
 
     def at(self, threshold: float):
@@ -35,5 +39,4 @@ class SuccessPlotCriterion:
         for i in range(len(thresholds_overlap)):
             success[i] = np.sum(self.iou > thresholds_overlap[i]) / float(self.iou.shape[0])
         score = np.mean(success)
-        #score = metrics.average_precision_score(np.ones_like(self.iou), self.iou, pos_label=1)
         return score

@@ -11,7 +11,7 @@ class DETRSiamFCWrapper(nn.Module):
 
     def _generate_mask_position_enc(self, response):
         n, c, h, w = response.shape
-        mask = torch.ones((n, h, w), dtype=torch.bool, device=response.device)
+        mask = torch.zeros((n, h, w), dtype=torch.bool, device=response.device)
         position = self.position_encoder(response, mask)
         return mask, position
 

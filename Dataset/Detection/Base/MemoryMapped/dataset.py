@@ -101,6 +101,9 @@ class DetectionDataset_MemoryMapped:
         from .flatten_view import DetectionDataset_MemoryMapped_FlattenView
         return DetectionDataset_MemoryMapped_FlattenView(self)
 
+    def getNumberOfCategories(self):
+        return len(self.category_id_name_mapper)
+
     def hasAttributeCategory(self):
         return hasattr(self, 'category_ids')
 

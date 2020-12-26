@@ -52,27 +52,27 @@ def forward_parameters(dataset, dataset_building_parameters):
         constructor.setDatasetAttribute(parameter_name, parameter_value)
 
 
-def build_datasets(config_path: str):
-    with open(os.path.join(os.path.dirname(__file__), 'dataset_def.yaml'), 'rb') as fid:
-        default = yaml.safe_load(fid)
-    default = default['DATASET_DEFINITIONS']
-    with open(config_path, 'rb') as fid:
-        config = yaml.safe_load(fid)
-    dataset_config = merge_config(default, config['DATASETS'])
-    dataset_filter_names = config['DATA_CLEANING']
+def build_datasets(config: dict):
     filters = []
-    for filter_name in dataset_filter_names:
-        module = importlib.import_module('Dataset.Filter.DataCleaner_{}'.format(filter_name))
-        filter_class = getattr(module, 'DataCleaner_{}'.format(filter_name))
-        filters.append(filter_class())
+    if 'DATA_CLEANING' in config:
+        dataset_filter_names = config['DATA_CLEANING']
+        for filter_name in dataset_filter_names:
+            module = importlib.import_module('Dataset.Filter.DataCleaner_{}'.format(filter_name))
+            filter_class = getattr(module, 'DataCleaner_{}'.format(filter_name))
+            filters.append(filter_class())
+    if len(filters) == 0:
+        filters = None
     datasets = []
-    for dataset_name, dataset_building_parameter in dataset_config.items():
+    for dataset_name, dataset_building_parameter in config['DATASETS'].items():
         dataset_type = dataset_building_parameter['TYPE']
+        path = None
+        if 'PATH' in dataset_building_parameter:
+            path = dataset_building_parameter['PATH']
         if dataset_type == 'DET':
             from Dataset.Detection.factory import DetectionDatasetFactory
             module = importlib.import_module('Dataset.Detection.FactorySeeds.{}'.format(dataset_name))
             seed_class = getattr(module, '{}_Seed'.format(dataset_name))
-            seed = seed_class()
+            seed = seed_class(root_path=path)
             seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
             factory = DetectionDatasetFactory(seed)
             dataset = factory.constructMemoryMappedVersion(filters)
@@ -82,7 +82,7 @@ def build_datasets(config_path: str):
             from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
             module = importlib.import_module('Dataset.SOT.FactorySeeds.{}'.format(dataset_name))
             seed_class = getattr(module, '{}_Seed'.format(dataset_name))
-            seed = seed_class()
+            seed = seed_class(root_path=path)
             seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
             factory = SingleObjectTrackingDatasetFactory(seed)
             dataset = factory.constructMemoryMapped(filters)
@@ -92,7 +92,7 @@ def build_datasets(config_path: str):
             from Dataset.MOT.factory import MultipleObjectTrackingDatasetFactory
             module = importlib.import_module('Dataset.MOT.FactorySeeds.{}'.format(dataset_name))
             seed_class = getattr(module, '{}_Seed'.format(dataset_name))
-            seed = seed_class()
+            seed = seed_class(root_path=path)
             seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
             factory = MultipleObjectTrackingDatasetFactory(seed)
             dataset = factory.construct(filters)
@@ -101,3 +101,14 @@ def build_datasets(config_path: str):
         else:
             raise Exception('Unsupported dataset type {}'.format(dataset_type))
     return datasets
+
+
+def build_datasets_from_yaml(config_path: str):
+    with open(os.path.join(os.path.dirname(__file__), 'dataset_def.yaml'), 'rb') as fid:
+        default = yaml.safe_load(fid)
+    default = default['DATASET_DEFINITIONS']
+    with open(config_path, 'rb') as fid:
+        config = yaml.safe_load(fid)
+    dataset_config = merge_config(default, config['DATASETS'])
+    config['DATASETS'] = dataset_config
+    return build_datasets(dataset_config)

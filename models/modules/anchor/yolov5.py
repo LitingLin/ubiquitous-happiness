@@ -5,6 +5,7 @@ import torch
 import yaml
 from scipy.cluster.vq import kmeans
 from tqdm import tqdm
+from data.yolov5_wrapper.wrapper import YoloV5Dataset
 
 
 def check_anchor_order(m):
@@ -19,12 +20,33 @@ def check_anchor_order(m):
 
 
 def check_anchors(dataset, model, thr=4.0, imgsz=640):
+    if isinstance(dataset, YoloV5Dataset):
+        dataset = dataset.dataset
     # Check anchor fit to data, recompute if necessary
     print('\nAnalyzing anchors... ', end='')
     m = model.module.model[-1] if hasattr(model, 'module') else model.model[-1]  # Detect()
-    shapes = imgsz * dataset.shapes / dataset.shapes.max(1, keepdims=True)
+
+    # Get label wh
+    shapes = imgsz * dataset.getAllImageSize() / dataset.getAllImageSize().max(1, keepdims=True)
+
     scale = np.random.uniform(0.9, 1.1, size=(shapes.shape[0], 1))  # augment scale
-    wh = torch.tensor(np.concatenate([l[:, 3:5] * s for s, l in zip(shapes * scale, dataset.labels)])).float()  # wh
+    wh = []
+
+    for i, shape in enumerate(shapes * scale):
+        image = dataset[i]
+        bboxes = image.getAllBoundingBox()
+        size = image.getImageSize()
+        if image.hasAttributeIsPresent():
+            bboxes = bboxes[~image.getAllAttributeIsPresent()]
+
+        if bboxes.shape[0] != 0:
+            normalized_bboxes = np.zeros_like(bboxes[:, 2:4])
+            normalized_bboxes[:, 0] = bboxes[:, 2] / size[0]
+            normalized_bboxes[:, 1] = bboxes[:, 3] / size[0]
+
+            wh.append(normalized_bboxes * shape)
+    wh = np.concatenate(wh)  # wh
+    wh = torch.tensor(wh).float()
 
     def metric(k):  # compute metric
         r = wh[:, None] / k[None]
@@ -52,7 +74,9 @@ def check_anchors(dataset, model, thr=4.0, imgsz=640):
     print('')  # newline
 
 
-def kmean_anchors(path='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen=1000, verbose=True):
+def kmean_anchors(dataset, n=9, img_size=640, thr=4.0, gen=1000, verbose=True):
+    if isinstance(dataset, YoloV5Dataset):
+        dataset = dataset.dataset
     """ Creates kmeans-evolved anchors from training dataset
 
         Arguments:
@@ -92,17 +116,25 @@ def kmean_anchors(path='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen=10
             print('%i,%i' % (round(x[0]), round(x[1])), end=',  ' if i < len(k) - 1 else '\n')  # use in *.cfg
         return k
 
-    if isinstance(path, str):  # *.yaml file
-        with open(path) as f:
-            data_dict = yaml.load(f, Loader=yaml.FullLoader)  # model dict
-
-        dataset = LoadImagesAndLabels(data_dict['train'], augment=True, rect=True)
-    else:
-        dataset = path  # dataset
-
     # Get label wh
-    shapes = img_size * dataset.shapes / dataset.shapes.max(1, keepdims=True)
-    wh0 = np.concatenate([l[:, 3:5] * s for s, l in zip(shapes, dataset.labels)])  # wh
+    shapes = img_size * dataset.getAllImageSize() / dataset.getAllImageSize().max(1, keepdims=True)
+
+    wh0 = []
+
+    for i, shape in enumerate(shapes):
+        image = dataset[i]
+        bboxes = image.getAllBoundingBox()
+        size = image.getImageSize()
+        if image.hasAttributeIsPresent():
+            bboxes = bboxes[~image.getAllAttributeIsPresent()]
+
+        if bboxes.shape[0] != 0:
+            normalized_bboxes = np.zeros_like(bboxes[:, 2:4])
+            normalized_bboxes[:, 0] = bboxes[:, 2] / size[0]
+            normalized_bboxes[:, 1] = bboxes[:, 3] / size[0]
+
+            wh0.append(normalized_bboxes * shape)
+    wh0 = np.concatenate(wh0)  # wh
 
     # Filter
     i = (wh0 < 3.0).any(1).sum()

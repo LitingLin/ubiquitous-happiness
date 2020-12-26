@@ -22,7 +22,4 @@ def run_otb_evaluation(dataset, tracker, logger):
         logger.log_sequence_result(sequence.getName(), predicted, fps=length_of_sequence / (end - start), success_auc=success_auc, precision=precision_plot_criterion.at(20))
 
     aucs = np.array(aucs)
-    #length = np.array(length)
-    #length = length / length.sum()
-    #print(np.sum(aucs * length))
     return np.mean(aucs)

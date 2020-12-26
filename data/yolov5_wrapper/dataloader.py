@@ -1,17 +1,11 @@
-from Utils.yolov5_torch_utils import torch_distributed_zero_first
+from Utils.yolov5.torch_utils import torch_distributed_zero_first
 from .wrapper import YoloV5Dataset
 from .collate_fn import collate_fn
-from Dataset.Builder.builder import build_datasets
-from Dataset.Detection.Base.MemoryMapped.dataset import DetectionDataset_MemoryMapped
 import torch.utils.data
 
 
-def create_dataloader(path, imgsz, batch_size, stride, hyp=None, augment=False, pad=0.0, rect=False,
+def create_dataloader(dataset, imgsz, batch_size, stride, hyp=None, augment=False, pad=0.0, rect=False,
                       rank=-1, workers=8):
-    dataset = build_datasets(path)
-    assert len(dataset) == 1 and isinstance(dataset[0], DetectionDataset_MemoryMapped)
-    dataset = dataset[0]
-
     with torch_distributed_zero_first(rank):
         dataset = YoloV5Dataset(dataset, imgsz, augment, hyp, rect, batch_size, int(stride), pad)
 
