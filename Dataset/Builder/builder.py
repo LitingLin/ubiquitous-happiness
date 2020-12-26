@@ -111,4 +111,4 @@ def build_datasets_from_yaml(config_path: str):
         config = yaml.safe_load(fid)
     dataset_config = merge_config(default, config['DATASETS'])
     config['DATASETS'] = dataset_config
-    return build_datasets(dataset_config)
+    return build_datasets(config)
