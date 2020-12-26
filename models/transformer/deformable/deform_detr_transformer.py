@@ -8,15 +8,13 @@
 # ------------------------------------------------------------------------
 
 import copy
-from typing import Optional, List
 import math
 
 import torch
 import torch.nn.functional as F
-from torch import nn, Tensor
-from torch.nn.init import xavier_uniform_, constant_, uniform_, normal_
+from torch import nn
 
-from models.modules.multiscale_deformable_attention import MSDeformAttn
+from models.modules.attention.multiscale_deformable_attention import MSDeformAttn
 
 
 class DeformableTransformer(nn.Module):
@@ -50,9 +48,9 @@ class DeformableTransformer(nn.Module):
         for m in self.modules():
             if isinstance(m, MSDeformAttn):
                 m._reset_parameters()
-        xavier_uniform_(self.reference_points.weight.data, gain=1.0)
-        constant_(self.reference_points.bias.data, 0.)
-        normal_(self.level_embed)
+        nn.init.xavier_uniform_(self.reference_points.weight.data, gain=1.0)
+        nn.init.constant_(self.reference_points.bias.data, 0.)
+        nn.init.normal_(self.level_embed)
 
     def get_proposal_pos_embed(self, proposals):
         num_pos_feats = 128

@@ -26,6 +26,9 @@ class DetectionDatasetImageView_MemoryMapped:
         from Dataset.Detection.Base.MemoryMapped.object import DetectionDatasetObjectView_MemoryMapped
         return DetectionDatasetObjectView_MemoryMapped(self.dataset, self.index, self.attribute_index + index)
 
+    def getAllCategoryId(self):
+        return self.dataset.category_ids[self.attribute_index: self.attribute_index + self.length]
+
     def getAllBoundingBox(self):
         return self.dataset.bounding_boxes[self.attribute_index: self.attribute_index + self.length, :]
 

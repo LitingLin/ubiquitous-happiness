@@ -1,6 +1,6 @@
 from .dataset import DetectionDataset
 import pathlib
-from ._impl import _set_image_path, _get_or_allocate_category_id
+from ._impl import _set_image_path
 from typing import Dict
 import numpy as np
 
@@ -31,10 +31,9 @@ class DetectionDatasetImageObjectModifier:
         assert self.context.has_is_present
         self.object_.is_present = is_present
 
-    def setCategoryName(self, name: str):
-        assert isinstance(name, str)
+    def setCategoryId(self, id_: int):
+        assert isinstance(id_, int)
         assert self.context.has_object_category
-        id_ = _get_or_allocate_category_id(name, self.dataset.category_names, self.dataset.category_name_id_mapper)
         self.object_.category_id = id_
 
     def delete(self):

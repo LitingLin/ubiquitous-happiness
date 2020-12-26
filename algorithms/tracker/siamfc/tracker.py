@@ -38,13 +38,13 @@ class SiamFCTracker:
             image: color image in RGB format
                 shape: (H, W, 3)
                 type: np.uint8
-            bbox: object bounding box, 1-indexed and left-top based
-                shape: (4), (X, Y, W, H), index (X, Y) start from 1，should **not** be normalized to [0.0, 1.0]
+            bbox: object bounding box, 0-indexed and left-top based
+                shape: (4), (X, Y, W, H), index (X, Y) start from 0，should **not** be normalized to [0.0, 1.0]
                 type: np.float32
         '''
         bbox = np.array([
-            bbox[0] - 1 + bbox[2] / 2,
-            bbox[1] - 1 + bbox[3] / 2,
+            bbox[0] + bbox[2] / 2,
+            bbox[1] + bbox[3] / 2,
             bbox[2],
             bbox[3]], dtype=np.float32)
         self.center, self.target_sz = bbox[:2], bbox[2:]
@@ -77,8 +77,8 @@ class SiamFCTracker:
                 type: np.uint8
         Return
         ---
-            object bounding box, 1-indexed and left-top based
-                shape: (4), (X, Y, W, H), index (X, Y) start from 1，should **not** be normalized to [0.0, 1.0]
+            object bounding box, 0-indexed and left-top based
+                shape: (4), (X, Y, W, H), index (X, Y) start from 0
                 type: np.float32
         '''
         # search images
@@ -126,8 +126,8 @@ class SiamFCTracker:
 
         # return 1-indexed and left-top based bounding box
         bbox = np.array([
-            self.center[0] + 1 - self.target_sz[0] / 2,
-            self.center[1] + 1 - self.target_sz[1] / 2,
+            self.center[0] - self.target_sz[0] / 2,
+            self.center[1] - self.target_sz[1] / 2,
             self.target_sz[0], self.target_sz[1]])
 
         return bbox

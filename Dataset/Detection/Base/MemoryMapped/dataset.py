@@ -35,6 +35,9 @@ class DetectionDataset_MemoryMapped:
     def setRootPath(self, root_path: str):
         self.root_path = root_path
 
+    def getAllImageSize(self):
+        return self.image_sizes
+
     def getName(self):
         return self.name
 
@@ -97,6 +100,9 @@ class DetectionDataset_MemoryMapped:
     def getFlattenView(self):
         from .flatten_view import DetectionDataset_MemoryMapped_FlattenView
         return DetectionDataset_MemoryMapped_FlattenView(self)
+
+    def getNumberOfCategories(self):
+        return len(self.category_id_name_mapper)
 
     def hasAttributeCategory(self):
         return hasattr(self, 'category_ids')

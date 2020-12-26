@@ -14,7 +14,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_uniform_, constant_
 
-from ..operator.multiscale_deformable_attention.func import ms_deform_attn_func
+from models.operator.multiscale_deformable_attention.func import ms_deform_attn_func
 
 
 def _is_power_of_2(n):
