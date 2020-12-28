@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from Dataset.Builder.builder import build_datasets
+from Dataset.Builder.builder import build_datasets_from_yaml
 import copy
 
 from native_extension import ImageDecoder
@@ -144,7 +144,7 @@ class TrackingDataset(Dataset):
 
 
 def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rng_seed):
-    raw_datasets = build_datasets(dataset_config_path)
+    raw_datasets = build_datasets_from_yaml(dataset_config_path)
     # default values
     samples_per_epoch = None
     repeat_times_per_epoch = None

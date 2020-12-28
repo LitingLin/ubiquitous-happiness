@@ -36,11 +36,13 @@ def build_multires_siamfc_frontend_deform_detr_tracking_training_actor(args, net
             "lr": train_config['train']['lr'],
         },
         {
-            "params": [p for n, p in model.named_parameters() if match_name_keywords(n, lr_backbone_names) and p.requires_grad],
+            "params": [p for n, p in model.named_parameters()
+                       if match_name_keywords(n, lr_backbone_names) and p.requires_grad],
             "lr": train_config['train']['lr_backbone'],
         },
         {
-            "params": [p for n, p in model.named_parameters() if match_name_keywords(n, lr_linear_proj_names) and p.requires_grad],
+            "params": [p for n, p in model.named_parameters()
+                       if match_name_keywords(n, lr_linear_proj_names) and p.requires_grad],
             "lr": train_config['train']['lr'] * train_config['train']['lr_linear_proj_mult'],
         }
     ]
@@ -61,7 +63,8 @@ def build_multires_siamfc_frontend_deform_detr_tracking_training_actor(args, net
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
 
-    return MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor(model, criterion, optimizer, lr_scheduler, distributed_samplers)
+    return MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor(model, criterion, optimizer, lr_scheduler,
+                                                                 distributed_samplers)
 
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str):

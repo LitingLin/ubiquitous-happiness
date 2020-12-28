@@ -14,7 +14,7 @@ class ImageResizer:
         return image
 
     def do_bbox(self, bbox, image_size):
-        self.do_bbox_(bbox.copy(), image_size)
+        return self.do_bbox_(bbox.copy(), image_size)
 
     def do_bbox_(self, bbox, image_size):
         w, h = image_size

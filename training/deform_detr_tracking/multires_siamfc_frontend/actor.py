@@ -81,7 +81,7 @@ class MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor:
         self.criterion.eval()
 
     def get_model(self):
-        if not isinstance(self.model, torch.nn.Module):
+        if self.model.__class__.__name__ == 'DistributedDataParallel':
             model_without_ddp = self.model.module
         else:
             model_without_ddp = self.model
