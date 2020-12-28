@@ -62,4 +62,4 @@ class SiamFCZCurateXResizeProcessor:
         return self.x_resizer.reverse_do_bbox_(bbox, origin_image_size)
 
     def __call__(self, image_z: numpy.ndarray, z_bounding_box: numpy.ndarray, image_x: numpy.ndarray, x_bounding_box: numpy.ndarray, is_positive):
-        return self.get_z(image_z, z_bounding_box), *self.get_x(image_x, x_bounding_box)
+        return (self.get_z(image_z, z_bounding_box), *self.get_x(image_x, x_bounding_box))
