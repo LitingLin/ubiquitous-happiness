@@ -54,7 +54,7 @@ class AlexNet(nn.Module):
         else:
             return out
 
-    def reset_parameters(self, method='', params: dict=None):
+    def reset_parameters(self, method='kaiming', params: dict=None):
         if method == 'xavier':
             gain = 1
             if params is not None:

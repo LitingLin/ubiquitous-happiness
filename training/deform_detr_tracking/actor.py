@@ -1,8 +1,10 @@
 import torch
 import sys
 import math
+from Utils.deprecator import deprecated
 
 
+@deprecated
 class DETRTrackingActor:
     def __init__(self, model, criterion, optimizer, lr_scheduler, distributed_samplers=None):
         self.model = model
@@ -12,6 +14,7 @@ class DETRTrackingActor:
         self.epoch = 0
         self.distributed_samplers = distributed_samplers
 
+    # TODO: move to detr_tracking_actor
     def reset_parameters(self):
         self.model.reset_parameters()
 

@@ -1,26 +1,24 @@
 import torch
 import sys
 import math
-from models.network.detr_tracking_variants.deformable_detr_tracking.build_siamfc_multi_res_deform_atten_track import initialize_siamfc_multires_deform_atten_track
-from Utils.deprecator import deprecated
 
 
-@deprecated
-class MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor:
-    def __init__(self, model, criterion, optimizer, lr_scheduler, distributed_samplers=None):
+class DETRTrackingActor:
+    def __init__(self, model, criterion, optimizer, lr_scheduler, param_init_fn, epoch_changed_event_signal_slots=None):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
         self.epoch = 0
-        self.distributed_samplers = distributed_samplers
+        self.epoch_changed_event_signal_slots = epoch_changed_event_signal_slots
+        self.param_init_fn = param_init_fn
 
     def reset_parameters(self, backbone_load_pretrained=True):
-        initialize_siamfc_multires_deform_atten_track(self.get_model(), backbone_load_pretrained)
+        self.param_init_fn(self.get_model(), backbone_load_pretrained)
 
-    def forward(self, z, x, x_bbox):
-        outputs = self.model(z, x)
-        loss, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, x_bbox)
+    def forward(self, samples, targets):
+        outputs = self.model(samples)
+        loss, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, targets)
 
         losses_reduced_scaled = sum(loss_stats_reduced_scaled.values())
         loss_value = losses_reduced_scaled.item()
@@ -33,12 +31,15 @@ class MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor:
         self.loss = loss
         return {'loss': loss_value, **loss_stats_reduced_unscaled, **loss_stats_reduced_scaled}
 
+    def _emit_signal_epoch_changed(self):
+        if self.epoch_changed_event_signal_slots is not None:
+            for epoch_changed_signal_slot in self.epoch_changed_event_signal_slots:
+                epoch_changed_signal_slot.set_epoch(self.epoch)
+
     def new_epoch(self):
         self.epoch += 1
         self.lr_scheduler.step()
-        if self.distributed_samplers is not None:
-            for distributed_sampler in self.distributed_samplers:
-                distributed_sampler.set_epoch(self.epoch)
+        self._emit_signal_epoch_changed()
 
     def get_epoch(self):
         return self.epoch
@@ -65,10 +66,7 @@ class MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor:
             self.optimizer.load_state_dict(state['optimizer'])
             self.lr_scheduler.load_state_dict(state['lr_scheduler'])
             self.epoch = state['epoch']
-
-            if self.distributed_samplers is not None:
-                for distributed_sampler in self.distributed_samplers:
-                    distributed_sampler.set_epoch(self.epoch)
+            self._emit_signal_epoch_changed()
 
     def to(self, device):
         self.model.to(device)

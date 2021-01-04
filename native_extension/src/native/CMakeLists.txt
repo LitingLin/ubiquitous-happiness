@@ -52,4 +52,9 @@ if (NOT ${RELEASE_INSTALL})
     install(TARGETS native
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib)
+else()
+    if (${BUILD_SHARED_LIBS})
+        install(TARGETS native
+            LIBRARY DESTINATION .)
+    endif()
 endif()

@@ -1,13 +1,15 @@
 import torch
 from .actor import MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor
-from models.network.deformable_detr_tracking.build_siamfc_multi_res_deform_atten_track import build_siamfc_multires_deform_atten_track, initialize_siamfc_multires_deform_atten_track
+from models.network.detr_tracking_variants.deformable_detr_tracking.build_siamfc_multi_res_deform_atten_track import build_siamfc_multires_deform_atten_track
 from models.loss.detr_tracking.builder import build_detr_tracking_loss
 from data.siamfc.dataset import build_tracking_dataset
-from data.siamfc.processor.z_curate_x_resize import SiamFCZCurateXResizeProcessor
+from data.siamfc.processor.z_curate_no_bbox_x_resize import SiamFCZCurateNoBBoxXResizeProcessor
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.distributed import DistributedSampler
+from Utils.deprecator import deprecated
 
 
+@deprecated
 def build_multires_siamfc_frontend_deform_detr_tracking_training_actor(args, net_config: dict, train_config: dict, device, distributed_samplers):
     model = build_siamfc_multires_deform_atten_track(net_config)
 
@@ -68,7 +70,7 @@ def build_multires_siamfc_frontend_deform_detr_tracking_training_actor(args, net
 
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str):
-    processor = SiamFCZCurateXResizeProcessor(network_config['backbone']['siamfc']['exemplar_size'], network_config['backbone']['siamfc']['instance_size'], network_config['backbone']['siamfc']['context'])
+    processor = SiamFCZCurateNoBBoxXResizeProcessor(network_config['backbone']['siamfc']['exemplar_size'], network_config['backbone']['siamfc']['instance_size'], network_config['backbone']['siamfc']['context'])
     train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, processor, processor)
 
     set_on_epoch_changed = []

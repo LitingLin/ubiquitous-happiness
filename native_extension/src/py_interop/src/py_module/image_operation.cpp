@@ -34,18 +34,35 @@ namespace PyModule {
 		return unsigned(input.shape(0));
 	}
 
-	pybind11::array_t<uint8_t> RGBImageTranslateAndScale(const pybind11::array_t<uint8_t, pybind11::array::c_style | pybind11::array::forcecast>& input, std::array<uint32_t, 2> outputSize, std::array<double, 2> inputCenter, std::array<double, 2> outputCenter,
+    std::pair<pybind11::array_t<uint8_t>, pybind11::array_t<uint32_t>> RGBImageTranslateAndScaleWithBoundingBox(const pybind11::array_t<uint8_t, pybind11::array::c_style | pybind11::array::forcecast>& input, std::array<uint32_t, 2> outputSize, std::array<double, 2> inputCenter, std::array<double, 2> outputCenter,
 		std::array<double, 2> scaleRatio, std::array<uint8_t, 3> backgroundColor, InterpolationMethod method)
 	{
 		checkRGBImageArgument(input);
 
 		std::vector<ssize_t> outputShape = { outputSize[1], outputSize[0], 3 };
 		pybind11::array_t<uint8_t> output(outputShape);
+
+        pybind11::array_t<uint32_t> outputBoundingBox({4});
 		
-		::RGBImageTranslateAndScale(input.data(), getImageWidth(input), getImageHeight(input), output.mutable_data(), outputSize[0], outputSize[1], inputCenter[0], inputCenter[1],
+		::RGBImageTranslateAndScale(input.data(), getImageWidth(input), getImageHeight(input), output.mutable_data(), outputSize[0], outputSize[1],
+            outputBoundingBox.mutable_data(), inputCenter[0], inputCenter[1],
 			outputCenter[0], outputCenter[1], scaleRatio[0], scaleRatio[1], backgroundColor, method);
-		return output;
+		return std::make_pair(output, outputBoundingBox);
 	}
+
+    pybind11::array_t<uint8_t> RGBImageTranslateAndScale(const pybind11::array_t<uint8_t, pybind11::array::c_style | pybind11::array::forcecast>& input, std::array<uint32_t, 2> outputSize, std::array<double, 2> inputCenter, std::array<double, 2> outputCenter,
+                                                                                                                std::array<double, 2> scaleRatio, std::array<uint8_t, 3> backgroundColor, InterpolationMethod method)
+    {
+        checkRGBImageArgument(input);
+
+        std::vector<ssize_t> outputShape = { outputSize[1], outputSize[0], 3 };
+        pybind11::array_t<uint8_t> output(outputShape);
+
+        ::RGBImageTranslateAndScale(input.data(), getImageWidth(input), getImageHeight(input), output.mutable_data(), outputSize[0], outputSize[1],
+                                    nullptr, inputCenter[0], inputCenter[1],
+                                    outputCenter[0], outputCenter[1], scaleRatio[0], scaleRatio[1], backgroundColor, method);
+        return output;
+    }
 
 	pybind11::array_t<uint8_t> RGBImageToGrayScale(const pybind11::array_t<uint8_t, pybind11::array::c_style | pybind11::array::forcecast>& input)
 	{

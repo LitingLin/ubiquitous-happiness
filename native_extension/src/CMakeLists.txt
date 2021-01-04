@@ -12,66 +12,60 @@ option(SINGLE_MODULE "Build as a single module" ON)
 option(ENABLE_AVX2 "Enable AVX2 instruction set" ON)
 option(ENABLE_BASE_LIBS "Enable base-libs to enable directly access to os-specific APIs" ON)
 
+option(BUILD_PY_MODULES "Build python interop modules" OFF)
+
 if (${SINGLE_MODULE})
     SET(BUILD_SHARED_LIB OFF CACHE BOOL "Build all module as shared lib")
 endif()
 
-find_package(Python3 COMPONENTS Interpreter Development)
-
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
-if (NOT WIN32)
-    execute_process(
-            COMMAND "${Python3_EXECUTABLE}" -c "if True:
-        from distutils import sysconfig as sc
-        print(sc.get_config_var('CFLAGS'), end='')"
-            OUTPUT_VARIABLE PYTHON_CFLAGS
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            RESULT_VARIABLE RETVAL)
+if (${BUILD_PY_MODULES})
+    find_package(Python3 COMPONENTS Interpreter Development)
 
-    if (NOT ${RETVAL} EQUAL "0")
-        message(FATAL_ERROR "Failed to get python C compiler flags. Pythom executable: ${Python3_EXECUTABLE}")
-    endif()
+    if (NOT WIN32)
+        execute_process(
+                COMMAND "${Python3_EXECUTABLE}" -c "if True:
+            from distutils import sysconfig as sc
+            print(sc.get_config_var('CFLAGS'), end='')"
+                OUTPUT_VARIABLE PYTHON_CFLAGS
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                RESULT_VARIABLE RETVAL)
 
-    execute_process(
-            COMMAND "${Python3_EXECUTABLE}" -c "if True:
-        from distutils import sysconfig as sc
-        print(sc.get_config_var('LDFLAGS'))"
-            OUTPUT_VARIABLE PYTHON_LDFLAGS
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            RESULT_VARIABLE RETVAL)
+        if (NOT ${RETVAL} EQUAL "0")
+            message(FATAL_ERROR "Failed to get python C compiler flags. Pythom executable: ${Python3_EXECUTABLE}")
+        endif()
 
-    if (NOT ${RETVAL} EQUAL "0")
-        message(FATAL_ERROR "Failed to get python linker flags. Pythom executable: ${Python3_EXECUTABLE}")
-    endif()
+        execute_process(
+                COMMAND "${Python3_EXECUTABLE}" -c "if True:
+            from distutils import sysconfig as sc
+            print(sc.get_config_var('LDFLAGS'))"
+                OUTPUT_VARIABLE PYTHON_LDFLAGS
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                RESULT_VARIABLE RETVAL)
 
-    if (NOT "${PYTHON_CFLAGS}" STREQUAL "")
-        set(CMAKE_C_FLAGS "${PYTHON_CFLAGS}")
-        set(CMAKE_CXX_FLAGS "${PYTHON_CFLAGS}")
-        string(REPLACE "-Wstrict-prototypes" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-        set(CMAKE_C_FLAGS_RELWITHDEBINFO "")
-        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
-    endif()
-    if (NOT "${PYTHON_LDFLAGS}" STREQUAL "")
-        set(CMAKE_EXE_LINKER_FLAGS "${PYTHON_LDFLAGS}")
-        set(CMAKE_MODULE_LINKER_FLAGS "${PYTHON_LDFLAGS}")
-        set(CMAKE_MODULE_LINKER_FLAGS "${PYTHON_LDFLAGS}")
-        set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "")
-        set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "")
-        set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "")
-    endif()
+        if (NOT ${RETVAL} EQUAL "0")
+            message(FATAL_ERROR "Failed to get python linker flags. Pythom executable: ${Python3_EXECUTABLE}")
+        endif()
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -flto")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -flto")
-    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -flto")
-    set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} -flto")
-    set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} -flto")
-
-    if (${ENABLE_AVX2})
-        set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -mavx2")
-        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -mavx2")
+        if (NOT "${PYTHON_CFLAGS}" STREQUAL "")
+            set(CMAKE_C_FLAGS "${PYTHON_CFLAGS}")
+            set(CMAKE_CXX_FLAGS "${PYTHON_CFLAGS}")
+            string(REPLACE "-Wstrict-prototypes" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+            set(CMAKE_C_FLAGS_RELWITHDEBINFO "")
+            set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+        endif()
+        if (NOT "${PYTHON_LDFLAGS}" STREQUAL "")
+            set(CMAKE_EXE_LINKER_FLAGS "${PYTHON_LDFLAGS}")
+            set(CMAKE_MODULE_LINKER_FLAGS "${PYTHON_LDFLAGS}")
+            set(CMAKE_MODULE_LINKER_FLAGS "${PYTHON_LDFLAGS}")
+            set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "")
+            set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "")
+            set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "")
+        endif()
     endif()
 endif()
+
 if (MSVC)
     set(COMMON_MSVC_FLAGS "/wd4251 /wd4275 /Zc:referenceBinding /Zc:throwingNew /Zc:strictStrings /Zc:inline /Zc:rvalueCast")
     set(COMMON_MSVC_CXX_FLAGS "/GR /EHsc")
@@ -88,15 +82,29 @@ if (MSVC)
         set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /arch:AVX2")
         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /arch:AVX2")
     endif()
+else()
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -flto")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -flto")
+    set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -flto")
+    set(CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} -flto")
+    set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO} -flto")
+
+    if (${ENABLE_AVX2})
+        set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -mavx2")
+        set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -mavx2")
+    endif()
 endif()
 
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}")
 
-SET(RELEASE_INSTALL ON CACHE BOOL "install binary files only")
+SET(RELEASE_INSTALL OFF CACHE BOOL "install binary files only")
 
 if (${ENABLE_BASE_LIBS})
     add_subdirectory(base-libs)
 endif()
 
 add_subdirectory(native)
-add_subdirectory(py_interop)
+
+if (${BUILD_PY_MODULES})
+    add_subdirectory(py_interop)
+endif()

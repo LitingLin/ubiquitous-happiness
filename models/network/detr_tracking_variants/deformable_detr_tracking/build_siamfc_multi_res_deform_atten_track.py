@@ -1,8 +1,8 @@
 from models.transformer.position_encoding import build_position_encoding
 from models.transformer.deformable.deform_detr_transformer import build_deform_transformer
 from models.network.siamfc.multires import SiamFCMultiResNet
-from models.network.deformable_detr_tracking.siamfc_frontend.wrapper import DETRSiamFCWrapper
-from models.network.deformable_detr_tracking.network import DeformableDETRTracking
+from models.network.detr_tracking_variants.deformable_detr_tracking.siamfc_frontend.wrapper import DETRSiamFCWrapper
+from models.network.detr_tracking_variants.deformable_detr_tracking.network import DeformableDETRTracking
 
 
 def _build_backbone(config: dict):

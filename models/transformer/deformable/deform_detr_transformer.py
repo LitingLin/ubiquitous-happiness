@@ -7,6 +7,8 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 # ------------------------------------------------------------------------
 
+# *** Simplified version, only with deformable attention mechanism ***
+
 import copy
 import math
 

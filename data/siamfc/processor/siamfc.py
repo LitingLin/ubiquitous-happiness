@@ -1,6 +1,6 @@
 import numpy
 import numpy.random
-from data.siamfc.curation import curate_image_like_siamfc_with_aug, get_siamfc_curation_center_and_scale
+from data.siamfc.curation_with_aug import curate_image_like_siamfc_with_aug, get_siamfc_curation_center_and_scale
 
 
 class SiamFCDataProcessor:
