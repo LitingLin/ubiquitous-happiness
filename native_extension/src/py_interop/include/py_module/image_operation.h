@@ -8,7 +8,7 @@
 
 namespace PyModule {
     PYTHON_MODULE_INTERFACE
-    std::pair<pybind11::array_t<uint8_t>, pybind11::array_t<uint32_t>>
+    std::pair<pybind11::array_t<uint8_t>, pybind11::array_t<int32_t>>
     RGBImageTranslateAndScaleWithBoundingBox
             (const pybind11::array_t<uint8_t, pybind11::array::c_style | pybind11::array::forcecast> &input,
              std::array<uint32_t, 2> outputSize,

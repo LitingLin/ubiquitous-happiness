@@ -15,7 +15,7 @@ double makeInRange(double value, double min, double max)
 
 void RGBImageTranslateAndScale(const uint8_t* inputImage, uint32_t inputImageWidth, uint32_t inputImageHeight,
     uint8_t* outputImage, uint32_t outputImageWidth, uint32_t outputImageHeight,
-	uint32_t* outputBoundingBox,
+	int32_t* outputBoundingBox,
 	double inputCenterX, double inputCenterY, double outputCenterX, double outputCenterY,
 	double scaleRatioX, double scaleRatioY,
 	std::array<uint8_t, 3> backgroundColor, InterpolationMethod method)
@@ -81,9 +81,9 @@ void RGBImageTranslateAndScale(const uint8_t* inputImage, uint32_t inputImageWid
 		cv::resize(inputCrop, outputCrop, cv::Size(outputCropWidth, outputCropHeight), 0, 0, toCVValue(method));
 
 	if (outputBoundingBox) {
-        outputBoundingBox[0] = uint32_t(quantizedOutputImageBoundingBox1X);
-        outputBoundingBox[1] = uint32_t(quantizedOutputImageBoundingBox1Y);
-        outputBoundingBox[2] = uint32_t(outputCropWidth);
-        outputBoundingBox[3] = uint32_t(outputCropHeight);
+        outputBoundingBox[0] = quantizedOutputImageBoundingBox1X;
+        outputBoundingBox[1] = quantizedOutputImageBoundingBox1Y;
+        outputBoundingBox[2] = outputCropWidth;
+        outputBoundingBox[3] = outputCropHeight;
     }
 }
