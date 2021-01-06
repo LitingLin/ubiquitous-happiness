@@ -88,9 +88,15 @@ class TransformerEncoderLayer(nn.Module):
         z = self.z_norm(z)
         return z
 
-    def z_x_cross_attn(self, z, z_pos, x, x_pos, x_key_padding_mask):
-        x_2 = self.cross_attn(self.with_pos_embed(z, z_pos), self.with_pos_embed(x, x_pos), value=x, key_padding_mask=x_key_padding_mask)[0]
-        x = x + self.cross_dropout(x_2)
+    # def z_x_cross_attn(self, z, z_pos, x, x_pos, x_key_padding_mask):
+    #     x_2 = self.cross_attn(self.with_pos_embed(z, z_pos), self.with_pos_embed(x, x_pos), value=x, key_padding_mask=x_key_padding_mask)[0]
+    #     x = x + self.cross_dropout(x_2)
+    #     x = self.cross_norm(x)
+    #     return x
+
+    def z_x_cross_attn(self, z, z_pos, x, x_pos, z_key_padding_mask):
+        z_2 = self.cross_attn(self.with_pos_embed(x, x_pos), self.with_pos_embed(z, z_pos), value=z, key_padding_mask=z_key_padding_mask)[0]
+        x = x + self.cross_dropout(z_2)
         x = self.cross_norm(x)
         return x
 
@@ -115,7 +121,7 @@ class TransformerEncoderLayer(nn.Module):
         z = self.z_forward(z, z_key_padding_mask, z_pos)
         x = self.x_forward(x,  x_key_padding_mask, x_pos)
 
-        x = self.z_x_cross_attn(z, z_pos, x, x_pos, x_key_padding_mask)
+        x = self.z_x_cross_attn(z, z_pos, x, x_pos, z_key_padding_mask)
 
         x = self.cross_attn(self.with_pos_embed(z, z_pos), self.with_pos_embed(x, x_pos), value=x, key_padding_mask=x_key_padding_mask)[0]
 
