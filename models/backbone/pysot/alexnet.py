@@ -54,40 +54,10 @@ class AlexNet(nn.Module):
         else:
             return out
 
-    def reset_parameters(self, method='kaiming', params: dict=None):
-        if method == 'xavier':
-            gain = 1
-            if params is not None:
-                gain = params['gain']
-            for m in self.modules():
-                if isinstance(m, nn.Conv2d):
-                    nn.init.xavier_uniform_(m.weight, gain)
-                    if m.bias is not None:
-                        nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.BatchNorm2d):
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.Linear):
-                    nn.init.xavier_uniform_(m.weight, gain)
-                    if m.bias is not None:
-                        nn.init.constant_(m.bias, 0)
-        elif method == 'kaiming':
-            for m in self.modules():
-                if isinstance(m, nn.Conv2d):
-                    nn.init.kaiming_normal_(m.weight,
-                                            mode='fan_in',
-                                            nonlinearity='relu')
-                    if m.bias is not None:
-                        nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.BatchNorm2d):
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.Linear):
-                    nn.init.kaiming_normal_(m.weight,
-                                            mode='fan_in',
-                                            nonlinearity='relu')
-                    if m.bias is not None:
-                        nn.init.constant_(m.bias, 0)
+    def reset_parameters(self):
+        for module in self.modules():
+            if hasattr(module, 'reset_parameters'):
+                module.reset_parameters()
 
     def load_pretrained(self):
         self.load_state_dict(
@@ -95,7 +65,7 @@ class AlexNet(nn.Module):
                        map_location='cpu'), strict=True)
 
 
-def construct_alexnet(width_mult=1, output_layers=(5,)):
+def construct_alexnet(width_mult=1, output_layers=(4,)):
     net = AlexNet(width_mult=width_mult, output_layers=output_layers)
     net.num_channels_output = net.configs[1:]
     net.num_channels_output = [net.num_channels_output[i] for i in output_layers]
