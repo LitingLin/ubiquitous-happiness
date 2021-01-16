@@ -2,7 +2,7 @@ import torch
 
 
 def bbox_numpy_to_torch(bbox):
-    return torch.tensor(bbox, dtype=torch.float)
+    return torch.tensor(bbox)
 
 
 def bbox_torch_to_numpy(bbox: torch.Tensor):

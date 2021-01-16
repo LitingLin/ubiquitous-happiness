@@ -6,7 +6,7 @@ import os
 class AlexNet(nn.Module):
     configs = [3, 96, 256, 384, 384, 256]
 
-    def __init__(self, width_mult=1, output_layers=(5,)):
+    def __init__(self, width_mult=1, output_layers=(4,)):
         configs = list(map(lambda x: 3 if x == 3 else
         int(x * width_mult), AlexNet.configs))
         super(AlexNet, self).__init__()
@@ -95,7 +95,7 @@ class AlexNet(nn.Module):
                        map_location='cpu'), strict=True)
 
 
-def construct_alexnet(width_mult=1, output_layers=(5,)):
+def construct_alexnet(width_mult=1, output_layers=(4,)):
     net = AlexNet(width_mult=width_mult, output_layers=output_layers)
     net.num_channels_output = net.configs[1:]
     net.num_channels_output = [net.num_channels_output[i] for i in output_layers]

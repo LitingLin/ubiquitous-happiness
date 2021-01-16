@@ -1,5 +1,5 @@
 import torch
-from models.network.detr_tracking_variants.siam_encoder.builder import build_siam_encoder_detr_track
+from models.network.detr_tracking_variants.siam_encoder.builder import build_siam_encoder_detr_track, initialize_siam_encoder_detr_track
 from models.loss.detr_tracking.builder import build_detr_tracking_loss
 from training.detr_tracking.actor import DETRTrackingActor
 from data.detr_tracking_variants.siam_encoder.processor.mask_generator import SiamTransformerMaskGeneratingProcessor
@@ -44,7 +44,7 @@ def build_siam_encoder_detr_tracking_training_actor(args, net_config: dict, trai
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
 
-    return DETRTrackingActor(model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots)
+    return DETRTrackingActor(model, criterion, optimizer, lr_scheduler, initialize_siam_encoder_detr_track, epoch_changed_event_signal_slots)
 
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str):
