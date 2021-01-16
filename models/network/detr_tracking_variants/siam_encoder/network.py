@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+
 class MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
 
@@ -11,20 +12,10 @@ class MLP(nn.Module):
         h = [hidden_dim] * (num_layers - 1)
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
 
-    def reset_parameters(self, method='kaiming'):
-        if method == 'kaiming':
-            for module in self.layers:
-                nn.init.kaiming_normal_(module.weight,
-                                        mode='fan_in',
-                                        nonlinearity='relu')
-                if module.bias is not None:
-                    nn.init.constant_(module.bias, 0)
-        elif method == 'xavier':
-            for module in self.layers:
-                nn.init.xavier_uniform_(module.weight, gain=1)
-                nn.init.constant_(module.bias, 0)
-        else:
-            raise Exception
+    def reset_parameters(self):
+        for module in self.modules():
+            if hasattr(module, 'reset_parameters'):
+                module.reset_parameters()
 
     def forward(self, x):
         for i, layer in enumerate(self.layers):
@@ -59,20 +50,10 @@ class DETR(nn.Module):
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
         self.backbone = backbone
 
-    def reset_parameters(self, method='kaiming'):
-        self.bbox_embed.reset_parameters(method)
-
-        if method == 'kaiming':
-            nn.init.kaiming_normal_(self.input_proj.weight,
-                                    mode='fan_in',
-                                    nonlinearity='relu')
-            if self.input_proj.bias is not None:
-                nn.init.constant_(self.input_proj.bias, 0)
-        elif method == 'xavier':
-            nn.init.xavier_uniform_(self.input_proj.weight, gain=1)
-            nn.init.constant_(self.input_proj.bias, 0)
-        else:
-            raise Exception
+    def reset_parameters(self):
+        self.query_embed.reset_parameters()
+        self.bbox_embed.reset_parameters()
+        self.input_proj.reset_parameters()
 
     def forward(self, samples):
         z, z_mask, x = samples

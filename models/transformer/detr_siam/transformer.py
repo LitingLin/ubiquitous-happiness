@@ -34,7 +34,7 @@ class Transformer(nn.Module):
                 z_mask: Optional[Tensor] = None,
                 x_mask: Optional[Tensor] = None,
                 z_pos: Optional[Tensor] = None,
-                x_pos: Optional[Tensor] = None, ):
+                x_pos: Optional[Tensor] = None):
 
         # flatten NxCxHxW to HWxNxC
         z_bs, z_c, z_h, z_w = z.shape
