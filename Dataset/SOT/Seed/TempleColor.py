@@ -1,0 +1,13 @@
+from Dataset.Base.factory_seed import BaseSeed
+from Dataset.Type.data_split import DataSplit
+
+
+class TempleColor_Seed(BaseSeed):
+    def __init__(self, root_path: str=None):
+        if root_path is None:
+            root_path = self.get_path_from_config('TempleColor_PATH')
+        super(TempleColor_Seed, self).__init__('TempleColor-128', root_path, DataSplit.Full, 1)
+
+    def construct(self, constructor):
+        from .Impl.TempleColor import construct_TempleColor
+        construct_TempleColor(constructor, self)

@@ -1,0 +1,55 @@
+DATASETS:
+  BDD100k_Images:
+
+  Cityscapes:
+
+  COCO:
+    SPLITS:
+      - train
+
+  ILSVRC_DET:
+
+  KITTI_Detection:
+
+  OpenImages:
+    SPLITS:
+      - train
+      - val
+
+  ILSVRC_VID:
+
+  MOT17:
+
+  MOT20:
+
+  UAV_Benchmark_M:
+
+  YoutubeBB:
+
+  DeformSOT:
+
+  DTB70:
+
+  GOT10k:
+    SPLITS:
+      - train
+
+  LaSOT:
+    SPLITS:
+      - train
+
+  TempleColor:
+
+  UAV123:
+
+  UAV_Benchmark_S:
+
+
+
+
+
+FILTERS:
+  DATA_CLEANING:
+    - BoundingBox
+      - format:
+    - Integrity
