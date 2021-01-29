@@ -51,7 +51,7 @@ class TransformerEncoderLayer(nn.Module):
         self.z_dropout = nn.Dropout(dropout)
 
         self.x_norm = nn.LayerNorm(d_model)
-        self.x_dropout = nn.Dropout(d_model)
+        self.x_dropout = nn.Dropout(dropout)
 
         self.cross_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.cross_dropout = nn.Dropout(dropout)
@@ -75,14 +75,14 @@ class TransformerEncoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def x_forward(self, x, x_key_padding_mask, x_pos):
-        x_q, x_k = self.with_pos_embed(x, x_pos)
+        x_q = x_k = self.with_pos_embed(x, x_pos)
         x_2 = self.self_attn_x(x_q, x_k, value=x, key_padding_mask=x_key_padding_mask)[0]
         x = x + self.x_dropout(x_2)
         x = self.x_norm(x)
         return x
 
     def z_forward(self, z, z_key_padding_mask, z_pos):
-        z_q, z_k = self.with_pos_embed(z, z_pos)
+        z_q = z_k = self.with_pos_embed(z, z_pos)
         z_2 = self.self_attn_z(z_q, z_k, value=z, key_padding_mask=z_key_padding_mask)[0]
         z = z + self.z_dropout(z_2)
         z = self.z_norm(z)

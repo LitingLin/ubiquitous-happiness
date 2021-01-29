@@ -28,7 +28,8 @@ class SiamEncoderBackboneMaskWrapper(nn.Module):
         super(SiamEncoderBackboneMaskWrapper, self).__init__()
         self.backbone = backbone
         self.position_encoding = position_encoding
-        self.num_channels = self.backbone.num_channels
+        assert len(self.backbone.num_channels_output) == 1
+        self.num_channels = self.backbone.num_channels_output[0]
 
     def _forward_z_mask_pos(self, z_mask, z_feature):
         z_feature_mask = F.interpolate(z_mask.unsqueeze(dim=1).float(), size=z_feature.shape[-2:]).to(torch.bool).squeeze(dim=1)

@@ -55,7 +55,8 @@ class DETR(nn.Module):
         self.bbox_embed.reset_parameters()
         self.input_proj.reset_parameters()
 
-    def forward(self, z, z_mask, x):
+    def forward(self, samples):
+        z, z_mask, x = samples
         z_feat, z_feat_mask, z_feat_pos, x_feat, x_feat_mask, x_feat_pos = self.backbone(z, z_mask, x)
 
         hs = self.transformer(self.query_embed.weight, self.input_proj(z_feat), self.input_proj(x_feat),
