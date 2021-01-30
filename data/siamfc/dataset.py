@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from Dataset.Builder.builder import build_datasets_from_yaml
+from Dataset.EasyBuilder.YAML.builder import build_datasets_from_yaml
 import copy
 
 from native_extension import ImageDecoder
