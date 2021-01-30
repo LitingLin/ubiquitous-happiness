@@ -31,20 +31,22 @@ class _DatasetFactory:
             os.remove(cache_file_path)
         return None, os.path.join(cache_folder_path, cache_file_name)
 
-    def construct(self, filters=None, cache_base_data=False, dump_human_readable=False, bounding_box_format: BoundingBoxFormat = BoundingBoxFormat.XYWH):
+    def construct(self, filters=None, cache_meta_data=False, dump_human_readable=False, bounding_box_format: BoundingBoxFormat = BoundingBoxFormat.XYWH):
         if filters is not None and len(filters) == 0:
             filters = None
 
         dataset, cache_file_prefix = self._try_load_from_cache(self.specialized_dataset_type, '.np', filters)
         if dataset is not None:
             return dataset
-        base_dataset = self.construct_base_interface(filters, cache_base_data, dump_human_readable)
+        base_dataset = self.construct_base_interface(filters, cache_meta_data, dump_human_readable)
         dataset = base_dataset.specialize(self.specialized_dataset_enum, cache_file_prefix + '.np', bounding_box_format)
         return dataset
 
     @staticmethod
     def _dump_base_dataset(dataset, path):
         temp_file_path = path + '.tmp'
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
         dataset.dump(temp_file_path)
         os.rename(temp_file_path, path)
 
@@ -52,7 +54,9 @@ class _DatasetFactory:
     def _dump_base_dataset_yaml(dataset, path):
         if not os.path.exists(path):
             temp_file_path = path + '.tmp'
-            dataset.dump(temp_file_path)
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
+            dataset.dump_yaml(temp_file_path)
             os.rename(temp_file_path, path)
 
     @staticmethod
@@ -79,7 +83,7 @@ class _DatasetFactory:
         if filters is not None and len(filters) == 0:
             filters = None
 
-        cache_file_prefix, dataset = self._try_load_from_cache(self.base_dataset_type, '.p', filters)
+        dataset, cache_file_prefix = self._try_load_from_cache(self.base_dataset_type, '.p', filters)
         if dataset is not None:
             return dataset
         dataset = self._construct_base_interface_unprocessed(make_cache, dump_human_readable)

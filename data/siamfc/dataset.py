@@ -44,8 +44,8 @@ class TrackingDataset(Dataset):
         self.num = 0
         for dataset in datasets:
             self.dataset_positioning.register(len(dataset))
-            if dataset.hasAttribute('NUM_USE'):
-                num_use = dataset.getAttribute('NUM_USE')
+            if dataset.has_attribute('NUM_USE'):
+                num_use = dataset.get_attribute('NUM_USE')
             else:
                 num_use = len(dataset)
 
@@ -58,8 +58,8 @@ class TrackingDataset(Dataset):
 
             start_index += len(dataset)
 
-            if dataset.hasAttribute('FRAME_RANGE'):
-                frame_range = dataset.getAttribute('FRAME_RANGE')
+            if dataset.has_attribute('FRAME_RANGE'):
+                frame_range = dataset.get_attribute('FRAME_RANGE')
             else:
                 frame_range = 100
 

@@ -3,6 +3,7 @@ import os
 import copy
 import importlib
 from Dataset.Type.data_split import DataSplit
+from Dataset.Type.bounding_box_format import BoundingBoxFormat
 
 
 def merge_config(default: dict, user_defined: dict):
@@ -59,7 +60,7 @@ def build_datasets(config: dict):
         dataset_filter_names = config['FILTERS']
         for filter_key, filter_value in dataset_filter_names.items():
             if filter_key == 'DATA_CLEANING':
-                for filter_data_cleaning_key, filter_data_cleaning_value in filter_value:
+                for filter_data_cleaning_key, filter_data_cleaning_value in filter_value.items():
                     module = importlib.import_module('Dataset.Filter.DataCleaning.{}'.format(filter_data_cleaning_key))
                     filter_class = getattr(module, 'DataCleaning_{}'.format(filter_data_cleaning_key))
                     filters.append(filter_class(**filter_data_cleaning_value))
@@ -71,6 +72,19 @@ def build_datasets(config: dict):
     if len(filters) == 0:
         filters = None
     datasets = []
+
+    constructor_params = {}
+    if 'CONFIG' in config:
+        dataset_building_config = config['CONFIG']
+        if 'BoundingBox' in dataset_building_config:
+            bounding_box_building_config = dataset_building_config['BoundingBox']
+            if 'format' in bounding_box_building_config:
+                constructor_params['bounding_box_format'] = BoundingBoxFormat[bounding_box_building_config['format']]
+        if 'dump_human_readable' in config:
+            constructor_params['dump_human_readable'] = config['dump_human_readable']
+        if 'cache_meta_data' in config:
+            constructor_params['cache_meta_data'] = config['cache_meta_data']
+
     for dataset_name, dataset_building_parameter in config['DATASETS'].items():
         dataset_type = dataset_building_parameter['TYPE']
         path = None
@@ -94,7 +108,7 @@ def build_datasets(config: dict):
         seed = seed_class(root_path=path)
         seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
         factory = factory_class([seed])
-        dataset = factory.construct(filters)
+        dataset = factory.construct(filters, **constructor_params)
         forward_parameters(dataset, dataset_building_parameter)
         datasets.extend(dataset)
     return datasets

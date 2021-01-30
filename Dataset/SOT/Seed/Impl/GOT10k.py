@@ -5,26 +5,486 @@ from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
 from Miscellaneous.string_to_number import string_to_number_slow
 
 
-def _get_category_names(root_path):
-    category_names = []
-    for folder in ['train', 'val']:
-        for sequence_name in tqdm(open(os.path.join(root_path, folder, 'list.txt'), 'r')):
-            sequence_name = sequence_name.strip()
-            current_sequence_path = os.path.join(root_path, folder, sequence_name)
-
-            objectClass = None
-            for line in open(os.path.join(current_sequence_path, 'meta_info.ini'), 'r'):
-                if line.startswith('object_class: '):
-                    objectClass = line[len('object_class: '):]
-                    objectClass = objectClass.strip()
-                    if len(objectClass) == 0:
-                        objectClass = None
-                    break
-            if objectClass not in category_names:
-                category_names.append(objectClass)
-
-    category_names.sort()
-    return category_names
+_category_names = ['JetLev-Flyer',
+ 'abrocome',
+ 'addax',
+ 'african elephant',
+ 'agama',
+ 'aircraft',
+ 'aircraft carrier',
+ 'airplane',
+ 'airship',
+ 'alaskan brown bear',
+ 'albatross',
+ 'alligator',
+ 'alligator lizard',
+ 'alpaca',
+ 'ambulance',
+ 'american bison',
+ 'amphibian',
+ 'angora cat',
+ 'angora goat',
+ 'anteater',
+ 'antelope',
+ 'antelope head',
+ 'aoudad',
+ 'appaloosa',
+ 'arabian camel',
+ 'armadillo',
+ 'armored personnel carrier',
+ 'asian crocodile',
+ 'asiatic black bear',
+ 'assault gun',
+ 'australian blacksnake',
+ 'australian terrier',
+ 'autogiro',
+ 'bactrian camel',
+ 'badger',
+ 'balance car',
+ 'bald eagle',
+ 'balloon',
+ 'banded gecko',
+ 'banded palm civet',
+ 'banded sand snake',
+ 'barge',
+ 'barracuda',
+ 'barrow',
+ 'basilisk',
+ 'basketball',
+ 'bathyscaphe',
+ 'beaded lizard',
+ 'bear cub',
+ 'bee',
+ 'beetle',
+ 'belgian hare',
+ 'berlin',
+ 'bernese mountain dog',
+ 'bettong',
+ 'bezoar goat',
+ 'bhand truck',
+ 'bicycle wheel',
+ 'big truck',
+ 'bighorn',
+ 'binturong',
+ 'black rhinoceros',
+ 'black squirrel',
+ 'black stork',
+ 'black vulture',
+ 'black-crowned night heron',
+ 'black-necked cobra',
+ 'blindworm blindworm',
+ 'blue point siamese',
+ 'boa',
+ 'boar',
+ 'boneshaker',
+ 'border collie',
+ 'border terrier',
+ 'borzoi',
+ 'bovine',
+ 'brahman',
+ 'brambling',
+ 'brig',
+ 'brigantine',
+ 'broadtail',
+ 'brougham',
+ 'brush-tailed porcupine',
+ 'bulldozer',
+ 'bumboat',
+ 'bumper car',
+ 'burmese cat',
+ 'buzzard',
+ 'cabbageworm',
+ 'camel head',
+ 'canada porcupine',
+ 'canal boat',
+ 'canoeing',
+ 'cape buffalo',
+ 'capital ship',
+ 'capybara',
+ 'car',
+ 'car wheel',
+ 'carabao',
+ 'cargo ship',
+ 'cashmere goat',
+ 'cayuse',
+ 'chameleon',
+ 'checkered whiptail',
+ 'cheetah',
+ 'cheviot',
+ 'chevrotain',
+ 'chiacoan peccary',
+ 'chimaera',
+ 'chimpanzee',
+ 'chinese paddlefish',
+ 'cinnamon bear',
+ 'clam',
+ 'coati',
+ 'cockroach',
+ 'collared lizard',
+ 'collared peccary',
+ 'common kingsnake',
+ 'common starling',
+ 'common wallaby',
+ 'common zebra',
+ 'compact',
+ 'condor',
+ 'convertible',
+ 'corn borer',
+ 'cornetfish',
+ 'corvette',
+ 'cotswold',
+ 'coupe',
+ 'covered wagon',
+ 'cow pony',
+ 'coypu',
+ 'crab',
+ 'crayfish',
+ 'crow',
+ 'cruise missile',
+ 'cryptoprocta',
+ 'ctenophore',
+ 'curassow',
+ 'cutter',
+ 'cypriniform fish cypriniform',
+ 'dall sheep',
+ 'daphnia',
+ 'deer',
+ 'destroyer escort',
+ 'dhow',
+ 'diesel locomotive',
+ 'dogsled',
+ 'domestic llama',
+ 'dove',
+ 'dragon-lion dance',
+ 'drone',
+ 'duck',
+ 'dumpcart',
+ 'dune buggy',
+ 'earwig',
+ 'eastern grey squirrel',
+ 'egyptian cat',
+ 'elasmobranch',
+ 'electric',
+ 'electric locomotive',
+ 'elk',
+ 'european hare',
+ 'eye',
+ 'face',
+ 'fairy shrimp',
+ 'fall cankerworm',
+ 'false scorpion',
+ 'fanaloka',
+ 'fire engine',
+ 'fireboat',
+ 'flamingo',
+ 'football',
+ 'forest goat',
+ 'forklift',
+ 'fox squirrel',
+ 'frilled lizard',
+ 'garden centipede',
+ 'gavial',
+ 'gemsbok',
+ 'genet',
+ 'giant armadillo',
+ 'giant kangaroo',
+ 'giant panda',
+ 'gila monster',
+ 'giraffe',
+ 'glider',
+ 'gnu',
+ 'go-kart',
+ 'golden hamster',
+ 'golfcart',
+ 'goose',
+ 'gopher',
+ 'goral',
+ 'gorilla',
+ 'greater pichiciego',
+ 'green lizard',
+ 'green snake',
+ "grevy's zebra",
+ 'grizzly',
+ 'grouse',
+ 'guanaco',
+ 'guard ship',
+ 'gunboat',
+ 'hagfish',
+ 'half track',
+ 'halfbeak',
+ 'hammerhead',
+ 'hand',
+ 'hand truck',
+ 'hazel mouse',
+ 'hedge sparrow',
+ 'helicopter',
+ 'hermit crab',
+ 'heron',
+ 'hinny',
+ 'hippopotamus',
+ 'hog-nosed skunk',
+ 'horse cart',
+ 'horseless carriage',
+ 'horseshoe crab',
+ 'hudson bay collared lemming',
+ 'humvee',
+ 'hyrax',
+ 'ibex',
+ 'ice bear',
+ 'iceboat',
+ 'icebreaker',
+ 'ichneumon',
+ 'indian cobra',
+ 'indian mongoose',
+ 'indian rat snake',
+ 'indian rhinoceros',
+ 'interceptor',
+ 'irish terrier',
+ 'irish wolfhound',
+ 'italian greyhound',
+ 'jaguar',
+ 'japanese deer',
+ 'jeep',
+ 'jellyfish',
+ 'jinrikisha',
+ 'junk',
+ 'kanchil',
+ 'kinkajou',
+ 'kitty',
+ 'koala',
+ 'lamprey',
+ 'lander',
+ 'landing craft',
+ 'langur',
+ 'lappet caterpillar',
+ 'large civet',
+ 'legless lizard',
+ 'lemur',
+ 'leopard',
+ 'lerot',
+ 'lesser kudu',
+ 'lesser panda',
+ 'lion',
+ 'lippizan',
+ 'long-tailed porcupine',
+ 'longwool',
+ 'lorry',
+ 'louse',
+ 'lovebird',
+ 'luge',
+ 'lugger',
+ 'macaque',
+ 'magpie',
+ 'mailboat',
+ 'malayan tapir',
+ 'manatee',
+ 'mangabey',
+ 'manx',
+ 'marco polo sheep',
+ 'marine iguana',
+ 'marmoset',
+ 'mealworm',
+ 'medusa',
+ 'merino',
+ 'millipede',
+ 'minicab',
+ 'minisub',
+ 'minivan',
+ 'mole',
+ 'moloch',
+ 'morgan',
+ 'moth',
+ 'motor scooter',
+ 'motorboat',
+ 'motorcycle',
+ 'motorcycle wheel',
+ 'mouflon',
+ 'mountain beaver',
+ 'mountain bike',
+ 'mountain chinchilla',
+ 'mountain goat',
+ 'mountain skink',
+ 'mountain zebra',
+ 'mule',
+ 'multistage rocket',
+ 'musk ox',
+ 'night snake',
+ 'nilgai',
+ 'northern snakehead',
+ 'opossum rat',
+ 'orangutan',
+ 'orthopter',
+ 'osprey',
+ 'ostrich',
+ 'otter',
+ 'otter shrew',
+ 'otterhound',
+ 'owl',
+ 'ox',
+ 'oxcart',
+ 'pace car',
+ 'pacific walrus',
+ 'paddlefish',
+ 'pademelon',
+ 'palomino',
+ 'panzer',
+ 'passenger ship',
+ 'patrol boat',
+ 'peba',
+ 'pedicab',
+ 'pekinese',
+ 'pelican',
+ 'peludo',
+ 'penguin',
+ "pere david's deer",
+ 'person',
+ 'person head',
+ 'pheasant',
+ 'pickup truck',
+ 'pine marten',
+ 'pine snake',
+ 'pink cockatoo',
+ 'pinto',
+ 'platypus',
+ 'plodder',
+ 'plover',
+ 'polar hare',
+ 'pole horse',
+ 'polo pony',
+ 'pony cart',
+ 'pouched mole',
+ 'prawn',
+ 'praying mantis',
+ 'proboscis monkey',
+ "przewalski's horse",
+ 'pt boat',
+ 'pung',
+ 'punt',
+ 'push-bike',
+ 'putterer',
+ 'pygmy mouse',
+ 'quarter horse',
+ 'raccoon',
+ 'racerunner',
+ 'rambouillet',
+ 'raven',
+ 'reconnaissance plane',
+ 'reconnaissance vehicle',
+ 'red squirrel',
+ 'rhodesian ridgeback',
+ 'road race',
+ 'roadster',
+ 'rock hyrax',
+ 'roller coaster',
+ 'rolling stock',
+ 'round-tailed muskrat',
+ 'sailboard',
+ 'sailboat',
+ 'sassaby',
+ 'scooter',
+ 'scorpion',
+ 'scotch terrier',
+ 'sea otter',
+ 'seahorse',
+ 'seal',
+ 'sealyham terrier',
+ 'serow',
+ 'shoe',
+ 'shopping cart',
+ 'shrimp',
+ 'shrimpfish',
+ 'skateboard',
+ 'skibob',
+ 'skidder',
+ 'skunk',
+ 'sloth',
+ 'sloth bear',
+ 'small boat',
+ 'snail',
+ 'snow leopard',
+ 'snowmobil',
+ 'snowplow',
+ 'soccer ball',
+ 'sonoran whipsnake',
+ 'sow',
+ 'space shuttle',
+ 'spider',
+ 'spider monkey',
+ 'sport utility',
+ 'sports car',
+ 'spotted skunk',
+ 'squirrel monkey',
+ 'standard poodle',
+ 'standard schnauzer',
+ 'stanley steamer',
+ 'stealth bomber',
+ 'stealth fighter',
+ 'steam locomotive',
+ 'steamboat',
+ 'steamroller',
+ 'stickleback',
+ 'striped skunk',
+ 'subcompact',
+ 'suricate',
+ 'swallow',
+ 'swamprabbit',
+ 'tabby',
+ 'tadpole shrimp',
+ 'takin',
+ 'tank',
+ 'tank destroyer',
+ 'tasmanian devil',
+ 'termite',
+ 'texas horned lizard',
+ 'tiger cat',
+ 'tiglon',
+ 'tobacco hornworm',
+ 'toboggan',
+ 'tortoiseshell',
+ 'traffic sign',
+ 'train',
+ 'tramcar',
+ 'trawler',
+ 'tree lizard',
+ 'tree shrew',
+ 'tricycle wheel',
+ 'trilobite',
+ 'trolleybus',
+ 'troopship',
+ 'truck',
+ 'turtle',
+ 'unicycle',
+ 'urial',
+ 'virginia deer',
+ 'viscacha',
+ 'volleyball',
+ 'warship',
+ 'warthog',
+ 'wasp',
+ 'water cart',
+ 'water chevrotain',
+ 'water wagon',
+ 'water-drop',
+ 'whale',
+ 'wheelchair',
+ 'white elephant',
+ 'white rhinoceros',
+ 'white stork',
+ 'white-tailed jackrabbit',
+ 'whitetail prairie dog',
+ 'wildboar',
+ 'wildcat',
+ 'wisent',
+ 'wolverine',
+ 'wombat',
+ 'woodcock',
+ 'woodlouse',
+ 'woolly bear moth',
+ 'woolly monkey',
+ 'worm lizard',
+ 'yacht',
+ 'yellow-throated marten',
+ 'zebra-tailed lizard']
 
 
 def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
@@ -38,51 +498,55 @@ def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
     if data_type & DataSplit.Validation:
         folders.append('val')
 
-    category_names = _get_category_names(root_path)
-    constructor.set_category_id_name_map({k: v for k, v in enumerate(category_names)})
-    category_name_id_map = {v: k for k, v in enumerate(category_names)}
+    constructor.set_category_id_name_map({k: v for k, v in enumerate(_category_names)})
+    category_name_id_map = {v: k for k, v in enumerate(_category_names)}
 
+    sequence_list = []
     for folder in folders:
-        for sequence_name in tqdm(open(os.path.join(root_path, folder, 'list.txt'), 'r')):
+        for sequence_name in open(os.path.join(root_path, folder, 'list.txt'), 'r'):
             sequence_name = sequence_name.strip()
             current_sequence_path = os.path.join(root_path, folder, sequence_name)
-            images = os.listdir(current_sequence_path)
-            images = [image for image in images if image.endswith('.jpg')]
-            images.sort()
+            sequence_list.append((sequence_name, current_sequence_path))
 
-            is_presents = []
-            for line in open(os.path.join(current_sequence_path, 'absence.label'), 'r'):
-                line = line.strip()
-                is_present = not bool(int(line))
-                is_presents.append(is_present)
+    constructor.set_total_number_of_sequences(len(sequence_list))
 
-            boundingBoxes = []
-            for line in open(os.path.join(current_sequence_path, 'groundtruth.txt'), 'r'):
-                line = line.strip()
-                boundingBox = line.split(',')
-                assert len(boundingBox) == 4
-                boundingBox = [string_to_number_slow(value) for value in boundingBox]
-                boundingBoxes.append(boundingBox)
+    for sequence_name, sequence_path in sequence_list:
+        images = os.listdir(sequence_path)
+        images = [image for image in images if image.endswith('.jpg')]
+        images.sort()
 
-            assert len(images) == len(is_presents)
-            assert len(boundingBoxes) == len(images)
+        is_presents = []
+        for line in open(os.path.join(sequence_path, 'absence.label'), 'r'):
+            line = line.strip()
+            is_present = not bool(int(line))
+            is_presents.append(is_present)
 
-            objectClass = None
-            for line in open(os.path.join(current_sequence_path, 'meta_info.ini'), 'r'):
-                if line.startswith('object_class: '):
-                    objectClass = line[len('object_class: '):]
-                    objectClass = objectClass.strip()
-                    if len(objectClass) == 0:
-                        objectClass = None
-                    break
+        boundingBoxes = []
+        for line in open(os.path.join(sequence_path, 'groundtruth.txt'), 'r'):
+            line = line.strip()
+            boundingBox = line.split(',')
+            assert len(boundingBox) == 4
+            boundingBox = [string_to_number_slow(value) for value in boundingBox]
+            boundingBoxes.append(boundingBox)
 
-            if objectClass is None:
-                raise Exception
+        assert len(images) == len(is_presents)
+        assert len(boundingBoxes) == len(images)
 
-            with constructor.new_sequence(category_name_id_map[objectClass]) as sequence_constructor:
-                sequence_constructor.set_name(sequence_name)
+        objectClass = None
+        for line in open(os.path.join(sequence_path, 'meta_info.ini'), 'r'):
+            if line.startswith('object_class: '):
+                objectClass = line[len('object_class: '):]
+                objectClass = objectClass.strip()
+                if len(objectClass) == 0:
+                    objectClass = None
+                break
 
-                for image, boundingBox, is_present in zip(images, boundingBoxes, is_presents):
-                    with sequence_constructor.new_frame() as frame_constructor:
-                        frame_constructor.set_path(os.path.join(root_path, folder, sequence_name, image))
-                        frame_constructor.set_bounding_box(boundingBox, validity=is_present)
+        if objectClass is None:
+            raise Exception
+
+        with constructor.new_sequence(category_name_id_map[objectClass]) as sequence_constructor:
+            sequence_constructor.set_name(sequence_name)
+            for image, boundingBox, is_present in zip(images, boundingBoxes, is_presents):
+                with sequence_constructor.new_frame() as frame_constructor:
+                    frame_constructor.set_path(os.path.join(sequence_path, image))
+                    frame_constructor.set_bounding_box(boundingBox, validity=is_present)

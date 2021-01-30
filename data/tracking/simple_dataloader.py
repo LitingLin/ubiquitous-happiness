@@ -1,4 +1,4 @@
-from Utils.simple_prefetcher import SimplePrefetcher
+from Miscellaneous.simple_prefetcher import SimplePrefetcher
 from native_extension import ImageDecoder
 
 

@@ -1,7 +1,8 @@
-DATA_CLEANING:
-  - BoundingBox
-  - NoAbsentObjects
-  - Integrity
+FILTERS:
+  DATA_CLEANING:
+    - BoundingBox
+    - NoAbsentObjects
+    - Integrity
 
 DATASETS:
   GOT10k:

@@ -71,13 +71,13 @@ class _BaseDataset:
             pickle.dump(self.dataset, f)
 
     @staticmethod
-    def yaml_load(yaml_path: str, scheme_version):
+    def load_yaml(yaml_path: str, scheme_version):
         dataset = yaml_load(yaml_path)
         if dataset['version'][0] != scheme_version:
             raise IncompatibleError
         return dataset
 
-    def yaml_dump(self, yaml_path: str):
+    def dump_yaml(self, yaml_path: str):
         yaml_dump(self.dataset, yaml_path)
 
     def get_applied_filters(self):

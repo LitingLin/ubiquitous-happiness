@@ -111,7 +111,7 @@ def construct_YoutubeBB(constructor: MultipleObjectTrackingDatasetConstructor, s
 
                 index_of_frame += 1
                 with sequence_constructor.new_frame() as frame_constructor:
-                    frame_constructor.set_path(image_path)
+                    frame_constructor.set_path(image_path, image_size)
 
                 for (object_id, class_id), (bounding_box, is_present) in object_annotation.items():
                     if (object_id, class_id) not in registered_object:
