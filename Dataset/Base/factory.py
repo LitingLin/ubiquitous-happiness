@@ -24,7 +24,7 @@ class _DatasetFactory:
             try:
                 dataset = dataset_class.load(cache_file_path, self.seed.root_path)
                 if dataset.get_version() == self.seed.version:
-                    return dataset, cache_folder_path, cache_file_name
+                    return dataset, os.path.join(cache_folder_path, cache_file_name)
                 del dataset
             except IncompatibleError:
                 pass
