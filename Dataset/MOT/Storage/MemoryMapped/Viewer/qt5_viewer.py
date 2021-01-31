@@ -23,7 +23,7 @@ class _DatasetSequenceImageLoader:
         return pixmap, frame
 
 
-class MultipleObjectTrackingDatasetQt5Viewer:
+class MOTDatasetQt5Viewer:
     def __init__(self, dataset: MultipleObjectTrackingDataset_MemoryMapped):
         self.dataset = dataset
         self.viewer = Qt5Viewer()
