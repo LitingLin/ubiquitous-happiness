@@ -1,0 +1,6 @@
+model:
+  backbone:
+    type: alexnet
+    version: 1
+  head:
+    type: linear

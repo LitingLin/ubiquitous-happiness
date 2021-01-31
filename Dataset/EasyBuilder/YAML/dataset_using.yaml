@@ -43,13 +43,3 @@ DATASETS:
   UAV123:
 
   UAV_Benchmark_S:
-
-
-
-
-
-FILTERS:
-  DATA_CLEANING:
-    - BoundingBox
-      - format:
-    - Integrity

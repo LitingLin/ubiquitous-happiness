@@ -1,0 +1,57 @@
+data:
+  batch_size: 8
+  exemplar_sz: 127
+  instance_sz: 255 - 2 * 8
+  context: 0.5
+  T: 100
+  augmentation:
+    translation: 4
+    stretch_ratio: 0.05
+    rgb_variance_z_crop:
+      - [0.59902090, -1.0675048, 0.47212625]
+      - [1.8331048, 0.16709208, -1.9479885]
+      - [5.3728313, 5.4580841, 5.5241437]
+    rgb_variance_x_crop:
+      - [0.55919415, -0.98062825, 0.41940555]
+      - [1.7209141, 0.19879502, -1.8296874]
+      - [4.6446791, 4.7371016, 4.8832412]
+    random_gray: 0.
+
+
+model:
+  initialization: xavier
+
+train:
+  epochs: 50
+  optimizer:
+    type: SGD
+    initial_lr: 1e-2
+    ultimate_lr: 1e-5
+    weight_decay: 5e-4
+    momentum: 0.9
+    layer_wise:
+      lr:
+        conv:
+          weight: 1
+          bias: 2
+        bn:
+          gamma: 2
+          beta: 1
+        head:
+          gain: 0
+          bias: 1
+      weight_decay:
+        conv:
+          weight: 1
+          bias: 0
+        bn:
+          gamma: 0
+          beta: 0
+        head:
+          gain: 1
+          bias: 1
+  loss:
+    type: balanced
+  label:
+    r_pos: 16
+    r_neg: 0
