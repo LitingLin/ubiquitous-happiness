@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple
 import csv
 import cv2
 from Dataset.MOT.Constructor.base import MultipleObjectTrackingDatasetConstructor
+from PIL import Image
 
 
 class YoutubeBBAnnotationEntry:
@@ -106,8 +107,7 @@ def construct_YoutubeBB(constructor: MultipleObjectTrackingDatasetConstructor, s
                 if not os.path.exists(image_path):
                     continue
                 if image_size is None:
-                    height, width, _ = cv2.imread(image_path).shape
-                    image_size = [float(width), float(height)]
+                    image_size = Image.open(image_path).size
 
                 index_of_frame += 1
                 with sequence_constructor.new_frame() as frame_constructor:
