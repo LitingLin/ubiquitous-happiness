@@ -1,39 +1,37 @@
 from torch.utils.data.dataset import Dataset
-import torch.distributed as dist
 import random
 import numpy as np
 import torch
 import pickle
+
 
 def _seed_all_rng_engine(seed: int):
     random.seed(seed)
     np.random.seed(random.randbytes(32))
     torch.manual_seed(random.randbytes(32))
 
-def _is_dist_available_and_initialized():
-    if not dist.is_available():
-        return False
-    if not dist.is_initialized():
-        return False
-    return True
 
 def _get_rng_state():
     return {'py': random.getstate(),
             'np': np.random.get_state(),
             'torch': torch.get_rng_state()}
 
+
 def _get_binary_rng_state():
     state = _get_rng_state()
     return pickle.dumps(state)
+
 
 def _load_rng_state(state: dict):
     random.setstate(state['py'])
     np.random.set_state(state['np'])
     torch.set_rng_state(state['torch'])
 
+
 def _load_binary_rng_state(state: bytes):
     state = pickle.loads(state)
     _load_rng_state(state)
+
 
 class DataLoaderRandomnessOrchestrator(Dataset):
     def __init__(self, dataset: Dataset, batch_size: int, shuffle=False, seed: int=0):

@@ -47,3 +47,24 @@ class SiamFCLabelGenerator:
             return create_label(self.size, self.r_pos, self.r_neg, self.total_stride)
         else:
             return create_neg_label(self.size)
+
+
+class SimpleSiamFCDataloader:
+    def __init__(self, data_loader, label_generator, batch_size, device):
+        self.data_loader = data_loader
+        label: np.ndarray = label_generator(True)
+
+        c, h, w = label.shape
+        # repeat to size
+        label = label.reshape((1, c, h, w))
+        label = np.tile(label, (batch_size, 1, 1, 1))
+
+        self.label = torch.from_numpy(label).to(device).float()
+
+    def __iter__(self):
+        self.data_loader_iter = iter(self.data_loader)
+
+    def __next__(self):
+        data = next(self.data_loader_iter)
+
+        return (*data, self.label)

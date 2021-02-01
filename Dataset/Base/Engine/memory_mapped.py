@@ -30,23 +30,20 @@ class ByteArrayMemoryMappedConstructor:
         self.path = path
         self.length = 0
 
-    def append(self, bytes_: Union[Iterable[bytes], bytes]):
+    def append_array(self, bytes_: Iterable[bytes]):
         self.indices.append(self.length)
 
-        def test_if_iterable(object_):
-            try:
-                iter(object_)
-                return True
-            except TypeError:
-                return False
-        if test_if_iterable(bytes_):
-            length = 0
-            for b in bytes_:
-                self.bytes.append(np.frombuffer(b, dtype=np.uint8))
-                length += len(b)
-        else:
-            self.bytes.append(np.frombuffer(bytes_, dtype=np.uint8))
-            length = len(bytes_)
+        length = 0
+        for b in bytes_:
+            self.bytes.append(np.frombuffer(b, dtype=np.uint8))
+            length += len(b)
+
+        self.length += length
+
+    def append(self, bytes_: bytes):
+        self.indices.append(self.length)
+        self.bytes.append(np.frombuffer(bytes_, dtype=np.uint8))
+        length = len(bytes_)
         self.length += length
 
     def construct(self):
@@ -92,8 +89,8 @@ class ListMemoryMapped:
             return pickle.loads(raw_bytes)
         elif type_ == 1:
             numpy_desc_size = int.from_bytes(raw_bytes[0: 4], byteorder='little', signed=False)
-            numpy_desc = pickle.loads(raw_bytes[4: 4+numpy_desc_size])
-            return np.frombuffer(raw_bytes[4+numpy_desc_size:], dtype=numpy_desc[0]).reshape(numpy_desc[1])
+            numpy_desc = pickle.loads(raw_bytes[4: 4 + numpy_desc_size])
+            return np.frombuffer(raw_bytes[4 + numpy_desc_size:], dtype=numpy_desc[0]).reshape(numpy_desc[1])
         else:
             raise Exception('Unsupported')
 
@@ -111,11 +108,13 @@ class ListMemoryMappedConstructor:
             numpy_desc_bytes = pickle.dumps((object_.dtype, object_.shape))
             numpy_desc_size = len(numpy_desc_bytes)
             numpy_desc_size_bytes = numpy_desc_size.to_bytes(length=4, byteorder='little', signed=False)
-            self.constructor.append([type_.to_bytes(length=4, byteorder='little', signed=False), numpy_desc_size_bytes,
-                                     numpy_desc_bytes, memoryview(object_).cast('B')])
+            self.constructor.append_array(
+                [type_.to_bytes(length=4, byteorder='little', signed=False), numpy_desc_size_bytes,
+                 numpy_desc_bytes, memoryview(object_).cast('B')])
         else:
             type_ = 0
-            self.constructor.append([type_.to_bytes(length=4, byteorder='little', signed=False), pickle.dumps(object_)])
+            self.constructor.append_array(
+                [type_.to_bytes(length=4, byteorder='little', signed=False), pickle.dumps(object_)])
 
     def construct(self):
         return ListMemoryMapped(self.constructor.construct())

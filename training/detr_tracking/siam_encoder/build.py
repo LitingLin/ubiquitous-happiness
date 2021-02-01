@@ -1,13 +1,12 @@
 import torch
-from models.network.detr_tracking_variants.siam_encoder.builder import build_siam_encoder_detr_track, initialize_siam_encoder_detr_track
+from models.network.detr_tracking_variants.siam_encoder.builder import build_siam_encoder_detr_track, \
+    initialize_siam_encoder_detr_track
 from models.loss.detr_tracking.builder import build_detr_tracking_loss
 from training.detr_tracking.actor import DETRTrackingActor
 from data.detr_tracking_variants.siam_encoder.processor.mask_generator import SiamTransformerMaskGeneratingProcessor
 from data.siamfc.processor.z_curate_x_resize import SiamFC_Z_Curate_BBOX_XYWH_X_Resize_BBOX_CXCYWHNormalized_Processor
+from data.torch.data_loader import build_torch_train_val_dataloader
 from data.siamfc.dataset import build_tracking_dataset
-from torch.utils.data.distributed import DistributedSampler
-from torch.utils.data.dataloader import DataLoader
-from data.performance.cuda_prefetcher import CUDAPrefetcher
 
 
 def _setup_optimizer(model, train_config):
@@ -21,17 +20,18 @@ def _setup_optimizer(model, train_config):
 
     if train_config['train']['optimizer'] == 'AdamW':
         optimizer = torch.optim.AdamW(param_dicts, lr=train_config['train']['lr'],
-                                  weight_decay=train_config['train']['weight_decay'])
+                                      weight_decay=train_config['train']['weight_decay'])
     elif train_config['train']['optimizer'] == 'SGD':
         optimizer = torch.optim.SGD(param_dicts, lr=train_config['train']['lr'], momentum=0.9,
-                                      weight_decay=train_config['train']['weight_decay'])
+                                    weight_decay=train_config['train']['weight_decay'])
     else:
         raise Exception(f"unknown optimizer {train_config['train']['optimizer']}")
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, train_config['train']['lr_drop'])
     return optimizer, lr_scheduler
 
 
-def build_siam_encoder_detr_tracking_training_actor(args, net_config: dict, train_config: dict, epoch_changed_event_signal_slots=None):
+def build_siam_encoder_detr_tracking_training_actor(args, net_config: dict, train_config: dict,
+                                                    epoch_changed_event_signal_slots=None):
     model = build_siam_encoder_detr_track(net_config)
     device = torch.device(args.device)
 
@@ -44,47 +44,41 @@ def build_siam_encoder_detr_tracking_training_actor(args, net_config: dict, trai
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
 
-    return DETRTrackingActor(model, criterion, optimizer, lr_scheduler, initialize_siam_encoder_detr_track, epoch_changed_event_signal_slots)
+    return DETRTrackingActor(model, criterion, optimizer, lr_scheduler, initialize_siam_encoder_detr_track,
+                             epoch_changed_event_signal_slots)
 
 
-def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str):
-    siamfc_like_processor = SiamFC_Z_Curate_BBOX_XYWH_X_Resize_BBOX_CXCYWHNormalized_Processor(network_config['backbone']['siamfc']['exemplar_size'], network_config['backbone']['siamfc']['instance_size'], network_config['backbone']['siamfc']['context'])
+def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
+                      val_dataset_config_path: str):
+    siamfc_like_processor = SiamFC_Z_Curate_BBOX_XYWH_X_Resize_BBOX_CXCYWHNormalized_Processor(
+        network_config['backbone']['siamfc']['exemplar_size'], network_config['backbone']['siamfc']['instance_size'],
+        network_config['backbone']['siamfc']['context'])
     processor = SiamTransformerMaskGeneratingProcessor(siamfc_like_processor)
 
-    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, processor, processor)
+    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path,
+                                                        val_dataset_config_path, processor, processor)
 
     epoch_changed_event_signal_slots = []
 
-    if args.distributed:
-        sampler_train = DistributedSampler(train_dataset)
-        sampler_val = DistributedSampler(val_dataset, shuffle=False)
-        epoch_changed_event_signal_slots.extend([sampler_train, sampler_val])
-    else:
-        sampler_train = torch.utils.data.RandomSampler(train_dataset)
-        sampler_val = torch.utils.data.SequentialSampler(val_dataset)
-
-    batch_sampler_train = torch.utils.data.BatchSampler(
-        sampler_train, train_config['train']['batch_size'], drop_last=True)
-
-    data_loader_train = DataLoader(train_dataset, batch_sampler=batch_sampler_train,
-                                   num_workers=args.num_workers)
-    data_loader_val = DataLoader(val_dataset, train_config['val']['batch_size'], sampler=sampler_val,
-                                 drop_last=False, num_workers=args.num_workers)
-
-    device = args.device
-
-    if 'cuda' in device:
-        device = torch.device(device)
-        data_loader_train = CUDAPrefetcher(data_loader_train, device)
-        data_loader_val = CUDAPrefetcher(data_loader_val, device)
+    data_loader_train, data_loader_val = build_torch_train_val_dataloader(train_dataset, val_dataset,
+                                                                          train_config['train']['batch_size'],
+                                                                          train_config['val']['batch_size'],
+                                                                          args.num_workers, args.num_workers,
+                                                                          args.device, args.distributed,
+                                                                          epoch_changed_event_signal_slots)
 
     return data_loader_train, data_loader_val, epoch_changed_event_signal_slots
 
 
-def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str):
-    data_loader_train, data_loader_val, epoch_changed_event_signal_slots = _build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
+                                        val_dataset_config_path: str):
+    data_loader_train, data_loader_val, epoch_changed_event_signal_slots = _build_dataloader(args, network_config,
+                                                                                             train_config,
+                                                                                             train_dataset_config_path,
+                                                                                             val_dataset_config_path)
 
-    actor = build_siam_encoder_detr_tracking_training_actor(args, network_config, train_config, epoch_changed_event_signal_slots)
+    actor = build_siam_encoder_detr_tracking_training_actor(args, network_config, train_config,
+                                                            epoch_changed_event_signal_slots)
 
     if args.resume:
         checkpoint = torch.load(args.resume, map_location='cpu')

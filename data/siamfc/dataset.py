@@ -3,8 +3,7 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-
-from Dataset.EasyBuilder.YAML.builder import build_datasets_from_yaml
+from data.distributed.dataset import build_dataset_from_config_distributed_awareness
 import copy
 
 from native_extension import ImageDecoder
@@ -144,7 +143,7 @@ class TrackingDataset(Dataset):
 
 
 def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rng_seed):
-    raw_datasets = build_datasets_from_yaml(dataset_config_path)
+    raw_datasets = build_dataset_from_config_distributed_awareness(dataset_config_path)
     # default values
     samples_per_epoch = None
     repeat_times_per_epoch = None
