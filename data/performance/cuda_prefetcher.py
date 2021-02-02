@@ -1,4 +1,5 @@
 import torch
+import gc
 
 
 def default_tensor_list_fn(data):
@@ -63,6 +64,7 @@ class CUDAPrefetcher:
         if data is None:
             if hasattr(self, 'stream'):
                 del self.stream
+            gc.collect()
             raise StopIteration
 
         for tensor in tensor_list:

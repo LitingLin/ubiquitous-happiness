@@ -11,4 +11,4 @@ class SiamFCPostDataCombiner:
         z = image_numpy_to_torch(z)
         x = image_numpy_to_torch(x)
         label = self.siamfc_label_generator(is_positive)
-        return z, x, label
+        return (z, x), label
