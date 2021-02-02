@@ -14,8 +14,7 @@ def training_loop(args, train_config, actor, data_loader_train, data_loader_val)
     print("Start training")
     start_time = time.time()
     for epoch in range(args.start_epoch, train_config['train']['epochs']):
-        train_stats = train_one_epoch(actor, data_loader_train, epoch,
-                                      train_config['train']['clip_max_norm'])
+        train_stats = train_one_epoch(actor, data_loader_train, epoch)
         actor.new_epoch()
         if output_dir:
             checkpoint_paths = [os.path.join(output_dir, 'checkpoint.pth')]

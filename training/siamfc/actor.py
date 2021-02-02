@@ -17,7 +17,7 @@ class SiamFCTrainingActor:
         self.param_init_fn(self.get_model())
 
     def forward(self, samples, targets):
-        outputs = self.model(*samples)
+        outputs = self.model(samples)
         loss = self.criterion(outputs, targets)
         loss_value = loss.item()
         if not math.isfinite(loss):
@@ -40,11 +40,9 @@ class SiamFCTrainingActor:
     def get_epoch(self):
         return self.epoch
 
-    def backward(self, max_norm):
+    def backward(self):
         self.optimizer.zero_grad()
         self.loss.backward()
-        if max_norm > 0:
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm)
         self.optimizer.step()
         del self.loss
         self.loss = None

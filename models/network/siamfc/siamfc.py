@@ -7,7 +7,8 @@ class SiamFCNet(nn.Module):
         self.backbone = backbone
         self.head = head
 
-    def forward(self, z, x):
+    def forward(self, input_):
+        z, x = input_
         z = self.backbone(z)
         x = self.backbone(x)
         return self.head(z, x)

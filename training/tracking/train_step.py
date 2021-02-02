@@ -2,7 +2,7 @@ import Utils.detr_misc as utils
 from typing import Iterable
 
 
-def train_one_epoch(actor, data_loader: Iterable, epoch: int, max_norm: float = 0):
+def train_one_epoch(actor, data_loader: Iterable, epoch: int):
     actor.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
@@ -11,7 +11,7 @@ def train_one_epoch(actor, data_loader: Iterable, epoch: int, max_norm: float = 
 
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         forward_stats = actor.forward(samples, targets)
-        backward_stats = actor.backward(max_norm)
+        backward_stats = actor.backward()
 
         metric_logger.update(**forward_stats)
         metric_logger.update(**backward_stats)

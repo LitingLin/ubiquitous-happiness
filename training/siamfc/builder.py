@@ -8,8 +8,9 @@ from Miscellaneous.nullable_get import nullable_get
 from models.backbone.siamfc.alexnet import *
 from models.head.siamfc.siamfc import *
 from .actor import SiamFCTrainingActor
-from data.siamfc.label import SiamFCLabelGenerator, SimpleSiamFCDataloader
+from data.siamfc.label import SiamFCLabelGenerator
 from data.siamfc.processor.siamfc import SiamFCDataProcessor
+from data.siamfc.post_combiner import SiamFCPostDataCombiner
 from data.siamfc.dataset import build_tracking_dataset
 from data.torch.data_loader import build_torch_train_val_dataloader
 
@@ -151,12 +152,13 @@ def _build_dataloader(args, train_config: dict, train_dataset_config_path: str, 
                                            data_config['augmentation']['translation'], data_config['augmentation']['stretch_ratio'],
                                            data_config['augmentation']['rgb_variance_z_crop'],
                                            data_config['augmentation']['rgb_variance_x_crop'],
-                                           data_config['augmentation']['random_gray_ratio'], label_generator=label_generator, to_torch=True)
+                                           data_config['augmentation']['random_gray_ratio'])
 
-    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, siamfc_processor, siamfc_processor)
+    siamfc_data_processor = SiamFCPostDataCombiner(siamfc_processor, label_generator)
+
+    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, siamfc_data_processor, siamfc_data_processor)
 
     epoch_changed_event_signal_slots = []
-
 
     data_loader_train, data_loader_val = build_torch_train_val_dataloader(train_dataset, val_dataset,
                                                                           train_config['train']['batch_size'],
