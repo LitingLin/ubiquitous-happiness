@@ -45,12 +45,11 @@ class CUDAPrefetcher:
         self.tensor_list_fn = tensor_list_fn
         self.regroup_fn = regroup_fn
 
-        self.stream = torch.cuda.Stream()
-
     def __len__(self):
         return len(self.data_loader)
 
     def __iter__(self):
+        self.stream = torch.cuda.Stream()
         self.iter = iter(self.data_loader)
         self.preload()
         return self
