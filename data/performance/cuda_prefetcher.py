@@ -61,6 +61,8 @@ class CUDAPrefetcher:
         tensor_list = self.tensor_list
 
         if data is None:
+            if hasattr(self, 'stream'):
+                del self.stream
             raise StopIteration
 
         for tensor in tensor_list:
