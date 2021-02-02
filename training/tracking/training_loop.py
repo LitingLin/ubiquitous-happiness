@@ -11,7 +11,8 @@ import os
 
 def training_loop(args, train_config, actor, data_loader_train, data_loader_val):
     output_dir: str = args.output_dir
-    os.makedirs(output_dir, exist_ok=True)
+    if output_dir is not None and len(output_dir) > 0:
+        os.makedirs(output_dir, exist_ok=True)
 
     print("Start training")
     start_time = time.time()
