@@ -58,16 +58,16 @@ class TransformerEncoderLayer(nn.Module):
         self.cross_norm = nn.LayerNorm(d_model)
 
         self.z_ffn_linear1 = nn.Linear(d_model, dim_feedforward)
-        self.z_ffn_dropout_1 = nn.Linear(d_model, dim_feedforward)
-        self.z_ffn_linear2 = nn.Linear(d_model, dim_feedforward)
-        self.z_ffn_dropout_2 = nn.Linear(d_model, dim_feedforward)
+        self.z_ffn_dropout_1 = nn.Dropout(dropout)
+        self.z_ffn_linear2 = nn.Linear(dim_feedforward, d_model)
+        self.z_ffn_dropout_2 = nn.Dropout(dropout)
         self.z_ffn_activation = _get_activation_fn(activation)
         self.z_ffn_norm = nn.LayerNorm(d_model)
 
         self.x_ffn_linear1 = nn.Linear(d_model, dim_feedforward)
-        self.x_ffn_dropout_1 = nn.Linear(d_model, dim_feedforward)
-        self.x_ffn_linear2 = nn.Linear(d_model, dim_feedforward)
-        self.x_ffn_dropout_2 = nn.Linear(d_model, dim_feedforward)
+        self.x_ffn_dropout_1 = nn.Dropout(dropout)
+        self.x_ffn_linear2 = nn.Linear(dim_feedforward, d_model)
+        self.x_ffn_dropout_2 = nn.Dropout(dropout)
         self.x_ffn_activation = _get_activation_fn(activation)
         self.x_ffn_norm = nn.LayerNorm(d_model)
 
@@ -119,7 +119,7 @@ class TransformerEncoderLayer(nn.Module):
                 z_pos: Optional[Tensor] = None,
                 x_pos: Optional[Tensor] = None):
         z = self.z_forward(z, z_key_padding_mask, z_pos)
-        x = self.x_forward(x,  x_key_padding_mask, x_pos)
+        x = self.x_forward(x, x_key_padding_mask, x_pos)
 
         x = self.z_x_cross_attn(z, z_pos, x, x_pos, z_key_padding_mask)
 
