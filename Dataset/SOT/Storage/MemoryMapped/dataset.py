@@ -1,6 +1,6 @@
 from Dataset.Base.Engine.memory_mapped import ListMemoryMapped
 import numpy as np
-import os
+from Miscellaneous.platform_style_path import join_path
 from Dataset.Base.Common.MemoryMapped.dataset import LazyAttributesLoader, DummyAttributesLoader, MemoryMappedDataset
 
 __all__ = ['SingleObjectTrackingDataset_MemoryMapped']
@@ -31,7 +31,7 @@ class SingleObjectTrackingDatasetFrame_MemoryMapped:
         return self.image_size
 
     def get_image_path(self):
-        return os.path.join(self.root_path, self.sequence_attributes['path'], self.frame_attributes['path'])
+        return join_path(self.root_path, self.sequence_attributes['path'], self.frame_attributes['path'])
 
     def has_bounding_box(self):
         return self.bounding_box is not None

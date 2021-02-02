@@ -1,4 +1,5 @@
 import os
+from Miscellaneous.platform_style_path import join_path
 from Dataset.Type.bounding_box_format import BoundingBoxFormat
 from .manipulator import VideoDatasetManipulator
 from Dataset.Type.specialized_dataset import SpecializedVideoDatasetType
@@ -18,7 +19,7 @@ class VideoDatasetFrame:
         return os.path.basename(self.frame['path'])
 
     def get_image_path(self):
-        return os.path.abspath(os.path.join(self.root_path, self.sequence_path, self.frame['path']))
+        return join_path(self.root_path, self.sequence_path, self.frame['path'])
 
     def get_image_size(self):
         return self.frame['size']

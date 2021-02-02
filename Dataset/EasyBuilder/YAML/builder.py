@@ -34,7 +34,7 @@ def parseDataSplit(split_string: str):
         raise Exception('Invalid value {}'.format(split_string))
 
 
-def getDataSplitFromConfig(split_strings:list):
+def getDataSplitFromConfig(split_strings: list):
     split = parseDataSplit(split_strings[0])
     if len(split_strings) > 1:
         for split_string in split_strings[1:]:

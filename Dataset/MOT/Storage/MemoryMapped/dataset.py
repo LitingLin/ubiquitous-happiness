@@ -1,6 +1,6 @@
 from Dataset.Base.Engine.memory_mapped import ListMemoryMapped
 import numpy as np
-import os
+from Miscellaneous.platform_style_path import join_path
 from Dataset.Base.Common.MemoryMapped.dataset import LazyAttributesLoader, DummyAttributesLoader, MemoryMappedDataset
 
 __all__ = ['MultipleObjectTrackingDataset_MemoryMapped']
@@ -73,8 +73,7 @@ class MultipleObjectTrackingDatasetFrame_MemoryMapped:
         self.sequence_additional_attributes = sequence_additional_attributes
 
     def get_image_path(self):
-        return os.path.abspath(
-            os.path.join(self.root_path, self.sequence_attributes['path'], self.frame_attributes['path']))
+        return join_path(self.root_path, self.sequence_attributes['path'], self.frame_attributes['path'])
 
     def get_image_size(self):
         return self.image_size

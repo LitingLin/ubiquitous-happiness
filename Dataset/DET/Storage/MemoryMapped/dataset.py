@@ -1,6 +1,6 @@
 from Dataset.Base.Engine.memory_mapped import ListMemoryMapped
 import numpy as np
-import os
+from Miscellaneous.platform_style_path import join_path
 from Dataset.Base.Common.MemoryMapped.dataset import LazyAttributesLoader, DummyAttributesLoader, MemoryMappedDataset
 
 __version__ = 1
@@ -55,7 +55,7 @@ class DetectionDatasetImage_MemoryMapped:
         self.image_additional_attributes = image_additional_attributes_loader
 
     def get_image_path(self):
-        return os.path.abspath(os.path.join(self.root_path, self.image_attributes['path']))
+        return join_path(self.root_path, self.image_attributes['path'])
 
     def get_image_size(self):
         return self.image_attributes['size']

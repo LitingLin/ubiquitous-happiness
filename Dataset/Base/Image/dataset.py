@@ -2,7 +2,7 @@ import os
 from Dataset.Type.specialized_dataset import SpecializedImageDatasetType
 from Dataset.Type.bounding_box_format import BoundingBoxFormat
 from Dataset.Base.Common.dataset import _BaseDataset, _BaseDatasetObject
-
+from Miscellaneous.platform_style_path import join_path
 
 __version__ = 1
 
@@ -25,7 +25,7 @@ class ImageDatasetImage:
         return os.path.basename(self.image['path'])
 
     def get_image_path(self):
-        return os.path.abspath(os.path.join(self.root_path, self.image['path']))
+        return join_path(self.root_path, self.image['path'])
 
     def get_image_size(self):
         return self.image['size']
