@@ -48,6 +48,8 @@ class DetectionDatasetSiamFCSampler:
     def get_positive_pair(self, index):
         image = self.dataset[index]
         visible = image.get_all_bounding_box_validity_flag()
+        if visible is None:
+            visible = np.ones([len(image)], dtype=np.uint8)
         z_index = _sample_visible_ids(visible)
         if z_index is None:
             return None
@@ -74,6 +76,8 @@ class SOTDatasetSiamFCSampler:
         sequence = self.dataset[index]
         frame_range = self.frame_range
         visible = sequence.get_all_bounding_box_validity_flag()
+        if visible is None:
+            visible = np.ones([len(sequence)], dtype=np.uint8)
         z_index = _sample_visible_ids(visible)
         if z_index is None:
             return None
@@ -94,6 +98,8 @@ class SOTDatasetSiamFCSampler:
         sequence = self.dataset[index]
 
         visible = sequence.get_all_bounding_box_validity_flag()
+        if visible is None:
+            visible = np.ones([len(sequence)], dtype=np.uint8)
         z_index = _sample_visible_ids(visible)
 
         if z_index is None:
@@ -119,7 +125,10 @@ class MOTDatasetSiamFCSampler:
         track = sequence.get_object(index_of_track)
         length_of_sequence = len(sequence)
         visible = np.zeros(length_of_sequence, dtype=np.uint8)
-        visible[track.get_all_frame_index()][track.get_all_bounding_box_validity_flag()] = 1
+        if track.get_all_bounding_box_validity_flag() is not None:
+            visible[track.get_all_frame_index()][track.get_all_bounding_box_validity_flag()] = 1
+        else:
+            visible[track.get_all_frame_index()] = 1
         object_id = track.get_id()
         z_index = _sample_visible_ids(visible)
         if z_index is None:
@@ -145,7 +154,10 @@ class MOTDatasetSiamFCSampler:
         track = sequence.get_object(index_of_track)
         length_of_sequence = len(sequence)
         visible = np.zeros(length_of_sequence, dtype=np.uint8)
-        visible[track.get_all_frame_index()][track.get_all_bounding_box_validity_flag()] = 1
+        if track.get_all_bounding_box_validity_flag() is not None:
+            visible[track.get_all_frame_index()][track.get_all_bounding_box_validity_flag()] = 1
+        else:
+            visible[track.get_all_frame_index()] = 1
         object_id = track.get_id()
         z_index = _sample_visible_ids(visible)
         if z_index is None:

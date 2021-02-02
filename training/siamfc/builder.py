@@ -110,7 +110,7 @@ def _get_optimizer_learnable_params(model, optimizer_config):
 
 def _setup_siamfc_optimizer(model, train_config):
     optimizer_config = train_config['train']['optimizer']
-    if optimizer_config['type'] == 'sgd':
+    if optimizer_config['type'] == 'SGD':
         lr = optimizer_config['initial_lr']
         weight_decay = optimizer_config['weight_decay']
         momentum = optimizer_config['momentum']
@@ -144,11 +144,14 @@ def build_siamfc_training_actor(args, network_config: dict, train_config: dict, 
 
 def _build_dataloader(args, train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str):
     data_config = train_config['data']
+
+    label_generator = SiamFCLabelGenerator(data_config['label']['size'], data_config['label']['r_pos'], data_config['label']['r_neg'], train_config['model']['total_stride'])
+
     siamfc_processor = SiamFCDataProcessor(data_config['exemplar_sz'], data_config['instance_sz'], data_config['context'],
                                            data_config['augmentation']['translation'], data_config['augmentation']['stretch_ratio'],
                                            data_config['augmentation']['rgb_variance_z_crop'],
                                            data_config['augmentation']['rgb_variance_x_crop'],
-                                           data_config['augmentation']['random_gray_ratio'])
+                                           data_config['augmentation']['random_gray_ratio'], label_generator=label_generator, to_torch=True)
 
     train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, siamfc_processor, siamfc_processor)
 
@@ -161,13 +164,6 @@ def _build_dataloader(args, train_config: dict, train_dataset_config_path: str, 
                                                                           args.num_workers, args.num_workers,
                                                                           args.device, args.distributed,
                                                                           epoch_changed_event_signal_slots)
-
-    label_generator = SiamFCLabelGenerator(data_config['label']['size'], data_config['label']['r_pos'], data_config['label']['r_neg'], train_config['model']['total_stride'])
-    device = torch.device(args.device)
-    data_loader_train = SimpleSiamFCDataloader(data_loader_train, label_generator, train_config['train']['batch_size'],
-                                               device)
-    data_loader_val = SimpleSiamFCDataloader(data_loader_val, label_generator, train_config['val']['batch_size'],
-                                             device)
 
     return data_loader_train, data_loader_val, epoch_changed_event_signal_slots
 

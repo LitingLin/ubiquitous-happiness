@@ -1,6 +1,6 @@
 data:
   exemplar_sz: 127
-  instance_sz: 255 - 2 * 8
+  instance_sz: 239 # 255-2*8
   context: 0.5
   T: 100
   augmentation:
@@ -16,7 +16,7 @@ data:
       - [4.6446791, 4.7371016, 4.8832412]
     random_gray_ratio: 0.
   label:
-    size: [17, 17]
+    size: [1, 15, 15]
     r_pos: 16
     r_neg: 0
 
@@ -24,15 +24,17 @@ data:
 model:
   initialization: xavier
   total_stride: 8
+  loss:
+    type: balanced
 
 train:
   batch_size: 8
   epochs: 50
   optimizer:
     type: SGD
-    initial_lr: 1e-2
-    ultimate_lr: 1e-5
-    weight_decay: 5e-4
+    initial_lr: 1.e-2
+    ultimate_lr: 1.e-5
+    weight_decay: 5.e-4
     momentum: 0.9
     layer_wise:
       lr:
@@ -55,11 +57,9 @@ train:
         head:
           gain: 1
           bias: 1
-  loss:
-    type: balanced
-
   data:
     repeat_times_per_epoch: 2
+  clip_max_norm: 0
 
 
 val:

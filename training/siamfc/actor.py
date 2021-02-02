@@ -17,7 +17,7 @@ class SiamFCTrainingActor:
         self.param_init_fn(self.get_model())
 
     def forward(self, samples, targets):
-        outputs = self.model(samples)
+        outputs = self.model(*samples)
         loss = self.criterion(outputs, targets)
         loss_value = loss.item()
         if not math.isfinite(loss):

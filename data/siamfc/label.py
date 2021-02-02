@@ -63,8 +63,12 @@ class SimpleSiamFCDataloader:
 
     def __iter__(self):
         self.data_loader_iter = iter(self.data_loader)
+        return self
 
     def __next__(self):
         data = next(self.data_loader_iter)
 
-        return (*data, self.label)
+        return data, self.label
+
+    def __len__(self):
+        return len(self.data_loader)
