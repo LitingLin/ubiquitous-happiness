@@ -42,13 +42,13 @@ class TransformerDecoderLayer(nn.Module):
 
     def forward(self, z, x, z_mask, cross_attn_mask, z_pos, x_pos):
         z_q = z_k = z + z_pos
-        z2 = self.self_att(z_q, z_k, z, key_padding_mask=z_mask, need_weights=False)
+        z2 = self.self_attn(z_q, z_k, z, key_padding_mask=z_mask, need_weights=False)[0]
         z = z + self.dropout1(z2)
         z = self.norm1(z)
 
         z_q = z + z_pos
         x_k = x + x_pos
-        z2 = self.multihead_attn(z_q, x_k, x, attn_mask=cross_attn_mask, need_weights=False)
+        z2 = self.multihead_attn(z_q, x_k, x, attn_mask=cross_attn_mask, need_weights=False)[0]
         z = z + self.dropout2(z2)
         z = self.norm2(z)
         z2 = self.linear2(self.dropout(self.activation(self.linear1(z))))

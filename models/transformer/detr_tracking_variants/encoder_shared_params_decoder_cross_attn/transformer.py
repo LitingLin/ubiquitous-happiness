@@ -8,18 +8,24 @@ from models.transformer.detr_transformer import TransformerEncoderLayer, Transfo
 from models.transformer.detr_tracking_variants.encoder_shared_params_decoder_cross_attn.decoder import TransformerDecoder
 
 
-def mask_generator(mask_x: torch.BoolTensor, mask_y: torch.BoolTensor):
+def mask_generator(mask_tgt: torch.Tensor, mask_src: torch.Tensor, nhead: int):
     """
-    :param mask_x (N, H, W)
-    :param mask_y (N, H, W)
+    :param mask_tgt (N, H, W)
+    :param mask_src (N, H, W)
     """
-    assert mask_x.shape == mask_y.shape
-    assert len(mask_x.shape) == 3
-    mask_x = mask_x.flatten(1)
-    mask_y = mask_y.flatten(1)
-    mask_attn = ~torch.matmul((~mask_x.unsqueeze(1).transpose(1, 2)).to(torch.int), (~mask_y.unsqueeze(1)).to(torch.int)).to(torch.bool)
+    assert mask_tgt.shape[0] == mask_src.shape[0]
+    assert len(mask_tgt.shape) == 3
+    mask_tgt = mask_tgt.flatten(1)
+    mask_src = mask_src.flatten(1)
 
-    return mask_x, mask_y, mask_attn
+    n_batch = mask_tgt.shape[0]
+    tgt_len = mask_tgt.shape[1]
+    src_len = mask_src.shape[1]
+
+    mask_attn = torch.zeros((n_batch, nhead, tgt_len, src_len), dtype=torch.bool, device=mask_tgt.device)
+    mask_attn.masked_fill_(mask_tgt.unsqueeze(2).unsqueeze(1), True)
+    mask_attn.masked_fill_(mask_src.unsqueeze(1).unsqueeze(2), True)
+    return mask_tgt, mask_src, mask_attn.view((n_batch * nhead, tgt_len, src_len))
 
 
 def flatten_tensor_position_encoding(tensor, position):
@@ -42,18 +48,16 @@ class Transformer(nn.Module):
 
         self.decoder = TransformerDecoder(d_model, nhead, dim_feedforward, dropout, activation, num_decoder_layers)
 
-        self._reset_parameters()
-
         self.d_model = d_model
         self.nhead = nhead
 
-    def _reset_parameters(self):
+    def reset_parameters(self):
         for p in self.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
     def forward(self, z, x, z_mask, x_mask, z_pos, x_pos):
-        z_mask, x_mask, cross_attn_mask = mask_generator(z_mask, x_mask)
+        z_mask, x_mask, cross_attn_mask = mask_generator(z_mask, x_mask, self.nhead)
         z, z_pos = flatten_tensor_position_encoding(z, z_pos)
         x, x_pos = flatten_tensor_position_encoding(x, x_pos)
 

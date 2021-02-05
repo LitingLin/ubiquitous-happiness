@@ -18,7 +18,7 @@ def collate_fn(data):
     for datum in data:
         x.append(datum[2])
     x, x_mask = collate_different_size_4D_tensors_and_generate_masks(x)
-    z, z_mask, x_bbox = default_collate([[sub_datum for i, sub_datum in datum if i != 2] for datum in data])
+    z, z_mask, x_bbox = default_collate([[sub_datum for i, sub_datum in enumerate(datum) if i != 2] for datum in data])
     return (z, z_mask, x, x_mask), x_bbox
 
 
