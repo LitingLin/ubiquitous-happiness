@@ -4,13 +4,14 @@ import numpy as np
 def bbox_xywh2cxcywh_normalize_(bbox: np.ndarray, image_size):
     bbox = bbox.astype(np.float, copy=False)
     bbox[0] += bbox[2] / 2
-    bbox[1] += bbox[1] + bbox[3] / 2
+    bbox[1] += bbox[3] / 2
 
     w, h = image_size
     bbox[0] /= w
     bbox[1] /= h
     bbox[2] /= w
     bbox[3] /= h
+    assert not any(np.isnan(bbox))
     return bbox
 
 
