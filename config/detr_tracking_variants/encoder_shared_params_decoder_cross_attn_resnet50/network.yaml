@@ -16,3 +16,5 @@ transformer:
   dropout: 0.1
   num_heads: 8
   num_queries: 64
+  z_feats: 16
+

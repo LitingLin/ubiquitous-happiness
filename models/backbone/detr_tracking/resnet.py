@@ -47,6 +47,10 @@ class FrozenBatchNorm2d(torch.nn.Module):
 class BackboneWrapper(nn.Module):
     def __init__(self, backbone, output_layers):
         super().__init__()
+        train_backbone = True
+        for name, parameter in backbone.named_parameters():
+            if not train_backbone or 'layer2' not in name and 'layer3' not in name and 'layer4' not in name:
+                parameter.requires_grad_(False)
         num_channels_output = [64, 256, 512, 1024, 2048]
         self.num_channels_output = [num_channels_output[i] for i in output_layers]
         self.layer_getter = IntermediateLayerGetter(backbone, return_layers={f'layer{output_layer}': str(i) for i, output_layer in enumerate(output_layers)})
@@ -58,6 +62,12 @@ class BackboneWrapper(nn.Module):
             return x[0]
         else:
             return x
+
+    def reset_parameters(self):
+        pass
+
+    def load_pretrained(self):
+        pass
 
 
 def construct_resnet50(dilation=False, output_layers=(4,)):
