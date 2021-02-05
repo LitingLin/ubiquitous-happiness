@@ -28,12 +28,17 @@ def build_backbone(net_config: dict):
     backbone_build_params = {}
     if 'output_layers' in backbone_config:
         backbone_build_params['output_layers'] = backbone_config['output_layers']
+    if 'dilation' in backbone_config:
+        backbone_build_params['dilation'] = backbone_config['dilation']
     if backbone_config['type'] == 'alexnet':
         from models.backbone.pysot.alexnet import construct_alexnet
         backbone = construct_alexnet(**backbone_build_params)
-    elif backbone_config['type'] == 'resnet50':
+    elif backbone_config['type'] == 'resnet50_atrous':
         from models.backbone.pysot.resnet_atrous import construct_resnet50_atrous
         backbone = construct_resnet50_atrous(**backbone_build_params)
+    elif backbone_config['type'] == 'resnet50':
+        from models.backbone.detr_tracking.resnet import construct_resnet50
+        backbone = construct_resnet50(**backbone_build_params)
     else:
         raise Exception(f'unsupported {backbone_config["type"]}')
 
