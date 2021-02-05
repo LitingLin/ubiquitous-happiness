@@ -9,18 +9,18 @@ class DETRTrackingLoss(nn.Module):
         super(DETRTrackingLoss, self).__init__()
         self.losses = {}
         if 'bbox' in loss_weights:
-            self.losses[l1_bbox_loss] = loss_weights['bbox']
+            self.losses[l1_bbox_loss.__name__] = (l1_bbox_loss, loss_weights['bbox'])
         if 'giou' in loss_weights:
-            self.losses[giou_loss] = loss_weights['giou']
+            self.losses[giou_loss.__name__] = (giou_loss, loss_weights['giou'])
 
     def _do_statistic(self, stats: dict):
         stats_reduced = utils.reduce_dict(stats)
         stats_reduced = {k: v.cpu() for k, v in stats_reduced.items()}
 
-        stats_reduced_unscaled = {f'{k.__name__}_unscaled': v
+        stats_reduced_unscaled = {f'{k}_unscaled': v
                                       for k, v in stats_reduced.items()}
 
-        stats_reduced_scaled = {k.__name__: v * self.losses[k]
+        stats_reduced_scaled = {k: v * self.losses[k][1]
                                     for k, v in stats_reduced.items()}
         return stats_reduced_unscaled, stats_reduced_scaled
 
@@ -29,9 +29,9 @@ class DETRTrackingLoss(nn.Module):
         # expects [num_boxes, 4]
         stats = {}
         losses = []
-        for func, weight in self.losses.items():
+        for func_name, (func, weight) in self.losses.items():
             loss = func(src_boxes, target_boxes, num_boxes)
-            stats[func] = loss
+            stats[func_name] = loss
             losses.append(loss * weight)
 
         return (sum(losses), *self._do_statistic(stats))

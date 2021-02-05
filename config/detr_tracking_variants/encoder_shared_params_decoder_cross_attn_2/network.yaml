@@ -4,7 +4,7 @@ backbone:
   siamfc:
     context: 0.5
     exemplar_size: 127
-    instance_size_limit: 480
+    instance_size_limit: 200
 transformer:
   encoder:
     num_layers: 6

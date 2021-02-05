@@ -55,7 +55,10 @@ def build_siam_encoder_detr_tracking_training_actor(args, net_config: dict, trai
     criterion.to(device)
 
     if args.distributed:
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        if 'cuda' in args.device:
+            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        else:
+            model = torch.nn.parallel.DistributedDataParallel(model)
 
     return DETRTrackingActor(model, criterion, optimizer, lr_scheduler, initialize_detr_tracking_network,
                              epoch_changed_event_signal_slots)
