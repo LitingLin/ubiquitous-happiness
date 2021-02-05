@@ -12,4 +12,4 @@ class SiamTransformerMaskGeneratingProcessor:
         c, h, w = z.shape
         z_mask = torch.ones((h, w), dtype=torch.bool)
         z_mask[z_bbox[1]: z_bbox[1] + z_bbox[3], z_bbox[0]: z_bbox[0] + z_bbox[2]] = False
-        return (z, z_mask, x), x_bbox
+        return z, z_mask, x, x_bbox

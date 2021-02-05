@@ -9,7 +9,7 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                      train_batch_size, val_batch_size,
                                      train_num_workers,
                                      val_num_workers,
-                                     device, distributed, epoch_changed_event_signal_slots):
+                                     device, distributed, epoch_changed_event_signal_slots, collate_fn=None):
     if distributed:
         sampler_train = DistributedSampler(train_dataset)
         sampler_val = DistributedSampler(val_dataset, shuffle=False)
@@ -22,9 +22,9 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
         sampler_train, train_batch_size, drop_last=True)
 
     data_loader_train = DataLoader(train_dataset, batch_sampler=batch_sampler_train,
-                                   num_workers=train_num_workers)
+                                   num_workers=train_num_workers, collate_fn=collate_fn)
     data_loader_val = DataLoader(val_dataset, val_batch_size, sampler=sampler_val,
-                                 drop_last=False, num_workers=val_num_workers)
+                                 drop_last=False, num_workers=val_num_workers, collate_fn=collate_fn)
 
     if 'cuda' in device:
         device = torch.device(device)
