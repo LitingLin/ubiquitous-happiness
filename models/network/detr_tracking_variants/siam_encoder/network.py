@@ -13,7 +13,7 @@ class MLP(nn.Module):
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
 
     def reset_parameters(self):
-        for module in self.modules():
+        for module in self.layers.modules():
             if hasattr(module, 'reset_parameters'):
                 module.reset_parameters()
 

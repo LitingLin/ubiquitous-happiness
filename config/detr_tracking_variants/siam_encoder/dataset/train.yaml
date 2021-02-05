@@ -1,8 +1,18 @@
 FILTERS:
   DATA_CLEANING:
-    - BoundingBox
-    - NoAbsentObjects
-    - Integrity
+    BoundingBox:
+      update_validity: true
+      remove_non_validity_objects: true
+      remove_empty_annotation_objects: true
+    Integrity:
+      remove_zero_annotation: true
+      remove_invalid_image: true
+
+CONFIG:
+  BoundingBox:
+    format: 'XYWH'
+  dump_human_readable: false
+  cache_meta_data: false
 
 DATASETS:
   GOT10k:
