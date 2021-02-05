@@ -21,7 +21,7 @@ class DETRTracking(nn.Module):
         x_feat = self.input_proj(x_feat)
 
         bbox_embed = self.transformer(z_feat, x_feat, z_feat_mask, x_feat_mask, z_feat_pos, x_feat_pos)
-        bbox = self.bbox_proj(bbox_embed).sigmoid()
+        bbox = self.bbox_proj(bbox_embed.flatten(1)).sigmoid()
         return bbox
 
     def reset_parameters(self):
