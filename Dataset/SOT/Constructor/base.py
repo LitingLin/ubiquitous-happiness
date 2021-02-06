@@ -109,10 +109,11 @@ class SingleObjectTrackingDatasetSequenceConstructorGenerator(BaseDatasetSequenc
         super(SingleObjectTrackingDatasetSequenceConstructorGenerator, self).__init__(sequence, pbar)
 
         self.root_path = root_path
+        sequence_object_attributes = [{'id': 0}]
         if category_id is not None:
-            self.sequence['objects'] = [{'id': 0, 'category_id': category_id}]
-        else:
-            self.sequence['objects'] = [{'id': 0}]
+            sequence_object_attributes[0]['category_id'] = category_id
+
+        self.sequence['objects'] = sequence_object_attributes
 
     def __enter__(self):
         return SingleObjectTrackingDatasetSequenceConstructor(self.sequence, self.root_path, self.pbar)
