@@ -1,0 +1,23 @@
+train:
+  lr: 1.e-4
+  lr_backbone: 1.e-5
+  batch_size: 4
+  weight_decay: 1.e-4
+  epochs: 300
+  lr_drop: 80
+  clip_max_norm: 0.1
+  optimizer: AdamW
+
+  data:
+    repeat_times_per_epoch: 2
+
+  loss:
+    weight:
+      bbox: 5
+      giou: 2
+
+val:
+  batch_size: 4
+
+  data:
+    repeat_times_per_epoch: 1
