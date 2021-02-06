@@ -20,13 +20,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run tracker on OTB100 dataset.')
     parser.add_argument('network_config_path', type=str, help='Path to network config')
     parser.add_argument('weight_path', type=str, help='Path to network weight')
-    parser.add_argument('--otb100_path', type=str, default=None, help="Path to OTB100 dataset.")
     parser.add_argument('--output_path', type=str, default=None, help="Path to save results.")
     parser.add_argument('--device', type=str, default='cuda:0', help="Pytorch device string.")
     args = parser.parse_args()
     tracker = build_detr_tracker(args.network_config_path, args.weight_path, args.device)
-    dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed(args.otb100_path)]).construct(
-        [DataCleaning_BoundingBox(), DataCleaning_Integrity()])[0]
+    dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(
+        [DataCleaning_BoundingBox(), DataCleaning_Integrity()], dump_human_readable=True)[0]
     dataset = SimpleTrackingDatasetIterator(dataset, True)
 
     logger = SimpleEvaluationLogger(args.output_path)

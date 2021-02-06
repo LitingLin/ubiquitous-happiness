@@ -1,5 +1,6 @@
 from Miscellaneous.simple_prefetcher import SimplePrefetcher
 from native_extension import ImageDecoder
+from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDatasetFrame_MemoryMapped
 
 
 class _SimpleTrackingSequenceIterator:
@@ -13,8 +14,9 @@ class _SimpleTrackingSequenceIterator:
     def __getitem__(self, index: int):
         if index >= len(self):
             raise IndexError
-
-        image_path, bbox = self.sequence[index]
+        frame: SingleObjectTrackingDatasetFrame_MemoryMapped = self.sequence[index]
+        image_path = frame.get_image_path()
+        bbox = frame.get_bounding_box()
         image = self.decoder.decode(image_path)
         return image, bbox
 

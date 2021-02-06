@@ -342,6 +342,7 @@ def construct_OTB100(constructor: SingleObjectTrackingDatasetConstructor, seed, 
     sequence_info_list = _get_sequence_info_list(split)
 
     spacer = re.compile(r'[\s,]')
+    constructor.set_total_number_of_sequences(len(sequence_info_list))
     for sequence_name, sequence_info in sequence_info_list.items():
         sequence_path = sequence_info['path']
         nz = sequence_info['nz']
