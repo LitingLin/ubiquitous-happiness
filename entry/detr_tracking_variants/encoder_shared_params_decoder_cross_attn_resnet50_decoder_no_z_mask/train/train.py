@@ -8,7 +8,7 @@ import argparse
 from pathlib import Path
 import Utils.detr_misc as utils
 from training.detr_tracking_variants.training_loop import training_loop
-from training.detr_tracking_variants.encoder_shared_params_decoder_cross_attn_2.builder import build_training_actor_and_dataloader
+from training.detr_tracking_variants.encoder_shared_params_decoder_cross_attn_decoder_no_z_mask.builder import build_training_actor_and_dataloader
 from Utils.yaml_config import load_config
 from workarounds.all import apply_all_workarounds
 
