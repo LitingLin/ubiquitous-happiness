@@ -57,8 +57,8 @@ def construct_detection_dataset_memory_mapped_from_base_image_dataset(base_datas
                 if len(current_optional_object_attributes) > 0:
                     optional_object_attributes[index_of_base_object] = current_optional_object_attributes
 
-        bounding_box_matrix = memory_mapped_constructor_generate_bounding_box_matrix(bounding_box_matrix)
-        bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_validity_flag_vector(bounding_box_validity_flag_vector)
+        bounding_box_matrix, additional_bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_matrix(bounding_box_matrix)
+        bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_validity_flag_vector(bounding_box_validity_flag_vector, additional_bounding_box_validity_flag_vector)
 
         if len(optional_object_attributes) > 0:
             optional_image_attributes['objects'] = optional_object_attributes

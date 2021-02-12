@@ -8,7 +8,6 @@ def memory_mapped_constructor_common_preliminary_works(base_dataset: dict, base_
                                                        bounding_box_format: BoundingBoxFormat, scheme_version: int,
                                                        target_dataset_type_name: str,
                                                        dataset_key_exclude_list: list):
-
     assert base_dataset['type'] == base_dataset_type
     if 'filters' in base_dataset:
         assert base_dataset['filters'] != 'dirty'
@@ -76,22 +75,37 @@ def memory_mapped_constructor_get_bounding_box(base_object: dict, image_size, ta
 def memory_mapped_constructor_generate_bounding_box_matrix(bounding_box_matrix):
     if all([bounding_box is None for bounding_box in bounding_box_matrix]):
         bounding_box_matrix = None
+        bounding_box_validity_flag_vector = None
     else:
-        bounding_box_matrix = [[-1, -1, -1, -1] if bounding_box is None else bounding_box for
-                                      bounding_box in bounding_box_matrix]
+        bounding_box_matrix_ = [[-1, -1, -1, -1] if bounding_box is None else bounding_box for
+                                bounding_box in bounding_box_matrix]
+        bounding_box_validity_flag_vector = [False if bounding_box is None else True for
+                                             bounding_box in bounding_box_matrix]
+        if all(bounding_box_validity_flag_vector):
+            bounding_box_validity_flag_vector = None
+        bounding_box_matrix = bounding_box_matrix_
     if bounding_box_matrix is not None:
         bounding_box_matrix = np.array(bounding_box_matrix)
-    return bounding_box_matrix
+    if bounding_box_validity_flag_vector is not None:
+        bounding_box_validity_flag_vector = np.array(bounding_box_validity_flag_vector)
+    return bounding_box_matrix, bounding_box_validity_flag_vector
 
 
-def memory_mapped_constructor_generate_bounding_box_validity_flag_vector(bounding_box_validity_flag_matrix):
+def memory_mapped_constructor_generate_bounding_box_validity_flag_vector(bounding_box_validity_flag_vector,
+                                                                         additional_bounding_box_validity_flag_vector: np.ndarray):
     if all([bounding_box_validity_flag is None or bounding_box_validity_flag is True for
-            bounding_box_validity_flag in bounding_box_validity_flag_matrix]):
-        bounding_box_validity_flag_matrix = None
+            bounding_box_validity_flag in bounding_box_validity_flag_vector]):
+        bounding_box_validity_flag_vector = None
     else:
-        bounding_box_validity_flag_matrix = [
+        bounding_box_validity_flag_vector = [
             True if bounding_box_validity_flag is None else bounding_box_validity_flag for
-            bounding_box_validity_flag in bounding_box_validity_flag_matrix]
-    if bounding_box_validity_flag_matrix is not None:
-        bounding_box_validity_flag_matrix = np.array(bounding_box_validity_flag_matrix)
-    return bounding_box_validity_flag_matrix
+            bounding_box_validity_flag in bounding_box_validity_flag_vector]
+    if bounding_box_validity_flag_vector is not None:
+        bounding_box_validity_flag_vector = np.array(bounding_box_validity_flag_vector)
+        if additional_bounding_box_validity_flag_vector is not None:
+            bounding_box_validity_flag_vector = np.logical_and(bounding_box_validity_flag_vector,
+                                                               additional_bounding_box_validity_flag_vector)
+    else:
+        if additional_bounding_box_validity_flag_vector is not None:
+            return additional_bounding_box_validity_flag_vector
+    return bounding_box_validity_flag_vector
