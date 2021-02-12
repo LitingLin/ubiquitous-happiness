@@ -5,8 +5,6 @@ import glob
 import numpy as np
 import six
 
-from ..utils.ioutils import download, extract
-
 
 class TColor128(object):
     """`TColor128 <http://www.dabi.temple.edu/~hbling/data/TColor-128/TColor-128.html>`_ Dataset.
@@ -19,11 +17,9 @@ class TColor128(object):
         root_dir (string): Root directory of dataset where sequence
             folders exist.
     """
-    def __init__(self, root_dir, download=True):
+    def __init__(self, root_dir):
         super(TColor128, self).__init__()
         self.root_dir = root_dir
-        if download:
-            self._download(root_dir)
         self._check_integrity(root_dir)
 
         self.anno_files = sorted(glob.glob(
@@ -65,22 +61,6 @@ class TColor128(object):
 
     def __len__(self):
         return len(self.seq_names)
-
-    def _download(self, root_dir):
-        if not os.path.isdir(root_dir):
-            os.makedirs(root_dir)
-        elif len(os.listdir(root_dir)) > 100:
-            print('Files already downloaded.')
-            return
-
-        url = 'http://www.dabi.temple.edu/~hbling/data/TColor-128/Temple-color-128.zip'
-        zip_file = os.path.join(root_dir, 'Temple-color-128.zip')
-        print('Downloading to %s...' % zip_file)
-        download(url, zip_file)
-        print('\nExtracting to %s...' % root_dir)
-        extract(zip_file, root_dir)
-
-        return root_dir
 
     def _check_integrity(self, root_dir):
         seq_names = os.listdir(root_dir)

@@ -1,20 +1,9 @@
 from __future__ import absolute_import, division
 
-import wget
 import os
 import shutil
 import zipfile
 import sys
-
-
-def download(url, filename):
-    r"""Download file from the internet.
-    
-    Args:
-        url (string): URL of the internet file.
-        filename (string): Path to store the downloaded file.
-    """
-    return wget.download(url, out=filename)
 
 
 def extract(filename, extract_dir):

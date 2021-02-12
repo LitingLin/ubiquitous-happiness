@@ -7,8 +7,6 @@ import io
 import six
 from itertools import chain
 
-from ..utils.ioutils import download, extract
-
 
 class OTB(object):
     r"""`OTB <http://cvlab.hanyang.ac.kr/tracker_benchmark/>`_ Datasets.
@@ -69,14 +67,12 @@ class OTB(object):
         'tb50': __tb50_seqs,
         'tb100': __tb100_seqs}
 
-    def __init__(self, root_dir, version=2015, download=True):
+    def __init__(self, root_dir, version=2015):
         super(OTB, self).__init__()
         assert version in self.__version_dict
 
         self.root_dir = root_dir
         self.version = version
-        if download:
-            self._download(root_dir, version)
         self._check_integrity(root_dir, version)
 
         valid_seqs = self.__version_dict[version]
@@ -155,30 +151,6 @@ class OTB(object):
                 renamed_seqs.append('%s.%d' % (seq_name, ind))
 
         return renamed_seqs
-
-    def _download(self, root_dir, version):
-        assert version in self.__version_dict
-        seq_names = self.__version_dict[version]
-
-        if not os.path.isdir(root_dir):
-            os.makedirs(root_dir)
-        elif all([os.path.isdir(os.path.join(root_dir, s)) for s in seq_names]):
-            print('Files already downloaded.')
-            return
-
-        url_fmt = 'http://cvlab.hanyang.ac.kr/tracker_benchmark/seq/%s.zip'
-        for seq_name in seq_names:
-            seq_dir = os.path.join(root_dir, seq_name)
-            if os.path.isdir(seq_dir):
-                continue
-            url = url_fmt % seq_name
-            zip_file = os.path.join(root_dir, seq_name + '.zip')
-            print('Downloading to %s...' % zip_file)
-            download(url, zip_file)
-            print('\nExtracting to %s...' % root_dir)
-            extract(zip_file, root_dir)
-
-        return root_dir
 
     def _check_integrity(self, root_dir, version):
         assert version in self.__version_dict
