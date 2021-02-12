@@ -177,8 +177,6 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-*.json
-
 *.log
 *.ini
 /.idea/encodings.xml

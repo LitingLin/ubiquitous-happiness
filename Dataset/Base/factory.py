@@ -67,7 +67,7 @@ class _DatasetFactory:
             _DatasetFactory._dump_base_dataset_yaml(dataset, cache_path_prefix + '.yml')
         return dataset
 
-    def _construct_base_interface_unprocessed(self, make_cache=True, dump_human_readable=False):
+    def _construct_base_interface_unprocessed(self, make_cache=False, dump_human_readable=False):
         dataset, cache_file_prefix = self._try_load_from_cache(self.base_dataset_type, '.p', None)
         if dataset is not None:
             return _DatasetFactory._dump_and_return(dataset, cache_file_prefix, False, dump_human_readable)
@@ -79,7 +79,7 @@ class _DatasetFactory:
             self.seed.construct(constructor)
         return _DatasetFactory._dump_and_return(dataset, cache_file_prefix, make_cache, dump_human_readable)
 
-    def construct_base_interface(self, filters=None, make_cache=True, dump_human_readable=False):
+    def construct_base_interface(self, filters=None, make_cache=False, dump_human_readable=False):
         if filters is not None and len(filters) == 0:
             filters = None
 
