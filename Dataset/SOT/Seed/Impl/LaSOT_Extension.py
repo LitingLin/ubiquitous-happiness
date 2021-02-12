@@ -1,6 +1,7 @@
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
 import os
 from Dataset.Type.data_split import DataSplit
+from Miscellaneous.natural_keys import natural_keys
 
 _category_id_name_map = {0: 'atv', 1: 'badminton', 2: 'cosplay', 3: 'dancingshoe', 4: 'footbag', 5: 'frisbee', 6: 'jianzi', 7: 'lantern', 8: 'misc', 9: 'opossum', 10: 'paddle', 11: 'raccoon', 12: 'rhino', 13: 'skatingshoe', 14: 'wingsuit'}
 
@@ -21,7 +22,7 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
         sequence_names = os.listdir(class_path)
         sequence_names = [sequence_name for sequence_name in sequence_names if
                           os.path.isdir(os.path.join(class_path, sequence_name))]
-        sequence_names.sort()
+        sequence_names.sort(key=natural_keys)
 
         for sequence_name in sequence_names:
             sequence_path = os.path.join(class_path, sequence_name)
