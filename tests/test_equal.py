@@ -8,9 +8,11 @@ from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
 from evaluation.evaluator.got10k.datasets.lasot import LaSOT
 
+from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
+from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
 if __name__ == '__main__':
-    dataset = SingleObjectTrackingDatasetFactory([LaSOT_Seed(data_split=DataSplit.Validation)]).construct()[0]
+    dataset = SingleObjectTrackingDatasetFactory([LaSOT_Seed(data_split=DataSplit.Validation)]).construct(filters=[DataCleaning_BoundingBox(), DataCleaning_Integrity()])[0]
     dataset_got = LaSOT(dataset.get_root_path())
     assert len(dataset_got) == len(dataset)
     dataset_name_index_map = {}
