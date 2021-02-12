@@ -12,4 +12,4 @@ if __name__ == '__main__':
         sequence = dataset[index]
         _, annos = dataset_got[index]
         assert len(sequence) == annos.shape[0]
-        assert sequence.get_all_bounding_box() == annos
+        assert (sequence.get_all_bounding_box() == annos).all()
