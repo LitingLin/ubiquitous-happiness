@@ -21,7 +21,7 @@ class BaseSeed:
         except ImportError:
             import shutil
             import os
-            config_folder = os.path.join(os.path.dirname(__file__), 'Config')
+            config_folder = os.path.join(os.path.dirname(__file__), '..', 'Config')
             shutil.copyfile(os.path.join(config_folder, 'path.template.py'), os.path.join(config_folder, 'path.py'))
             raise Exception('Setup the paths in Dataset/Config/path.py first')
         return getattr(DatasetPath, name)

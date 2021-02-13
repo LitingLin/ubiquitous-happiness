@@ -2,6 +2,7 @@ import os
 from Dataset.Type.data_split import DataSplit
 import re
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+from Miscellaneous.platform_style_path import get_platform_style_path
 
 
 def _get_sequence_info_list(split: str):
@@ -350,7 +351,7 @@ def construct_OTB100(constructor: SingleObjectTrackingDatasetConstructor, seed, 
         start_frame = sequence_info['startFrame']
         end_frame = sequence_info['endFrame']
 
-        sequence_path = os.path.join(root_path, sequence_path)
+        sequence_path = get_platform_style_path(os.path.join(root_path, sequence_path))
 
         with constructor.new_sequence() as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
@@ -358,7 +359,7 @@ def construct_OTB100(constructor: SingleObjectTrackingDatasetConstructor, seed, 
             if 'initOmit' in sequence_info:
                 init_omit = sequence_info['initOmit']
 
-            anno_path = '{}/{}'.format(root_path, sequence_info['anno_path'])
+            anno_path = get_platform_style_path('{}/{}'.format(root_path, sequence_info['anno_path']))
 
             images = os.listdir(sequence_path)
             images = [image for image in images if image.endswith('.jpg')]
