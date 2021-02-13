@@ -3,12 +3,16 @@ from data.detr_tracking_variants.siam_encoder.processor.mask_generator import ge
 
 
 class DETRTracker:
-    def __init__(self, network, device, data_processor):
+    def __init__(self, name, network, device, data_processor):
+        self.name = name
         network.to(device)
         network.eval()
         self.network = network
         self.device = device
         self.data_processor = data_processor
+
+    def get_name(self):
+        return self.name
 
     def initialize(self, image, bbox):
         z, z_bbox = self.data_processor.get_z(image, bbox)

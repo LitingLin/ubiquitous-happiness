@@ -55,7 +55,7 @@ class ImageDatasetObjectManipulator:
         del self.parent_image['objects'][self.index_of_object]
         del self.object_
         if self.parent_iterator is not None:
-            self.parent_iterator.move_backward()
+            self.parent_iterator.deleted()
 
 
 class ImageDatasetObjectManipulatorIterator:
@@ -71,7 +71,7 @@ class ImageDatasetObjectManipulatorIterator:
         self.index += 1
         return modifier
 
-    def move_backward(self):
+    def deleted(self):
         self.index -= 1
 
 
@@ -98,7 +98,7 @@ class ImageDatasetImageManipulator:
         del self.dataset['images'][self.index_of_image]
         del self.image
         if self.parent_iterator is not None:
-            self.parent_iterator.move_backward()
+            self.parent_iterator.deleted()
 
 
 class ImageDatasetImageManipulatorIterator:
@@ -113,7 +113,7 @@ class ImageDatasetImageManipulatorIterator:
         self.index += 1
         return modifier
 
-    def move_backward(self):
+    def deleted(self):
         self.index -= 1
 
 

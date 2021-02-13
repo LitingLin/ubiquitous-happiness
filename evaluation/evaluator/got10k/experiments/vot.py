@@ -49,8 +49,7 @@ class ExperimentVOT(object):
         assert all([e in ['supervised', 'unsupervised', 'realtime']
                     for e in experiments])
         self.dataset = VOT(
-            root_dir, version, anno_type='default',
-            download=True, return_meta=True, list_file=list_file)
+            root_dir, version, anno_type='default', return_meta=True, list_file=list_file)
         self.experiments = experiments
         if version == 'LT2018':
             version = '-' + version

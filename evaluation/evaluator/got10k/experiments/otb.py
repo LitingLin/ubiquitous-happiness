@@ -27,7 +27,7 @@ class ExperimentOTB(object):
     def __init__(self, root_dir, version=2015,
                  result_dir='results', report_dir='reports'):
         super(ExperimentOTB, self).__init__()
-        self.dataset = OTB(root_dir, version, download=True)
+        self.dataset = OTB(root_dir, version)
         self.result_dir = os.path.join(result_dir, 'OTB' + str(version))
         self.report_dir = os.path.join(report_dir, 'OTB' + str(version))
         # as nbins_iou increases, the success score

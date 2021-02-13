@@ -55,7 +55,7 @@ class VideoDatasetObjectManipulator:
         del self.parent_frame['objects'][self.index_of_object]
         del self.object_
         if self.parent_iterator is not None:
-            self.parent_iterator.move_backward()
+            self.parent_iterator.deleted()
 
 
 class VideoDatasetObjectManipulatorIterator:
@@ -73,7 +73,7 @@ class VideoDatasetObjectManipulatorIterator:
         self.index += 1
         return modifier
 
-    def move_backward(self):
+    def deleted(self):
         self.index -= 1
 
 
@@ -99,7 +99,7 @@ class VideoDatasetFrameManipulator:
         del self.sequence['frames'][self.index_of_frame]
         del self.frame
         if self.parent_iterator is not None:
-            self.parent_iterator.move_backward()
+            self.parent_iterator.deleted()
 
 
 class VideoDatasetFrameManipulatorIterator:
@@ -115,7 +115,7 @@ class VideoDatasetFrameManipulatorIterator:
         self.index += 1
         return modifier
 
-    def move_backward(self):
+    def deleted(self):
         self.index -= 1
 
 
@@ -135,8 +135,8 @@ class VideoDatasetFrameManipulatorReverseIterator:
         self.index -= 1
         return modifier
 
-    def move_backward(self):
-        self.index += 1
+    def deleted(self):
+        pass
 
 
 class VideoDatasetSequenceManipulator:
@@ -162,7 +162,7 @@ class VideoDatasetSequenceManipulator:
         del self.dataset['sequences'][self.index_of_sequence]
         del self.sequence
         if self.parent_iterator is not None:
-            self.parent_iterator.move_backward()
+            self.parent_iterator.deleted()
 
 
 class VideoDatasetSequenceManipulatorIterator:
@@ -177,7 +177,7 @@ class VideoDatasetSequenceManipulatorIterator:
         self.index += 1
         return modifier
 
-    def move_backward(self):
+    def deleted(self):
         self.index -= 1
 
 

@@ -18,12 +18,19 @@ if __name__ == '__main__':
     dataset_name_index_map = {}
     for index_of_sequence, sequence in enumerate(dataset):
         dataset_name_index_map[sequence.get_name()] = index_of_sequence
+    dataset_name_index_map['Human4'] = dataset_name_index_map['Human4_2']
+    dataset_name_index_map['Jogging.1'] = dataset_name_index_map['Jogging_1']
+    dataset_name_index_map['Jogging.2'] = dataset_name_index_map['Jogging_2']
+    dataset_name_index_map['Skating2.1'] = dataset_name_index_map['Skating2_1']
+    dataset_name_index_map['Skating2.2'] = dataset_name_index_map['Skating2_2']
     for index in range(len(dataset)):
         sequence_name = dataset_got.seq_names[index]
+        if sequence_name == 'Tiger1':
+            continue
         sequence = dataset[dataset_name_index_map[sequence_name]]
         _, annos = dataset_got[index]
-        assert len(sequence) == annos.shape[0]
         bounding_boxes = sequence.get_all_bounding_box()
+        assert len(sequence) == annos.shape[0]
         valid_annotation_indices = sequence.get_all_bounding_box_validity_flag()
         if valid_annotation_indices is not None:
             bounding_boxes = bounding_boxes[valid_annotation_indices]

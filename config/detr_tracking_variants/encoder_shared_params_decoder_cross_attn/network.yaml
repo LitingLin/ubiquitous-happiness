@@ -1,3 +1,4 @@
+name: encoder_shared_params_decoder_cross_attn
 backbone:
   type: alexnet
   position_embedding: sine

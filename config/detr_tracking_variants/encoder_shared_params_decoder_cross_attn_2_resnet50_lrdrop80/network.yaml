@@ -1,3 +1,4 @@
+name: encoder_shared_params_decoder_cross_attn_2_resnet50_lrdrop80
 backbone:
   type: resnet50
   position_embedding: sine

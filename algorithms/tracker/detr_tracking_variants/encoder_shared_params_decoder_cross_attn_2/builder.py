@@ -13,4 +13,4 @@ def build_detr_tracker(network_config: str, weight_path: str, device: str):
     processor = SiamFC_Z_Curate_BBOX_XYWH_X_SizeLimit_BBOX_CXCYWHNormalized_Processor(network_config['backbone']['siamfc']['exemplar_size'],
                                                     network_config['backbone']['siamfc']['instance_size_limit'],
                                                     network_config['backbone']['siamfc']['context'])
-    return DETRTracker(network, device, processor)
+    return DETRTracker(network_config['name'], network, device, processor)

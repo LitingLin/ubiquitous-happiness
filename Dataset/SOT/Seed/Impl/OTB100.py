@@ -336,7 +336,7 @@ def _get_sequence_info_list(split: str):
     return dict((k, sequence_info_list[k]) for k in sequence_names)
 
 
-def construct_OTB100(constructor: SingleObjectTrackingDatasetConstructor, seed, split):
+def ExperimentOTBconstruct_OTB100(constructor: SingleObjectTrackingDatasetConstructor, seed, split):
     assert seed.data_split == DataSplit.Full
     root_path = seed.root_path
 
