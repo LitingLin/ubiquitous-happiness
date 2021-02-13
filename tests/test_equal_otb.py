@@ -12,8 +12,8 @@ from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
 from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
 if __name__ == '__main__':
-    dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(filters=[DataCleaning_Integrity()])[0]
-    dataset_got = OTB(dataset.get_root_path())
+    dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(filters=[DataCleaning_Integrity()], cache_base_format=True, dump_human_readable=True)[0]
+    dataset_got = OTB(dataset.get_root_path(), version='tb100')
     assert len(dataset_got) == len(dataset)
     dataset_name_index_map = {}
     for index_of_sequence, sequence in enumerate(dataset):
