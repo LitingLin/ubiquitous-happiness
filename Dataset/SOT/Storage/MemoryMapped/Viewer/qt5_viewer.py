@@ -35,6 +35,8 @@ class SOTDatasetQt5Viewer:
             for category_id in self.dataset.get_category_id_name_map().keys():
                 color = [random.randint(0, 255) for _ in range(3)]
                 self.category_id_color_map[category_id] = QColor(color[0], color[1], color[2], int(0.5 * 255))
+        else:
+            self.category_id_color_map = None
 
         sequence_names = []
         for sequence in self.dataset:
