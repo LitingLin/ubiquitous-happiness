@@ -12,7 +12,7 @@ from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
 from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
 if __name__ == '__main__':
-    dataset = SingleObjectTrackingDatasetFactory([UAV123_Seed()]).construct(filters=[DataCleaning_BoundingBox(), DataCleaning_Integrity()])[0]
+    dataset = SingleObjectTrackingDatasetFactory([UAV123_Seed()]).construct(filters=None)[0]
     dataset_got = UAV123(dataset.get_root_path())
     assert len(dataset_got) == len(dataset)
     dataset_name_index_map = {}
@@ -23,4 +23,10 @@ if __name__ == '__main__':
         sequence = dataset[dataset_name_index_map[sequence_name]]
         _, annos = dataset_got[index]
         assert len(sequence) == annos.shape[0]
-        assert (sequence.get_all_bounding_box() == annos).all()
+        bounding_boxes = sequence.get_all_bounding_box()
+        valid_annotation_indices = sequence.get_all_bounding_box_validity_flag()
+        if valid_annotation_indices is not None:
+            bounding_boxes = bounding_boxes[valid_annotation_indices]
+            annos = annos[valid_annotation_indices]
+
+        assert (bounding_boxes == annos).all()
