@@ -66,6 +66,21 @@ class VideoDatasetTweakTool:
                 if w == 0 or h == 0:
                     frame.delete()
 
+    def remove_empty_annotation_head_tail(self):
+        for sequence in self.manipulator:
+            for frame in sequence:
+                if len(frame) == 0:
+                    frame.delete()
+                else:
+                    break
+            for frame in sequence.get_reverse_iterator():
+                if len(frame) == 0:
+                    frame.delete()
+                else:
+                    break
+            if len(sequence) == 0:
+                sequence.delete()
+
     def remove_category_ids(self, category_ids: list):
         for sequence in self.manipulator:
             for image in sequence:

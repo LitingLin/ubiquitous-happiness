@@ -119,6 +119,23 @@ class VideoDatasetFrameManipulatorIterator:
         self.index -= 1
 
 
+class VideoDatasetFrameManipulatorReverseIterator:
+    def __init__(self, sequence: dict):
+        self.sequence = sequence
+        self.index = len(sequence['frames']) - 1
+
+    def __next__(self):
+        if self.index < 0 or self.index >= len(self.sequence['frames']):
+            raise StopIteration
+
+        modifier = VideoDatasetFrameManipulator(self.sequence, self.index, self)
+        self.index -= 1
+        return modifier
+
+    def move_forward(self):
+        self.index += 1
+
+
 class VideoDatasetSequenceManipulator:
     def __init__(self, dataset: dict, index_of_sequence: int, parent_iterator=None):
         self.sequence = dataset['sequences'][index_of_sequence]
@@ -134,6 +151,9 @@ class VideoDatasetSequenceManipulator:
 
     def __iter__(self):
         return VideoDatasetFrameManipulatorIterator(self.sequence)
+
+    def get_reverse_iterator(self):
+        return VideoDatasetFrameManipulatorReverseIterator(self.sequence)
 
     def delete(self):
         del self.dataset['sequences'][self.index_of_sequence]
