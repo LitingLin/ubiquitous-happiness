@@ -10,7 +10,7 @@ class RandomResizing_KeepingAspect_Processor:
     def __call__(self, image: np.ndarray, bbox: np.ndarray):
         h, w = image.shape[0:2]
 
-        target_size = np.random.randint(self.min_total_size, self.max_total_size, dtype=np.float)
+        target_size = np.random.randint(self.min_total_size, self.max_total_size)
         scaling_ratio = np.sqrt(target_size / (h * w)).item()
         target_h = int(round(scaling_ratio * h))
         target_w = int(round(scaling_ratio * w))
