@@ -19,7 +19,8 @@ class DETRTracking(nn.Module):
         return self.transformer.forward_template(z_feat, z_feat_mask, z_feat_pos)
 
     def inference_instance(self, z_encoded, z_mask, z_pos, x):
-        x_mask = torch.zeros(x.shape, device=self.device, dtype=x.dtype)
+        n, _, h, w = x.shape
+        x_mask = torch.zeros((n, h, w), device=x.device, dtype=torch.bool)
         x_feat, x_feat_mask, x_feat_pos = self.backbone(x, x_mask)
         x_feat = self.input_proj(x_feat)
         bbox_embed = self.transformer.forward_instance(z_encoded, z_mask, z_pos, x_feat, x_feat_mask, x_feat_pos)
