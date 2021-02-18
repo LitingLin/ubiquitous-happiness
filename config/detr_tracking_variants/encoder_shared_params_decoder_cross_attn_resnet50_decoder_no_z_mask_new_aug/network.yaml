@@ -1,0 +1,21 @@
+name: encoder_shared_params_decoder_cross_attn_resnet50_decoder_no_z_mask
+backbone:
+  type: resnet50
+  position_embedding: sine
+  siamfc:
+    context: 0.5
+    exemplar_size: 127
+    instance_size_limit: 921600 # 1280 * 720
+transformer:
+  encoder:
+    num_layers: 6
+  decoder:
+    num_layers: 6
+  feed_forward:
+    dim: 2048
+  hidden_dim: 256
+  dropout: 0.1
+  num_heads: 8
+  num_queries: 64
+  z_feats: 16
+

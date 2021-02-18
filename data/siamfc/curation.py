@@ -7,8 +7,8 @@ def curate_image_like_siamfc(image, center, scale, out_size):
     avg_color = np.round(cv2.mean(image)[0:3]).astype(np.uint8)
     out_center = [out_size / 2, out_size / 2]
     interp_method = InterpolationMethod.INTER_LINEAR
-    image, image_bbox = RGBImageTranslateAndScale(image, [out_size, out_size], center, out_center, scale, avg_color, interp_method)
-    return image, image_bbox
+    image = RGBImageTranslateAndScale(image, [out_size, out_size], center, out_center, scale, avg_color, interp_method)
+    return image
 
 
 def curate_image_like_siamfc_with_bbox(image, center, scale, out_size):
