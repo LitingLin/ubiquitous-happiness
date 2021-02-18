@@ -3,12 +3,8 @@ import os
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(root_path)
 
-from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
-from Dataset.SOT.Seed.OTB100 import OTB100_Seed
 from algorithms.tracker.detr_tracking_variants.encoder_shared_params_decoder_cross_attn_decoder_no_z_mask.builder import build_detr_tracker
 from evaluation.evaluator.got10k.run_evaluation import run_evaluation_on_tracker
-from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
-from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 from workarounds.all import apply_all_workarounds
 import argparse
 
@@ -23,8 +19,6 @@ if __name__ == '__main__':
     parser.add_argument('--visualize', action='store_true', help='Visualize the tracking procedure')
     args = parser.parse_args()
     tracker = build_detr_tracker(args.network_config_path, args.weight_path, args.device)
-    dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(
-        [DataCleaning_BoundingBox(), DataCleaning_Integrity()])[0]
 
     result_path = os.path.join(args.output_path, 'results')
     os.makedirs(result_path, exist_ok=True)
