@@ -5,7 +5,8 @@ FILTERS:
       remove_non_validity_objects: true
       remove_empty_annotation_objects: true
     Integrity:
-      remove_zero_annotation: true
+      remove_zero_annotation_image: true
+      remove_zero_annotation_video_head_tail: true
       remove_invalid_image: true
 
 CONFIG:
