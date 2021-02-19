@@ -11,6 +11,16 @@ class SiamFCLikeCurationExemplarProcessor:
         return siamfc_z_curation_with_bbox(image, bbox, self.context, self.exemplar_size)
 
 
+class SiamFCLikeCurationExemplarBlankBackgroundProcessor:
+    def __init__(self, context, exemplar_size):
+        self.context = context
+        self.exemplar_size = exemplar_size
+        self.avg_color = np.zeros((3,), dtype=np.uint8)
+
+    def __call__(self, image, bbox):
+        return siamfc_z_curation_with_bbox(image, bbox, self.context, self.exemplar_size, self.avg_color)
+    
+
 def generate_mask_from_bbox(img, bbox):
     h, w = img.shape[0: 2]
     mask = np.ones((h, w), dtype=np.bool)
