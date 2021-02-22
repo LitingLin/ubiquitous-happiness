@@ -1,4 +1,4 @@
-name: encoder_shared_params_decoder_cross_attn_resnet50_decoder_no_z_mask
+name: encoder_shared_params_decoder_cross_attn_resnet50_decoder_no_z_mask_new_aug
 backbone:
   type: resnet50
   position_embedding: sine
