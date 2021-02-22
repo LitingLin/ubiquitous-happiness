@@ -45,5 +45,5 @@ class PostProcessor_ImageToTorchImagenetNormalizationMaskGenerating:
         img, _ = input_
         h, w = img.shape[0: 2]
         img = _common_image_post_process(img)
-        mask = np.zeros((h, w), dtype=np.bool)
+        mask = torch.zeros((h, w), dtype=torch.bool)
         return img, mask
