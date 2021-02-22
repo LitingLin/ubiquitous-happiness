@@ -3,6 +3,7 @@ from data.operator.image.imagenet_normalize import image_torch_tensor_imagenet_n
 from data.operator.bbox.xywh2cxcywh_normalize import bbox_xywh2cxcywh_normalize_
 from data.operator.bbox.numpy_pytorch_interop import bbox_numpy_to_torch
 import numpy as np
+import torch
 
 
 def _common_image_post_process(img):
@@ -19,11 +20,11 @@ def _common_post_process(img, bbox):
     return img, bbox
 
 
-class PostProcessor_ImageToTorchImagenetNormalizationKeepAnnotation:
+class PostProcessor_ImageToTorchImagenetNormalizationAnnotationToTorch:
     def __call__(self, input_):
         img, anno = input_
         img = _common_image_post_process(img)
-        return img, anno
+        return img, torch.tensor(anno)
 
 
 class PostProcessor_ImageToTorchImagenetNormalizationNoAnnotation:

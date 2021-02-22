@@ -1,7 +1,7 @@
 from data.detr_tracking_variants.processor import DETRTrackingEvaluationProcessor
 from data.tracking.processor.curation import SiamFCLikeCurationExemplar_MaskGenerating_Processor
 from data.tracking.processor.resizing import SizeLimited_KeepingAspect_Image_Processor
-from data.detr_tracking_variants.common.post_processor import PostProcessor_ImageToTorchImagenetNormalizationKeepAnnotation, PostProcessor_ImageToTorchImagenetNormalizationNoAnnotation
+from data.detr_tracking_variants.common.post_processor import PostProcessor_ImageToTorchImagenetNormalizationAnnotationToTorch, PostProcessor_ImageToTorchImagenetNormalizationNoAnnotation
 from data.detr_tracking_variants.common.pre_processor import PreProcessor_BoundingBoxToNumpyToXYWH
 
 
@@ -13,7 +13,7 @@ def build_evaluation_processor(network_config: dict):
     return DETRTrackingEvaluationProcessor(
         SiamFCLikeCurationExemplar_MaskGenerating_Processor(siamfc_curation_context, siamfc_curation_exemplar_size),
         SizeLimited_KeepingAspect_Image_Processor(instance_size_limit),
-        PostProcessor_ImageToTorchImagenetNormalizationKeepAnnotation(),
+        PostProcessor_ImageToTorchImagenetNormalizationAnnotationToTorch(),
         PostProcessor_ImageToTorchImagenetNormalizationNoAnnotation(),
         PreProcessor_BoundingBoxToNumpyToXYWH()
     )
