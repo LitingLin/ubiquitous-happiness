@@ -3,7 +3,7 @@ import os
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(root_path)
 
-from algorithms.tracker.detr_tracking_variants.encoder_shared_params_decoder_cross_attn_decoder_no_z_mask.builder import build_detr_tracker
+from algorithms.tracker.detr_tracking_variants.encoder_shared_params_decoder_cross_attn_resnet50_decoder_no_z_mask_new_aug.builder import build_detr_tracker
 from evaluation.evaluator.got10k.run_evaluation import run_evaluation_on_tracker
 from workarounds.all import apply_all_workarounds
 import argparse
