@@ -3,17 +3,17 @@ import os
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(root_path)
 
-from Dataset.SOT.Seed.UAV123 import UAV123_Seed
+from Dataset.SOT.Seed.NFS import NFS_Seed, NFSDatasetVersionFlag
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
-from evaluation.evaluator.got10k.datasets.uav123 import UAV123
+from evaluation.evaluator.got10k.datasets.nfs import NfS
 
 from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
 from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
 if __name__ == '__main__':
-    dataset = SingleObjectTrackingDatasetFactory([UAV123_Seed()]).construct(filters=None)[0]
-    dataset_got = UAV123(dataset.get_root_path())
+    dataset = SingleObjectTrackingDatasetFactory([NFS_Seed(version=NFSDatasetVersionFlag.fps_240)]).construct(filters=None)[0]
+    dataset_got = NfS(dataset.get_root_path(), 240)
     assert len(dataset_got) == len(dataset)
     dataset_name_index_map = {}
     for index_of_sequence, sequence in enumerate(dataset):

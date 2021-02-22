@@ -1,10 +1,10 @@
-from .pipeline import SimpleDataPipelineOrganizer
-from data.detr_tracking_variants.processor import DETRTrackingProcessor
+from data.detr_tracking_variants.processor import DETRTrackingProcessor, SimpleOrganizer
 from data.tracking.processor.curation import SiamFCLikeCurationExemplar_MaskGenerating_Processor
 from data.tracking.processor.resizing import RandomResizing_KeepingAspect_Processor
+from data.detr_tracking_variants.common.post_processor import PostProcessor_ImageToTorchImagenetNormalizationKeepAnnotation, PostProcessor_ImageToTorchImagenetNormalizationBoundingBoxToCXCYWHNormalizedToTorch
 
 
-def build_processor(network_config: dict, train_config: dict):
+def build_training_processor(network_config: dict, train_config: dict):
     siamfc_curation_context = network_config['backbone']['siamfc']['context']
     siamfc_curation_exemplar_size = network_config['backbone']['siamfc']['exemplar_size']
     train_min_instance_size = train_config['train']['data']['instance_size']['min']
@@ -14,10 +14,14 @@ def build_processor(network_config: dict, train_config: dict):
     train_processor = DETRTrackingProcessor(
         SiamFCLikeCurationExemplar_MaskGenerating_Processor(siamfc_curation_context, siamfc_curation_exemplar_size),
         RandomResizing_KeepingAspect_Processor(train_min_instance_size, train_max_instance_size),
-        SimpleDataPipelineOrganizer())
+        PostProcessor_ImageToTorchImagenetNormalizationKeepAnnotation(),
+        PostProcessor_ImageToTorchImagenetNormalizationBoundingBoxToCXCYWHNormalizedToTorch(),
+        SimpleOrganizer())
     val_processor = DETRTrackingProcessor(
         SiamFCLikeCurationExemplar_MaskGenerating_Processor(siamfc_curation_context, siamfc_curation_exemplar_size),
         RandomResizing_KeepingAspect_Processor(val_min_instance_size, val_max_instance_size),
-        SimpleDataPipelineOrganizer())
+        PostProcessor_ImageToTorchImagenetNormalizationKeepAnnotation(),
+        PostProcessor_ImageToTorchImagenetNormalizationBoundingBoxToCXCYWHNormalizedToTorch(),
+        SimpleOrganizer())
 
     return train_processor, val_processor
