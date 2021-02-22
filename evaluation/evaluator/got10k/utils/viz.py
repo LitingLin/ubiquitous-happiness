@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import numpy as np
 import matplotlib
-matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.colors as mcolors
