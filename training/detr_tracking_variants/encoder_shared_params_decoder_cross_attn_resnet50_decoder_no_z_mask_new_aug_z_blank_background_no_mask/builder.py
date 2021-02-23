@@ -8,7 +8,7 @@ from data.collate_fn.collate_different_size_image_and_generating_mask import \
     collate_different_size_4D_tensors_and_generate_masks
 from torch.utils.data.dataloader import default_collate
 from data.siamfc.dataset import build_tracking_dataset
-from data.detr_tracking_variants.simple_exemplar_blank_background_no_mask.builder import build_processor
+from data.detr_tracking_variants.simple_exemplar_blank_background_no_mask.training_builder import build_training_processor
 
 
 def collate_fn(data):
@@ -67,7 +67,7 @@ def build_detr_tracking_training_actor(args, net_config: dict, train_config: dic
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                       val_dataset_config_path: str):
-    train_processor, val_processor = build_processor(network_config, train_config)
+    train_processor, val_processor = build_training_processor(network_config, train_config)
     train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path,
                                                         val_dataset_config_path, train_processor, val_processor)
 
