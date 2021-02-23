@@ -170,6 +170,7 @@ class MultipleObjectTrackingDatasetSequenceObject_MemoryMapped:
     def __getitem__(self, index: int):
         return MultipleObjectTrackingDatasetFrameObject_MemoryMapped(self.object_frame_index_vector[index],
                                                                      self.object_id,
+                                                                     self.object_attribute,
                                                                      self.object_bounding_box_matrix[index],
                                                                      self.object_bounding_box_validity_flag_vector[
                                                                          index],
