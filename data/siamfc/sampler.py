@@ -126,7 +126,8 @@ class MOTDatasetSiamFCSampler:
         length_of_sequence = len(sequence)
         visible = np.zeros(length_of_sequence, dtype=np.uint8)
         if track.get_all_bounding_box_validity_flag() is not None:
-            visible[track.get_all_frame_index()][track.get_all_bounding_box_validity_flag()] = 1
+            ind = track.get_all_frame_index()[track.get_all_bounding_box_validity_flag()]
+            visible[ind] = 1
         else:
             visible[track.get_all_frame_index()] = 1
         object_id = track.get_id()
