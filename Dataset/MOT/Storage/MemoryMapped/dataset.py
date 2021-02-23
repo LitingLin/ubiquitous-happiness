@@ -299,7 +299,8 @@ class MultipleObjectTrackingDatasetSequence_MemoryMapped:
         return MultipleObjectTrackingDatasetSequenceObject_MemoryMapped(object_id, object_attribute,
                                                                         object_frame_index_vector,
                                                                         object_bounding_box_matrix,
-                                                                        object_bounding_box_validity_flag_vector)
+                                                                        object_bounding_box_validity_flag_vector,
+                                                                        self.sequence_additional_attributes)
 
     def get_attribute(self, name: str):
         return self.sequence_additional_attributes.get_attribute(name)
