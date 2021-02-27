@@ -54,3 +54,20 @@ class SizeLimited_KeepingAspect_Image_Processor:
             return image
 
         return _resize_image_keeping_aspect(image, self.size_limitation)
+
+
+class SizeLimited_MinMax_KeepingAspect_Image_Processor:
+    def __init__(self, min_size_limitation, max_size_limitation):
+        self.min_size_limitation = min_size_limitation
+        self.max_size_limitation = max_size_limitation
+
+    def __call__(self, image):
+        h, w = image.shape[0:2]
+        size = h * w
+        if size < self.min_size_limitation:
+            return _resize_image_keeping_aspect(image, self.min_size_limitation)
+
+        if size > self.max_size_limitation:
+            return _resize_image_keeping_aspect(image, self.max_size_limitation)
+
+        return image

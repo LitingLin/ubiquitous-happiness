@@ -134,6 +134,9 @@ def build_siamfc_training_actor(args, network_config: dict, train_config: dict, 
 
     optimizer, lr_scheduler = _setup_siamfc_optimizer(model, train_config)
 
+    if args.distributed:
+        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+
     model.to(device)
     criterion.to(device)
 

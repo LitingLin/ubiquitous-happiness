@@ -6,8 +6,6 @@ import math
 import torch
 from torch import nn
 
-from Utils.detr_misc import NestedTensor
-
 
 class PositionEmbeddingSine(nn.Module):
     """

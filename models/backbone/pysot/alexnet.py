@@ -32,7 +32,6 @@ class AlexNet(nn.Module):
             nn.BatchNorm2d(configs[4]),
             nn.ReLU(inplace=True),
         )
-
         self.layer5 = nn.Sequential(
             nn.Conv2d(configs[4], configs[5], kernel_size=3),
             nn.BatchNorm2d(configs[5]),
