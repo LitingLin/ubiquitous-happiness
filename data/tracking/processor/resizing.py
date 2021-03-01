@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import cv2
 
 
@@ -28,7 +29,7 @@ class RandomResizing_KeepingAspect_Processor:
         self.max_total_size = max_total_size
 
     def __call__(self, image: np.ndarray, bbox: np.ndarray):
-        target_size = np.random.randint(self.min_total_size, self.max_total_size)
+        target_size = random.randint(self.min_total_size, self.max_total_size)
         return _resize_image_and_bbox_keeping_aspect(image, bbox, target_size)
 
 

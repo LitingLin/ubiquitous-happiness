@@ -317,6 +317,12 @@ class MultipleObjectTrackingDatasetSequence_MemoryMapped:
     def __len__(self):
         return self.get_number_of_frames()
 
+    def has_bounding_box(self):
+        return self.sequence_object_bounding_box_matrix is not None
+
+    def has_bounding_box_validity_flag(self):
+        return self.sequence_object_bounding_box_validity_flag_matrix is not None
+
 
 class MultipleObjectTrackingDataset_MemoryMapped(MemoryMappedDataset):
     def __init__(self, root_path: str, storage: ListMemoryMapped):
