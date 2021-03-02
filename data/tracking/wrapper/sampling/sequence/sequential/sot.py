@@ -19,7 +19,7 @@ class _SOTTrackIterator:
         return image_path, bounding_box, validity_flag
 
 
-class _SOTTrackIteratorGenerator:
+class SingleObjectTrackingDatasetTrackIteratorGenerator:
     def __init__(self, sequence: SingleObjectTrackingDatasetSequence_MemoryMapped):
         assert sequence.has_bounding_box()
         assert len(sequence) > 0
@@ -27,25 +27,3 @@ class _SOTTrackIteratorGenerator:
 
     def __iter__(self):
         return _SOTTrackIterator(self.sequence)
-
-
-class _SOTWrapper:
-    def __init__(self, dataset: SingleObjectTrackingDataset_MemoryMapped):
-        self.dataset = dataset
-
-    def get_random_track(self):
-        index = np.random.randint(0, len(self.dataset))
-        return self.get_random_track_in_sequence(index)
-
-    def get_random_track_in_sequence(self, index: int):
-        return _SOTTrackIteratorGenerator(self.dataset[index])
-
-    def get_track_in_sequence(self, index_of_sequence: int, index_of_track: int):
-        assert index_of_track == 0
-        return _SOTTrackIteratorGenerator(self.dataset[index_of_sequence])
-
-    def get_number_of_tracks_in_sequence(self, index_of_sequence: int):
-        return 1
-
-    def __len__(self):
-        return len(self.dataset)

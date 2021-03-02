@@ -2,6 +2,7 @@ from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapp
 from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
 from enum import Enum, auto
+import numpy as np
 
 
 class DatasetWeightingStrategy(Enum):
@@ -27,7 +28,7 @@ class _ConcatenatedDatasetPositioningHelper:
 
 
 class TrackingDatasetIndexing:
-    def __init__(self, datasets, weighting_strategy=DatasetWeightingStrategy.relative, repeat_times=None, total_length=None, image_dataset_weight=None, video_dataset_weight=None):
+    def __init__(self, datasets, weighting_strategy=DatasetWeightingStrategy.relative, repeat_times=None, total_length=None, image_dataset_weight=None, video_dataset_weight=None, rng_seed = 33):
         dataset_sizes = []
         dataset_weights = []
 
@@ -85,13 +86,42 @@ class TrackingDatasetIndexing:
         self.total_length = total_length
         for dataset in datasets:
             self.positioning_helper.register(len(dataset))
-        self.shuffle()
+        self.rng_engine = np.random
+        if rng_seed is not None:
+            self.rng_engine = np.random.default_rng(rng_seed)
 
     def __len__(self):
         return self.total_length
 
     def __getitem__(self, index: int):
-        pass
+        index = self.indices[index]
+        index_of_dataset, index_in_dataset = self.positioning_helper(index)
+        return self.datasets[index_of_dataset], index_in_dataset
 
     def shuffle(self):
+        offset = 0
+        indices = []
         for dataset, size in zip(self.datasets, self.dataset_sizes):
+            index = np.arange(offset, offset + len(dataset))
+            self.rng_engine.shuffle(index)
+            while index.shape[0] < size:
+                indices.append(index)
+                size -= index.shape[0]
+            if size != 0:
+                indices.append(index[: size])
+            offset += len(dataset)
+        self.indices = np.concatenate(indices)
+        self.rng_engine.shuffle(self.indices)
+
+    def sequential(self):
+        offset = 0
+        indices = []
+        for dataset, size in zip(self.datasets, self.dataset_sizes):
+            index = np.arange(offset, offset + len(dataset))
+            while index.shape[0] < size:
+                indices.append(index)
+                size -= index.shape[0]
+            if size != 0:
+                indices.append(index[: size])
+            offset += len(dataset)
+        self.indices = np.concatenate(indices)
