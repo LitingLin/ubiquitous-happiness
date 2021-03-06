@@ -28,7 +28,7 @@ class _ConcatenatedDatasetPositioningHelper:
 
 
 class TrackingDatasetIndexing:
-    def __init__(self, datasets, weighting_strategy=DatasetWeightingStrategy.relative, repeat_times=None, total_length=None, image_dataset_weight=None, video_dataset_weight=None, rng_seed = 33):
+    def __init__(self, datasets, weighting_strategy=DatasetWeightingStrategy.relative, repeat_times=None, total_length=None, image_dataset_weight=None, video_dataset_weight=None, rng_engine=np.random):
         dataset_sizes = []
         dataset_weights = []
 
@@ -76,7 +76,16 @@ class TrackingDatasetIndexing:
             total_length = sum(dataset_sizes)
 
         # eliminate zero size
-        zero_size_dataset_indices = [i for i, dataset_size in enumerate(dataset_sizes) if dataset_size <= 0]
+        dataset_index_relative_real_map = {}
+        valid_dataset_count = 0
+        zero_size_dataset_indices = []
+        for index, dataset_size in enumerate(dataset_sizes):
+            if dataset_size > 0:
+                dataset_index_relative_real_map[valid_dataset_count] = index
+                valid_dataset_count += 1
+            else:
+                zero_size_dataset_indices.append(index)
+        self.dataset_index_relative_real_map = dataset_index_relative_real_map
         datasets = [i for j, i in enumerate(datasets) if j not in zero_size_dataset_indices]
         dataset_sizes = [i for j, i in enumerate(dataset_sizes) if j not in zero_size_dataset_indices]
 
@@ -86,9 +95,7 @@ class TrackingDatasetIndexing:
         self.total_length = total_length
         for dataset in datasets:
             self.positioning_helper.register(len(dataset))
-        self.rng_engine = np.random
-        if rng_seed is not None:
-            self.rng_engine = np.random.default_rng(rng_seed)
+        self.rng_engine = rng_engine
 
     def __len__(self):
         return self.total_length
@@ -96,7 +103,7 @@ class TrackingDatasetIndexing:
     def __getitem__(self, index: int):
         index = self.indices[index]
         index_of_dataset, index_in_dataset = self.positioning_helper(index)
-        return self.datasets[index_of_dataset], index_in_dataset
+        return self.dataset_index_relative_real_map[index_of_dataset], index_in_dataset
 
     def shuffle(self):
         offset = 0

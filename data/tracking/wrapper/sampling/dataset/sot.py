@@ -11,12 +11,21 @@ class SingleObjectTrackingDatasetSampler:
         index = np.random.randint(0, len(self.dataset))
         return self.get_random_track_in_sequence(index)
 
+    @staticmethod
+    def _check_sequence(sequence):
+        assert sequence.has_bounding_box()
+        assert len(sequence) > 0
+
     def get_random_track_in_sequence(self, index: int):
-        return self.sequence_sampler(self.dataset[index])
+        sequence = self.dataset[index]
+        SingleObjectTrackingDatasetSampler._check_sequence(sequence)
+        return self.sequence_sampler(sequence)
 
     def get_track_in_sequence(self, index_of_sequence: int, index_of_track: int):
         assert index_of_track == 0
-        return self.sequence_sampler(self.dataset[index_of_sequence])
+        sequence = self.dataset[index_of_sequence]
+        SingleObjectTrackingDatasetSampler._check_sequence(sequence)
+        return self.sequence_sampler(sequence)
 
     def get_number_of_tracks_in_sequence(self, index_of_sequence: int):
         return 1

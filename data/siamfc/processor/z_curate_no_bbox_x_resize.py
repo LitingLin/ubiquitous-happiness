@@ -1,7 +1,7 @@
 import numpy
 import numpy.random
 from data.siamfc.curation_with_aug import curate_image_like_siamfc_with_aug, get_siamfc_curation_center_and_scale
-from data.operator.image.resize import ImageResizer
+from data.operator.image.module.resize import ImageResizer
 from data.operator.bbox.xywh2cxcywh_normalize import bbox_xywh2cxcywh_normalize_, bbox_denormalize_cxcywh2xywh
 from data.operator.image.numpy_pytorch_interop import image_numpy_to_torch
 from data.operator.bbox.numpy_pytorch_interop import bbox_numpy_to_torch, bbox_torch_to_numpy

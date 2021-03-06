@@ -1,0 +1,39 @@
+Bounding Box:
+Bounding box select the pixels in various formats
+
+The convention applied in my project:
+
+Coordinate locate on the edge of a pixel
+(0,0)
+↓
+--- x
+|*|
+---
+y ↑
+  (1,1)
+*: pixel
+XY: left/top coordinate point of the pixels selected
+Width Height: Number of pixels selected
+
+XYWH format: [0, 0, 1, 1]
+CXCYWH format: [0.5, 0.5, 1, 1]
+XYXY format: [0, 0, 1, 1]
+
+
+Normalized Bounding Box:
+bounding box / image size
+
+
+When using some external libs, like opencv, be careful about the *difference* between coordinate system!
+Usually, their coordinate points locate *in* pixels.
+
+
+Handling with resize(up sample/down sample)
+
+https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html # align_corners
+https://pytorch.org/docs/master/nn.functional.html#torch.nn.functional.interpolate # align_corners
+https://discuss.pytorch.org/t/what-we-should-use-align-corners-false/22663/9
+
+align_corners=Ture meet with bounding box * scaling ratio, so align_corners=Ture provides better performance
+
+https://github.com/tensorflow/tensorflow/issues/6720

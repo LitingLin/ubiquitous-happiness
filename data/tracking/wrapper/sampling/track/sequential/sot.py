@@ -21,9 +21,10 @@ class _SOTTrackIterator:
 
 class SingleObjectTrackingDatasetTrackIteratorGenerator:
     def __init__(self, sequence: SingleObjectTrackingDatasetSequence_MemoryMapped):
-        assert sequence.has_bounding_box()
-        assert len(sequence) > 0
         self.sequence = sequence
 
     def __iter__(self):
         return _SOTTrackIterator(self.sequence)
+
+    def __len__(self):
+        return len(self.sequence)

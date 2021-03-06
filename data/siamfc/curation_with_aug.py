@@ -6,10 +6,7 @@ import cv2
 
 
 def curate_image_like_siamfc_with_aug(image, center, scale, out_size, max_translation=None, max_stretch_ratio=None,
-                                      rgb_variance=None, gray_scale=False):
-    if gray_scale:
-        image = RGBImageToGrayScale(image)
-
+                                      rgb_variance=None, gray_scale=False, interp_aug=False):
     out_center = [out_size / 2, out_size / 2]
 
     if max_translation is not None:
@@ -26,14 +23,19 @@ def curate_image_like_siamfc_with_aug(image, center, scale, out_size, max_transl
 
     avg_color = numpy.round(cv2.mean(image)[0:3]).astype(numpy.uint8)
 
-    interp = numpy.random.choice([
-        InterpolationMethod.INTER_LINEAR,
-        InterpolationMethod.INTER_CUBIC,
-        InterpolationMethod.INTER_AREA,
-        InterpolationMethod.INTER_NEAREST,
-        InterpolationMethod.INTER_LANCZOS4])
+    if interp_aug:
+        interp = numpy.random.choice([
+            InterpolationMethod.INTER_LINEAR,
+            InterpolationMethod.INTER_CUBIC,
+            InterpolationMethod.INTER_AREA,
+            InterpolationMethod.INTER_NEAREST,
+            InterpolationMethod.INTER_LANCZOS4])
+    else:
+        interp = InterpolationMethod.INTER_LINEAR
 
     image = RGBImageTranslateAndScale(image, [out_size, out_size], center, out_center, scale, avg_color, interp)
+    if gray_scale:
+        image = RGBImageToGrayScale(image)
     image = image.astype(numpy.float32)
 
     if rgb_variance is not None:
