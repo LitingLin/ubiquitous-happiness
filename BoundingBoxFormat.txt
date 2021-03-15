@@ -1,6 +1,20 @@
 Bounding Box:
 Bounding box select the pixels in various formats
 
+**Now the project follow the coordinate system applied in tensorflow v2**
+Pixels are on the coordinates
+XYWH: X, Y, Width, Height
+XYXY: X1, Y1, X2, Y2
+    range:
+        x axis: [X1, Y1]
+        y axis: [Y1, Y2]
+    X2 = X + Width - 1
+    Y2 = Y + Height - 1
+CXCYWH: Center X, Center Y, W, H
+    attention: W & H is not the real Width & Height, Width - 1 & Height - 1 respective
+
+
+
 The convention applied in my project:
 
 Coordinate locate on the edge of a pixel
@@ -37,3 +51,22 @@ https://discuss.pytorch.org/t/what-we-should-use-align-corners-false/22663/9
 align_corners=Ture meet with bounding box * scaling ratio, so align_corners=Ture provides better performance
 
 https://github.com/tensorflow/tensorflow/issues/6720
+
+
+
+Tensorflow:
+the pixels is on the coordinate
+so Bounding Box value is in range [0, image size - 1]
+normalized Bounding Box = bounding box / (image size - 1) in range [0, 1]
+A bounding box stand for one pixel at [0, 0] is [0, 0, 0, 0]
+
+
+Pixel在坐标轴上：
+resize 方法 align corner
+不会引入边缘 artifact
+Bounding Box（XYXY及CXCYWH）无法表示单Pixel（或者说单Pixel与数学意义上的Point的区别），2个像素的bounding box（如[0,0,1,1]）的两倍为3个像素（如[0,0,2,2]）
+
+Pixel在坐标轴内（或者说在（0.5，0.5）上，又或者说Bounding Box围绕着Pixel）：
+resize 方法 half_pixel_centers
+引入边缘 artifact
+Bounding Box 表示较为正常

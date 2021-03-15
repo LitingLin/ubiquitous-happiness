@@ -45,26 +45,26 @@ if __name__ == '__main__':
     from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
     standard_filters = [DataCleaning_BoundingBox(update_validity=True, remove_non_validity_objects=True, remove_empty_annotation_objects=True), DataCleaning_Integrity()]
+    #
+    # dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(filters=standard_filters)[0]
+    # for sequence in dataset:
+    #     if sequence.get_name() == 'Singer2':
+    #         generate_video_on_sequence(sequence, "C:\\git\\Singer2.txt", 'C:\\git\\Singer2.mp4')
+    #
+    #         break
+    #
 
-    dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(filters=standard_filters)[0]
+    dataset = SingleObjectTrackingDatasetFactory([GOT10k_Seed(data_split=DataSplit.Validation)]).construct(filters=standard_filters)[0]
     for sequence in dataset:
-        if sequence.get_name() == 'David2':
-            generate_video_on_sequence(sequence, "C:\\git\\David2.txt", 'C:\\git\\David2.mp4')
+        if sequence.get_name() == 'GOT-10k_Val_000177':
+            generate_video_on_sequence(sequence, "C:\\git\\GOT-10k_Val_000177_001.txt", 'C:\\git\\GOT-10k_Val_000177_001.mp4')
 
             break
 
     #
-    # dataset = SingleObjectTrackingDatasetFactory([GOT10k_Seed(data_split=DataSplit.Validation)]).construct(filters=standard_filters)[0]
-    # for sequence in dataset:
-    #     if sequence.get_name() == 'GOT-10k_Val_000005':
-    #         generate_video_on_sequence(sequence, "C:\\git\\GOT-10k_Val_000005_001.txt", 'C:\\git\\GOT-10k_Val_000005_001.mp4')
-    #
-    #         break
-
-    #
     # dataset = SingleObjectTrackingDatasetFactory([LaSOT_Seed(data_split=DataSplit.Validation)]).construct(filters=standard_filters)[0]
     # for sequence in dataset:
-    #     if sequence.get_name() == 'leopard-1':
-    #         generate_video_on_sequence(sequence, "C:\\git\\leopard-1.txt", 'C:\\git\\leopard-1.mp4')
+    #     if sequence.get_name() == 'gecko-5':
+    #         generate_video_on_sequence(sequence, "C:\\git\\gecko-5.txt", 'C:\\git\\gecko-5.mp4')
     #
     #         break

@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
-from native_extension import InterpolationMethod, RGBImageTranslateAndScale, RGBImageToGrayScale
-
+from data.operator.image.rgb_to_gray import tf_image_rgb_to_gray_keep_channels
 
 def blur_augmentation(image):
     def rand_kernel():
@@ -19,23 +18,13 @@ def blur_augmentation(image):
 
 
 def gray_augmentation(image):
-    return RGBImageToGrayScale(image)
+    return tf_image_rgb_to_gray_keep_channels(image)
 
 
 def color_augmentation(image, rgb_variance):
     image -= rgb_variance.dot(np.random.randn(3).astype(np.float32))
     image = np.clip(image, 0., 255.)
     return image
-
-
-def _horizontal_flip_bbox(image_width, bbox):
-    x, y, w, h = bbox
-    x1 = x
-    x2 = x + w
-    n2 = image_width - x1 - 1
-    n1 = image_width - x2 - 1
-    return
-
 
 def horizontal_flip_augmentation(image, bbox):
     image = cv2.flip(image, 1)

@@ -147,9 +147,6 @@ class Qt5Viewer:
     def stopTimer(self):
         self.timer.stop()
 
-    def setWindowTitle(self, title):
-        self.window.setWindowTitle(title)
-
     def setTimerInterval(self, msec: int):
         self.timer.setInterval(msec)
 
