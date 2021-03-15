@@ -67,7 +67,7 @@ class Client:
     def __call__(self, *args):
         self.socket.send_pyobj(args)
         response = self.socket.recv_pyobj()
-        if response[0] != 200:
+        if response[0] < 200 or response[0] >= 300:
             raise RuntimeError(f'remote procedure failed with code {response[0]}')
         else:
             return response[1]
