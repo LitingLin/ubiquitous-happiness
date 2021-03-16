@@ -1,8 +1,10 @@
 import os
 from Dataset.Type.data_split import DataSplit
-from tqdm import tqdm
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
-from Miscellaneous.string_to_number import string_to_number_slow
+from Miscellaneous.Parser.ini import parse_ini_file
+from Miscellaneous.Parser.txt import load_numpy_array_from_txt
+from Miscellaneous.Numpy.dtype import try_get_int_array
+import ast
 
 
 _category_names = ['JetLev-Flyer',
@@ -515,38 +517,32 @@ def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
         images = [image for image in images if image.endswith('.jpg')]
         images.sort()
 
-        is_presents = []
-        for line in open(os.path.join(sequence_path, 'absence.label'), 'r'):
-            line = line.strip()
-            is_present = not bool(int(line))
-            is_presents.append(is_present)
+        absence_array = load_numpy_array_from_txt(os.path.join(sequence_path, 'absence.label'), dtype=bool)
+        # Values 0~8 in file cover.label correspond to ranges of object visible ratios: 0%, (0%, 15%], (15%~30%], (30%, 45%], (45%, 60%], (60%, 75%], (75%, 90%], (90%, 100%) and 100% respectively.
+        cover_array = load_numpy_array_from_txt(os.path.join(sequence_path, 'cover.label'), dtype=int)
+        cut_by_image_array = load_numpy_array_from_txt(os.path.join(sequence_path, 'cut_by_image.label'), dtype=bool)
 
-        boundingBoxes = []
-        for line in open(os.path.join(sequence_path, 'groundtruth.txt'), 'r'):
-            line = line.strip()
-            boundingBox = line.split(',')
-            assert len(boundingBox) == 4
-            boundingBox = [string_to_number_slow(value) for value in boundingBox]
-            boundingBoxes.append(boundingBox)
+        bounding_boxes = load_numpy_array_from_txt(os.path.join(sequence_path, 'groundtruth.txt'), delimiter=',')
+        bounding_boxes = try_get_int_array(bounding_boxes)
 
-        assert len(images) == len(is_presents)
-        assert len(boundingBoxes) == len(images)
+        assert len(images) == len(absence_array) == len(cover_array) == len(cut_by_image_array) == len(bounding_boxes)
+        meta_info = parse_ini_file(os.path.join(sequence_path, 'meta_info.ini'))['METAINFO']
 
-        objectClass = None
-        for line in open(os.path.join(sequence_path, 'meta_info.ini'), 'r'):
-            if line.startswith('object_class: '):
-                objectClass = line[len('object_class: '):]
-                objectClass = objectClass.strip()
-                if len(objectClass) == 0:
-                    objectClass = None
-                break
+        object_class = meta_info['object_class']
+        frame_size = meta_info['resolution']
+        frame_size = ast.literal_eval(frame_size)
+        fps = meta_info['anno_fps']
+        assert fps.endswith('Hz')
+        fps = int(fps[:-2])
 
-        if objectClass is None:
-            raise Exception
-
-        with constructor.new_sequence(category_name_id_map[objectClass]) as sequence_constructor:
+        with constructor.new_sequence(category_name_id_map[object_class]) as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
-            for image, boundingBox, is_present in zip(images, boundingBoxes, is_presents):
+            sequence_constructor.merge_attributes(meta_info)
+            sequence_constructor.set_fps(fps)
+            for image, bounding_box, absence, cover, cut_by_image in zip(images, bounding_boxes, absence_array, cover_array, cut_by_image_array):
                 with sequence_constructor.new_frame() as frame_constructor:
-                    frame_constructor.set_path(os.path.join(sequence_path, image))
-                    frame_constructor.set_bounding_box(boundingBox, validity=is_present)
+                    frame_constructor.set_path(os.path.join(sequence_path, image), frame_size)
+                    frame_constructor.set_bounding_box(bounding_box.tolist(), validity=not absence)
+                    frame_constructor.set_object_attribute('absence', absence.item())
+                    frame_constructor.set_object_attribute('cover', cover.item())
+                    frame_constructor.set_object_attribute('cut_by_image', cut_by_image.item())
