@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 from data.operator.image.rgb_to_gray import tf_image_rgb_to_gray_keep_channels
+from data.operator.bbox.align_corner.flip import bbox_horizontal_flip
+
 
 def blur_augmentation(image):
     def rand_kernel():
@@ -26,9 +28,9 @@ def color_augmentation(image, rgb_variance):
     image = np.clip(image, 0., 255.)
     return image
 
+
 def horizontal_flip_augmentation(image, bbox):
+    h, w, _ = image.shape
     image = cv2.flip(image, 1)
-    width = image.shape[1]
-    bbox = Corner(width - 1 - bbox.x2, bbox.y1,
-                  width - 1 - bbox.x1, bbox.y2)
-    return image, bbox
+
+    return image, bbox_horizontal_flip(bbox, (w, h))

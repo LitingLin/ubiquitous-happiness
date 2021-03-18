@@ -7,6 +7,7 @@ from Dataset.Base.Common.MemoryMapped.constructor import memory_mapped_construct
 from Dataset.Base.Common.constructor import image_dataset_key_exclude_list, image_dataset_image_key_exclude_list,\
     image_dataset_object_key_exclude_list
 
+
 def construct_detection_dataset_memory_mapped_from_base_image_dataset(base_dataset: dict, path: str, bounding_box_format: BoundingBoxFormat):
     constructor = memory_mapped_constructor_common_preliminary_works(base_dataset, 'image', path, bounding_box_format,
                                                                      Dataset.DET.Storage.MemoryMapped.dataset.__version__,
