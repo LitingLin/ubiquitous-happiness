@@ -8,13 +8,22 @@ from Miscellaneous.qt_numpy_interop import numpy_rgb888_to_qimage
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QPixmap
 from PyQt5.QtCore import QRectF, Qt
 import numpy as np
+from data.operator.image_and_bbox.align_corner.torch_scale_and_translate import torch_scale_and_translate_align_corners
+import torch
+from data.operator.image.dtype import torch_image_round_to_uint8
 
 
 def _do_render(background_image: tf.Tensor, rendering_contexts, target_size, scale=(1., 1.), translation_source_center=(0, 0), translation_target_center=(0, 0), with_qpixmap=True):
-    canvas = tf_image_scale_and_translate_align_corners(background_image, target_size, scale,
+    background_image = torch.tensor(background_image.numpy())
+    canvas, _ = torch_scale_and_translate_align_corners(background_image, target_size, scale,
                                                         translation_source_center, translation_target_center)
-    canvas = tf_image_round_to_uint8(canvas)
-    canvas = tf.squeeze(canvas, 0)
+    canvas = torch_image_round_to_uint8(canvas)
+    canvas = canvas.squeeze(0)
+    canvas = canvas.numpy()
+    #canvas = tf_image_scale_and_translate_align_corners(background_image, target_size, scale,
+    #                                                    translation_source_center, translation_target_center)
+    #canvas = tf_image_round_to_uint8(canvas)
+    #canvas = tf.squeeze(canvas, 0)
     canvas = numpy_rgb888_to_qimage(canvas)
     if with_qpixmap:
         canvas = QPixmap.fromImage(canvas)

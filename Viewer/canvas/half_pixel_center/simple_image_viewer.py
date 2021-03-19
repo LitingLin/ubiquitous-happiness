@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QLabel, QListWidget, QListWidgetItem, QDoubleSpinBox, QSpacerItem
-from PyQt5.QtCore import QTimer, Qt, pyqtSlot, QObject, QPoint, QPointF, QRect, QRectF
-from PyQt5.QtGui import QResizeEvent, QPixmap, QPainter, QPen, QPolygon, QPolygonF, QBrush, QColor, QImage
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QLabel, \
+    QDoubleSpinBox, QSpacerItem
+from PyQt5.QtCore import Qt, pyqtSlot, QObject
+from PyQt5.QtGui import QResizeEvent
 
 
 class _ScalableImageViewerContext(QObject):
@@ -29,7 +30,7 @@ class _ScalableImageViewerContext(QObject):
         self.relative = relative
 
     def set_image(self, image):
-        from Viewer.simple_painter import SimplePainter
+        from Viewer.canvas.align_corner.simple_painter import SimplePainter
         self.render = SimplePainter.create_from_tf_image(image)
         self.update()
 
@@ -43,7 +44,7 @@ class _ScalableImageViewerContext(QObject):
             return
         if self.relative:
             canvas_w, canvas_h = self.render.get_canvas_size()
-            base_scale = min(self.label.width() / canvas_w, self.label.height() / canvas_h)
+            base_scale = min((self.label.width()) / (canvas_w), (self.label.height()) / (canvas_h))
             scale = self._scale * base_scale
             x_offset = self._x_offset * base_scale
             y_offset = self._y_offset * base_scale
@@ -197,7 +198,7 @@ class SimpleViewer:
 
     def addImage(self):
         from data.operator.image.decoder import tf_decode_image
-        from Viewer.simple_painter import SimplePainter
+        from Viewer.canvas.half_pixel_center.simple_painter import SimplePainter
         image_viewer_widget = construct_simple_image_viewer_on_qt_layout(self.main_layout)
         image = tf_decode_image("K:\\dataset\\coco\\images\\train2014\\COCO_train2014_000000000009.jpg")
         painter = SimplePainter.create_from_tf_image(image)
