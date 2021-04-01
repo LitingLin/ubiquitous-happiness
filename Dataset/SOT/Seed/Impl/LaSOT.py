@@ -58,7 +58,6 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
 
         with constructor.new_sequence(category_id) as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
-
             sequence_path = os.path.join(class_path, sequence_name)
             groundtruth_file_path = os.path.join(sequence_path, 'groundtruth.txt')
             bounding_boxes = np.loadtxt(groundtruth_file_path, dtype=np.int, delimiter=',')
@@ -70,16 +69,15 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
             images_path = os.path.join(sequence_path, 'img')
             if len(bounding_boxes) != len(is_fully_occlusions) or len(is_fully_occlusions) != len(is_out_of_views):
                 raise Exception('annotation length mismatch in {}'.format(sequence_path))
-            for index in range(len(bounding_boxes)):
-                image_file_name = '{:0>8d}.jpg'.format(index + 1)
-                image_path = os.path.join(images_path, image_file_name)
-                if not os.path.exists(image_path):
-                    raise Exception('file not exists: {}'.format(image_path))
-                bounding_box = bounding_boxes[index]
-                is_fully_occlusion = is_fully_occlusions[index]
-                is_out_of_view = is_out_of_views[index]
+            images = os.listdir(images_path)
+            images.sort()
+            for image in images:
+                image_path = os.path.join(images_path, image)
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_path)
+
+            for index_of_frame, (bounding_box, is_fully_occlusion, is_out_of_view) in enumerate(zip(bounding_boxes, is_fully_occlusions, is_out_of_views)):
+                with sequence_constructor.open_frame(index_of_frame) as frame_constructor:
                     frame_constructor.set_bounding_box(bounding_box.tolist(), validity=not (is_fully_occlusion or is_out_of_view))
                     frame_constructor.set_object_attribute('occlusion', is_fully_occlusion.item())
                     frame_constructor.set_object_attribute('out of view', is_out_of_view.item())
