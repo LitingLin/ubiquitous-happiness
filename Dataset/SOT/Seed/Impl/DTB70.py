@@ -3,7 +3,7 @@ from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
 
 
-def get_class_name(sequence: str):
+def _get_class_name(sequence: str):
     class_name = []
     for c in sequence:
         if c.isdigit():
@@ -41,7 +41,7 @@ def construct_DTB70(constructor: SingleObjectTrackingDatasetConstructor, seed):
         images = [image for image in images if image.endswith('.jpg')]
         images.sort()
 
-        with constructor.new_sequence(category_name_id_map[get_class_name(sequence_name)]) as sequence_constructor:
+        with constructor.new_sequence(category_name_id_map[_get_class_name(sequence_name)]) as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
 
             for line_index, line in enumerate(open(os.path.join(path, ground_truth_files[0]), 'r')):
