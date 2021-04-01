@@ -1,0 +1,24 @@
+common:
+  batch_size: 38
+  normalize_mean: [0.485, 0.456, 0.406]
+  normalize_std: [0.229, 0.224, 0.225]
+  search_area_factor: 4.0
+  template_area_factor: 2.0
+  search_feature_sz: 32
+  template_feature_sz: 16
+  search_sz: 256
+  temp_sz: 128
+  center_jitter_factor:
+    search: 3
+    template: 0
+  scale_jitter_factor:
+    search: 0.25
+    template: 0
+
+transformer:
+  position_embedding: sine
+  hidden_dim: 256
+  dropout: 0.1
+  nheads: 8
+  dim_feedforward: 2048
+  featurefusion_layers: 4

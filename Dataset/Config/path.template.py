@@ -19,7 +19,7 @@ class DatasetPath:
     LaSOT_Extension_PATH = ''
     NFS_PATH = ''
     NUSPRO_PATH = ''
-    OTB100_PATH = ''
+    OTB_PATH = ''
     PTB_PATH = ''
     TempleColor_PATH = ''
     TrackingNet_PATH = ''

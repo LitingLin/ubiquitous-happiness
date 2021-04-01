@@ -36,7 +36,7 @@ def torch_scale_and_translate_nchw(img: torch.Tensor, output_size, scale, input_
     return output_img, output_bbox
 
 
-def torch_scale_and_translate(img: torch.Tensor, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), mode='bicubic'):
+def torch_scale_and_translate(img: torch.Tensor, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(255, 255, 255), mode='bicubic'):
     # n, h, w, c => n, c, h, w
     img = img.permute(0, 3, 1, 2)
     output_img, output_bbox = torch_scale_and_translate_nchw(img, output_size, scale, input_center, output_center, background_color, mode)

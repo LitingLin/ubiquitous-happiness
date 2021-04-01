@@ -2,6 +2,7 @@ from Dataset.Type.data_split import DataSplit
 import os
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
 from Miscellaneous.natural_keys import natural_keys
+import numpy as np
 
 
 _category_id_name_map = {0: 'airplane', 1: 'basketball', 2: 'bear', 3: 'bicycle', 4: 'bird', 5: 'boat', 6: 'book', 7: 'bottle', 8: 'bus', 9: 'car', 10: 'cat', 11: 'cattle', 12: 'chameleon', 13: 'coin', 14: 'crab', 15: 'crocodile', 16: 'cup', 17: 'deer', 18: 'dog', 19: 'drone', 20: 'electricfan', 21: 'elephant', 22: 'flag', 23: 'fox', 24: 'frog', 25: 'gametarget', 26: 'gecko', 27: 'giraffe', 28: 'goldfish', 29: 'gorilla', 30: 'guitar', 31: 'hand', 32: 'hat', 33: 'helmet', 34: 'hippo', 35: 'horse', 36: 'kangaroo', 37: 'kite', 38: 'leopard', 39: 'licenseplate', 40: 'lion', 41: 'lizard', 42: 'microphone', 43: 'monkey', 44: 'motorcycle', 45: 'mouse', 46: 'person', 47: 'pig', 48: 'pool', 49: 'rabbit', 50: 'racing', 51: 'robot', 52: 'rubicCube', 53: 'sepia', 54: 'shark', 55: 'sheep', 56: 'skateboard', 57: 'spider', 58: 'squirrel', 59: 'surfboard', 60: 'swing', 61: 'tank', 62: 'tiger', 63: 'train', 64: 'truck', 65: 'turtle', 66: 'umbrella', 67: 'volleyball', 68: 'yoyo', 69: 'zebra'}
@@ -11,21 +12,19 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
     root_path = seed.root_path
     data_type = seed.data_split
 
-    validSequenceNames = []
+    subset_sequence_names = []
 
     if data_type & DataSplit.Training:
-        with open(os.path.join(root_path, 'training_set.txt'), 'rb') as fid:
-            for textLine in fid:
-                textLine = textLine.decode('UTF-8')
-                textLine = textLine.strip()
-                validSequenceNames.append(textLine)
+        with open(os.path.join(root_path, 'training_set.txt'), 'r') as f:
+            content = f.readlines()
+            content = [x.strip() for x in content]
+            subset_sequence_names.extend(content)
 
     if data_type & DataSplit.Validation:
         with open(os.path.join(root_path, 'testing_set.txt'), 'rb') as fid:
-            for textLine in fid:
-                textLine = textLine.decode('UTF-8')
-                textLine = textLine.strip()
-                validSequenceNames.append(textLine)
+            content = f.readlines()
+            content = [x.strip() for x in content]
+            subset_sequence_names.extend(content)
 
     class_names = os.listdir(root_path)
     class_names = [class_name for class_name in class_names if os.path.isdir(os.path.join(root_path, class_name))]
@@ -37,7 +36,7 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
     tasks = []
 
     for class_name in class_names:
-        if not any(sequenceName.startswith(class_name) for sequenceName in validSequenceNames):
+        if not any(sequenceName.startswith(class_name) for sequenceName in subset_sequence_names):
             raise Exception
 
         class_path = os.path.join(root_path, class_name)
@@ -47,7 +46,7 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
         sequence_names.sort(key=natural_keys)
 
         for sequence_name in sequence_names:
-            if sequence_name not in validSequenceNames:
+            if sequence_name not in subset_sequence_names:
                 continue
             tasks.append((class_name, sequence_name))
 
@@ -62,28 +61,11 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
 
             sequence_path = os.path.join(class_path, sequence_name)
             groundtruth_file_path = os.path.join(sequence_path, 'groundtruth.txt')
-            bounding_boxes = []
-            with open(groundtruth_file_path, 'rb') as fid:
-                for line in fid:
-                    line = line.decode('UTF-8')
-                    line = line.strip()
-                    words = line.split(',')
-                    if len(words) != 4:
-                        raise Exception('error in parsing file {}'.format(groundtruth_file_path))
-                    bounding_box = [int(words[0]), int(words[1]), int(words[2]), int(words[3])]
-                    bounding_boxes.append(bounding_box)
+            bounding_boxes = np.loadtxt(groundtruth_file_path, dtype=np.int, delimiter=',')
             full_occlusion_file_path = os.path.join(sequence_path, 'full_occlusion.txt')
-            with open(full_occlusion_file_path, 'rb') as fid:
-                file_content = fid.read().decode('UTF-8')
-                file_content = file_content.strip()
-                words = file_content.split(',')
-                is_fully_occlusions = [word == '1' for word in words]
+            is_fully_occlusions = np.loadtxt(full_occlusion_file_path, dtype=np.bool, delimiter=',')
             out_of_view_file_path = os.path.join(sequence_path, 'out_of_view.txt')
-            with open(out_of_view_file_path, 'rb') as fid:
-                file_content = fid.read().decode('UTF-8')
-                file_content = file_content.strip()
-                words = file_content.split(',')
-                is_out_of_views = [word == '1' for word in words]
+            is_out_of_views = np.loadtxt(out_of_view_file_path, dtype=np.bool, delimiter=',')
             images_path = os.path.join(sequence_path, 'img')
             if len(bounding_boxes) != len(is_fully_occlusions) or len(is_fully_occlusions) != len(is_out_of_views):
                 raise Exception('annotation length mismatch in {}'.format(sequence_path))
@@ -97,6 +79,6 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
                 is_out_of_view = is_out_of_views[index]
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_path)
-                    frame_constructor.set_bounding_box(bounding_box, validity=not (is_fully_occlusion | is_out_of_view))
-                    frame_constructor.set_object_attribute('occlusion', is_fully_occlusion)
-                    frame_constructor.set_object_attribute('out of view', is_out_of_view)
+                    frame_constructor.set_bounding_box(bounding_box.tolist(), validity=not (is_fully_occlusion or is_out_of_view))
+                    frame_constructor.set_object_attribute('occlusion', is_fully_occlusion.item())
+                    frame_constructor.set_object_attribute('out of view', is_out_of_view.item())

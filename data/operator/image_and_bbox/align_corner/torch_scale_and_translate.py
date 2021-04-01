@@ -36,7 +36,7 @@ def torch_scale_and_translate_align_corners_nchw(img: torch.Tensor, output_size,
     return output_img, output_bbox
 
 
-def torch_scale_and_translate_align_corners(img: torch.Tensor, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), mode='bilinear'):
+def torch_scale_and_translate_align_corners(img: torch.Tensor, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(255, 255, 255), mode='bilinear'):
     # n, h, w, c => n, c, h, w
     img = img.permute(0, 3, 1, 2)
     output_img, output_bbox = torch_scale_and_translate_align_corners_nchw(img, output_size, scale, input_center, output_center, background_color, mode)

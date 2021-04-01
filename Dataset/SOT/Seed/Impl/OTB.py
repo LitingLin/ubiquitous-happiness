@@ -6,7 +6,14 @@ from Miscellaneous.platform_style_path import get_platform_style_path
 
 
 def _get_sequence_info_list(split: str):
-    if split == 'otb100':
+    if split == 'OTB50':
+        sequence_names = ["Basketball", "Biker", "Bird1", "BlurBody", "BlurCar2", "BlurFace", "BlurOwl", "Bolt", "Box",
+                          "Car1", "Car4", "CarDark", "CarScale", "ClifBar", "Couple", "Crowds", "David", "Deer",
+                          "Diving", "DragonBaby", "Dudek", "Football", "Freeman4", "Girl", "Human3", "Human4", "Human6",
+                          "Human9", "Ironman", "Jump", "Jumping", "Liquor", "Matrix", "MotorRolling", "Panda",
+                          "RedTeam", "Shaking", "Singer2", "Skating1", "Skating2", "Skiing", "Soccer", "Surfer",
+                          "Sylvester", "Tiger2", "Trellis", "Walking", "Walking2", "Woman"]
+    elif split == 'OTB100' or split == 'OTB2015':
         sequence_names = ["Basketball", "Biker", "Bird1", "Bird2", "BlurBody", "BlurCar1", "BlurCar2", "BlurCar3",
                           "BlurCar4", "BlurFace", "BlurOwl", "Board", "Bolt", "Bolt2", "Box", "Boy", "Car1", "Car2",
                           "Car24", "Car4", "CarDark", "CarScale", "ClifBar", "Coke", "Couple", "Coupon", "Crossing",
@@ -19,7 +26,7 @@ def _get_sequence_info_list(split: str):
                           "Skater", "Skater2", "Skating1", "Skating2_1", "Skating2_2", "Skiing", "Soccer", "Subway",
                           "Surfer", "Suv", "Sylvester", "Tiger1", "Tiger2", "Toy", "Trans", "Trellis", "Twinnings",
                           "Vase", "Walking", "Walking2", "Woman"]
-    elif split == 'otb2013':
+    elif split == 'OTB2013':
         # from http://cvlab.hanyang.ac.kr/tracker_benchmark/benchmark_v10.html tracker_benchmark_v1.0.zip/util/configSeqs.m
         sequence_names = ["Basketball", "Bolt", "Boy", "Car4", "CarDark", "CarScale", "Coke", "Couple", "Crossing",
                           "David", "David2", "David3", "Deer", "Dog1", "Doll", "Dudek", "FaceOcc1", "FaceOcc2", "Fish",
@@ -336,11 +343,12 @@ def _get_sequence_info_list(split: str):
     return dict((k, sequence_info_list[k]) for k in sequence_names)
 
 
-def construct_OTB100(constructor: SingleObjectTrackingDatasetConstructor, seed, split):
+def construct_OTB(constructor: SingleObjectTrackingDatasetConstructor, seed):
     assert seed.data_split == DataSplit.Full
     root_path = seed.root_path
+    otb_split = seed.otb_split
 
-    sequence_info_list = _get_sequence_info_list(split)
+    sequence_info_list = _get_sequence_info_list(otb_split.name)
 
     spacer = re.compile(r'[\s,]')
     constructor.set_total_number_of_sequences(len(sequence_info_list))
