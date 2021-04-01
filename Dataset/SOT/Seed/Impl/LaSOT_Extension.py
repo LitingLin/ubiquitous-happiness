@@ -2,6 +2,7 @@ from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
 import os
 from Dataset.Type.data_split import DataSplit
 from Miscellaneous.natural_keys import natural_keys
+import numpy as np
 
 _category_id_name_map = {0: 'atv', 1: 'badminton', 2: 'cosplay', 3: 'dancingshoe', 4: 'footbag', 5: 'frisbee', 6: 'jianzi', 7: 'lantern', 8: 'misc', 9: 'opossum', 10: 'paddle', 11: 'raccoon', 12: 'rhino', 13: 'skatingshoe', 14: 'wingsuit'}
 
@@ -35,28 +36,12 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
         category_id = category_name_id_map[class_name]
         with constructor.new_sequence(category_id) as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
-            bounding_boxes = []
-            with open(groundtruth_file_path, 'rb') as fid:
-                for line in fid:
-                    line = line.decode('UTF-8')
-                    line = line.strip()
-                    words = line.split(',')
-                    if len(words) != 4:
-                        raise Exception('error in parsing file {}'.format(groundtruth_file_path))
-                    bounding_box = [int(words[0]), int(words[1]), int(words[2]), int(words[3])]
-                    bounding_boxes.append(bounding_box)
+            groundtruth_file_path = os.path.join(sequence_path, 'groundtruth.txt')
+            bounding_boxes = np.loadtxt(groundtruth_file_path, dtype=np.int, delimiter=',')
             full_occlusion_file_path = os.path.join(sequence_path, 'full_occlusion.txt')
-            with open(full_occlusion_file_path, 'rb') as fid:
-                file_content = fid.read().decode('UTF-8')
-                file_content = file_content.strip()
-                words = file_content.split(',')
-                is_fully_occlusions = [word == '1' for word in words]
+            is_fully_occlusions = np.loadtxt(full_occlusion_file_path, dtype=np.bool, delimiter=',')
             out_of_view_file_path = os.path.join(sequence_path, 'out_of_view.txt')
-            with open(out_of_view_file_path, 'rb') as fid:
-                file_content = fid.read().decode('UTF-8')
-                file_content = file_content.strip()
-                words = file_content.split(',')
-                is_out_of_views = [word == '1' for word in words]
+            is_out_of_views = np.loadtxt(out_of_view_file_path, dtype=np.bool, delimiter=',')
             images_path = os.path.join(sequence_path, 'img')
             if len(bounding_boxes) != len(is_fully_occlusions) or len(is_fully_occlusions) != len(is_out_of_views):
                 raise Exception('annotation length mismatch in {}'.format(sequence_path))
@@ -70,6 +55,6 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
                 is_out_of_view = is_out_of_views[index]
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_path)
-                    frame_constructor.set_bounding_box(bounding_box, validity=not(is_fully_occlusion | is_out_of_view))
-                    frame_constructor.set_object_attribute('occlusion', is_fully_occlusion)
-                    frame_constructor.set_object_attribute('out of view', is_out_of_view)
+                    frame_constructor.set_bounding_box(bounding_box.tolist(), validity=not(is_fully_occlusion or is_out_of_view))
+                    frame_constructor.set_object_attribute('occlusion', is_fully_occlusion.item())
+                    frame_constructor.set_object_attribute('out of view', is_out_of_view.item())
