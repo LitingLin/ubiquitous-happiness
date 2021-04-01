@@ -1,6 +1,7 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+import numpy as np
 
 
 def get_class_name(sequence: str):
@@ -31,19 +32,7 @@ def construct_DeformSOT(constructor: SingleObjectTrackingDatasetConstructor, see
         sequence_dir = os.path.join(root_path, sequence)
         gt_file = os.path.join(groundtruth_folder, '{}.txt'.format(sequence))
 
-        bounding_boxes = []
-
-        for line in open(gt_file):
-            line = line.strip()
-            if len(line) == 0:
-                continue
-
-            words = line.split(',')
-            assert len(words) == 4
-
-            bounding_box = [int(v) for v in words]
-            bounding_boxes.append(bounding_box)
-
+        bounding_boxes = np.loadtxt(gt_file, dtype=np.int, delimiter=',')
         class_label = get_class_name(sequence)
         images = os.listdir(sequence_dir)
         images = [image for image in images if image.endswith('.jpg')]
@@ -55,4 +44,4 @@ def construct_DeformSOT(constructor: SingleObjectTrackingDatasetConstructor, see
                 image_path = os.path.join(sequence_dir, image)
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_path)
-                    frame_constructor.set_bounding_box(bounding_box)
+                    frame_constructor.set_bounding_box(bounding_box.tolist())
