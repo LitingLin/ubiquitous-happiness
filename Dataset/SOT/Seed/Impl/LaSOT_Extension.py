@@ -47,6 +47,7 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
                 raise Exception('annotation length mismatch in {}'.format(sequence_path))
 
             images = os.listdir(images_path)
+            images = [image for image in images if image.endswith('.jpg')]
             images.sort()
             for image in images:
                 image_path = os.path.join(images_path, image)

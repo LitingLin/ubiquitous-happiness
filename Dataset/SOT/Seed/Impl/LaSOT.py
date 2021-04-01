@@ -70,6 +70,7 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
             if len(bounding_boxes) != len(is_fully_occlusions) or len(is_fully_occlusions) != len(is_out_of_views):
                 raise Exception('annotation length mismatch in {}'.format(sequence_path))
             images = os.listdir(images_path)
+            images = [image for image in images if image.endswith('.jpg')]
             images.sort()
             for image in images:
                 image_path = os.path.join(images_path, image)
