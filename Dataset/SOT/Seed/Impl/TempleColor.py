@@ -1,6 +1,7 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+import numpy as np
 
 
 def construct_TempleColor(constructor: SingleObjectTrackingDatasetConstructor, seed):
@@ -170,25 +171,19 @@ def construct_TempleColor(constructor: SingleObjectTrackingDatasetConstructor, s
         start_index = int(frame_indices[0])
         end_index = int(frame_indices[1]) + 1
 
+        bounding_boxes = np.loadtxt(os.path.join(path, ground_truth_file), dtype=np.float, delimiter=',')
+        assert end_index - start_index == len(bounding_boxes)
+
         images = os.listdir(img_path)
         images = [image for image in images if image.endswith('.jpg')]
         images.sort()
 
         with constructor.new_sequence(category_name_id_map[sequence_label_mapper[sequence_name]]) as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
-            bounding_boxes = []
-            for line in open(os.path.join(path, ground_truth_file), 'r'):
-                line = line.strip()
-                if len(line) == 0:
-                    continue
-
-                bounding_box = [float(value) for value in line.split(',') if value]
-                bounding_boxes.append(bounding_box)
-
-            assert end_index - start_index == len(bounding_boxes)
+            for image in images:
+                with sequence_constructor.new_frame() as frame_constructor:
+                    frame_constructor.set_path(os.path.join(img_path, image))
 
             for index, index_of_image in enumerate(range(start_index, end_index)):
-                image_file_name = '{:04}.jpg'.format(index_of_image)
-                with sequence_constructor.new_frame() as frame_constructor:
-                    frame_constructor.set_path(os.path.join(img_path, image_file_name))
-                    frame_constructor.set_bounding_box(bounding_boxes[index])
+                with sequence_constructor.open_frame(index_of_image) as frame_constructor:
+                    frame_constructor.set_bounding_box(bounding_boxes[index].tolist())
