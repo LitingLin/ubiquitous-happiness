@@ -149,6 +149,7 @@ def construct_TempleColor(constructor: SingleObjectTrackingDatasetConstructor, s
     category_id_name_map = {i: v for i, v in enumerate(category_names)}
     category_name_id_map = {v: i for i, v in enumerate(category_names)}
     constructor.set_category_id_name_map(category_id_name_map)
+    constructor.set_total_number_of_sequences(number_of_sequences)
 
     for index in range(number_of_sequences):
         sequence_name = sequence_list[index]
@@ -184,6 +185,8 @@ def construct_TempleColor(constructor: SingleObjectTrackingDatasetConstructor, s
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(os.path.join(img_path, image))
 
-            for index, index_of_image in enumerate(range(start_index, end_index)):
+            for index, index_of_frame in enumerate(range(start_index, end_index)):
+                image_file_name = '{:04}.jpg'.format(index_of_frame)
+                index_of_image = images.index(image_file_name)
                 with sequence_constructor.open_frame(index_of_image) as frame_constructor:
                     frame_constructor.set_bounding_box(bounding_boxes[index].tolist())
