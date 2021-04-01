@@ -21,7 +21,7 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
             subset_sequence_names.extend(content)
 
     if data_type & DataSplit.Validation:
-        with open(os.path.join(root_path, 'testing_set.txt'), 'rb') as fid:
+        with open(os.path.join(root_path, 'testing_set.txt'), 'r') as f:
             content = f.readlines()
             content = [x.strip() for x in content]
             subset_sequence_names.extend(content)
@@ -62,6 +62,7 @@ def construct_LaSOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
             sequence_path = os.path.join(class_path, sequence_name)
             groundtruth_file_path = os.path.join(sequence_path, 'groundtruth.txt')
             bounding_boxes = np.loadtxt(groundtruth_file_path, dtype=np.int, delimiter=',')
+            bounding_boxes[:, 0:2] -= 1
             full_occlusion_file_path = os.path.join(sequence_path, 'full_occlusion.txt')
             is_fully_occlusions = np.loadtxt(full_occlusion_file_path, dtype=np.bool, delimiter=',')
             out_of_view_file_path = os.path.join(sequence_path, 'out_of_view.txt')

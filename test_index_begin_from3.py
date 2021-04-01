@@ -1,10 +1,10 @@
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
-from Dataset.SOT.Seed.LaSOT import LaSOT_Seed
+from Dataset.SOT.Seed.TrackingNet import TrackingNet_Seed
 import numpy as np
 from Miscellaneous.Numpy.dtype import try_get_int_array
 
 if __name__ == '__main__':
-    datasets = SingleObjectTrackingDatasetFactory([LaSOT_Seed()]).construct()
+    datasets = SingleObjectTrackingDatasetFactory([TrackingNet_Seed()]).construct()
 
     is_all_int = True
     is_all_float = True
@@ -39,6 +39,9 @@ if __name__ == '__main__':
 
     print(index_begin_from_0)
     print(index_begin_from_1)
+
+    print(bounding_boxes_0)
+    print(bounding_boxes_1)
 
     print(is_all_int)
     print(is_all_float)

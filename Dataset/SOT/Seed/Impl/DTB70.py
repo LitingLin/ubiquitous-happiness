@@ -1,6 +1,8 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+import numpy as np
+from Miscellaneous.Numpy.dtype import try_get_int_array
 
 
 def _get_class_name(sequence: str):
@@ -41,12 +43,14 @@ def construct_DTB70(constructor: SingleObjectTrackingDatasetConstructor, seed):
         images = [image for image in images if image.endswith('.jpg')]
         images.sort()
 
+        bounding_boxes = np.loadtxt(os.path.join(path, ground_truth_files[0]), dtype=np.float, delimiter=',')
+        bounding_boxes[:, 0:2] -= 1
+        assert bounding_boxes.shape[0] == len(images)
+
         with constructor.new_sequence(category_name_id_map[_get_class_name(sequence_name)]) as sequence_constructor:
             sequence_constructor.set_name(sequence_name)
-
-            for line_index, line in enumerate(open(os.path.join(path, ground_truth_files[0]), 'r')):
-                line = line.strip()
-                bounding_box = [float(value) for value in line.split(',') if value]
+            for index_of_frame, bounding_box in enumerate(bounding_boxes):
                 with sequence_constructor.new_frame() as frame_constructor:
-                    frame_constructor.set_path(os.path.join(img_path, images[line_index]))
-                    frame_constructor.set_bounding_box(bounding_box)
+                    frame_constructor.set_path(os.path.join(img_path, images[index_of_frame]))
+                    bounding_box = try_get_int_array(bounding_box)
+                    frame_constructor.set_bounding_box(bounding_box.tolist())

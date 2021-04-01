@@ -1,6 +1,7 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+import numpy as np
 
 
 def construct_TrackingNet(constructor: SingleObjectTrackingDatasetConstructor, seed):
@@ -58,14 +59,7 @@ def construct_TrackingNet(constructor: SingleObjectTrackingDatasetConstructor, s
     for sequence, sequence_image_path, sequence_bounding_box_annotation_file_path in sequence_list:
         with constructor.new_sequence(category_name_id_map[sequence_name_class_map[sequence]]) as sequence_constructor:
             sequence_constructor.set_name(sequence)
-
-            bounding_boxes = []
-            for line in open(sequence_bounding_box_annotation_file_path, 'rb'):
-                line = line.strip()
-                if len(line) > 0:
-                    values = line.split(b',')
-                    assert len(values) == 4
-                    bounding_boxes.append([float(values[0]), float(values[1]), float(values[2]), float(values[3])])
+            bounding_boxes = np.loadtxt(sequence_bounding_box_annotation_file_path, dtype=np.float, delimiter=',')
             images = os.listdir(sequence_image_path)
             images = [image for image in images if image.endswith('.jpg')]
             assert len(images) == len(bounding_boxes)
@@ -75,4 +69,4 @@ def construct_TrackingNet(constructor: SingleObjectTrackingDatasetConstructor, s
                 image_file_path = os.path.join(sequence_image_path, image_file_name)
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_file_path)
-                    frame_constructor.set_bounding_box(bounding_boxes[i])
+                    frame_constructor.set_bounding_box(bounding_boxes[i].tolist())
