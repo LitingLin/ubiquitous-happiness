@@ -1,8 +1,8 @@
 from Miscellaneous.yaml_ops import yaml_dump, yaml_load
 from Dataset.Type.incompatible_error import IncompatibleError
 from Dataset.Base.Common.Operator.filters import filter_list_deserialize
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
-from Dataset.Base.Common.ops import get_bounding_box, get_bounding_box_in_format
+from Dataset.Base.Common.dataset_context_dao import DatasetContextDAO
+from Dataset.Base.Common.Operator.bounding_box import get_bounding_box
 
 
 class _BaseDatasetObject:
@@ -11,9 +11,6 @@ class _BaseDatasetObject:
 
     def get_bounding_box(self):
         return get_bounding_box(self.object_)
-
-    def get_bounding_box_in_format(self, format_: BoundingBoxFormat=BoundingBoxFormat.XYWH):
-        return get_bounding_box_in_format(self.object_, format_)
 
     def get_category_id(self):
         return self.object_['category_id']
@@ -44,8 +41,11 @@ class _BaseDataset:
     dataset: dict
 
     def __init__(self, root_path: str, dataset: dict=None):
+        if dataset is None:
+            dataset = {}
         self.dataset = dataset
         self.root_path = root_path
+        self.context = DatasetContextDAO(dataset)
 
     def get_root_path(self):
         return self.root_path
@@ -105,3 +105,18 @@ class _BaseDataset:
 
     def get_name(self):
         return self.dataset['name']
+
+    def get_bounding_box_format(self):
+        return self.context.get_bounding_box_format()
+
+    def get_pixel_definition(self):
+        return self.context.get_pixel_definition()
+
+    def get_pixel_coordinate_system(self):
+        return self.context.get_pixel_coordinate_system()
+
+    def get_bounding_box_coordinate_system(self):
+        return self.context.get_bounding_box_coordinate_system()
+
+    def get_bounding_box_data_type(self):
+        return self.context.get_bounding_box_data_type()

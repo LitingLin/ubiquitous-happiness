@@ -16,12 +16,13 @@ class BaseSeed:
 
     @staticmethod
     def get_path_from_config(name: str):
-        try:
-            from Dataset.Config.path import DatasetPath
-        except ImportError:
+        from Miscellaneous.yaml_ops import yaml_load
+        import os
+        config_folder = os.path.join(os.path.dirname(__file__), '..', 'Config')
+        config_path = os.path.join(config_folder, 'path.yaml')
+        if not os.path.exists(config_path):
             import shutil
-            import os
-            config_folder = os.path.join(os.path.dirname(__file__), '..', 'Config')
-            shutil.copyfile(os.path.join(config_folder, 'path.template.py'), os.path.join(config_folder, 'path.py'))
-            raise Exception('Setup the paths in Dataset/Config/path.py first')
-        return getattr(DatasetPath, name)
+            shutil.copyfile(os.path.join(config_folder, 'path.template.yaml'), config_path)
+            raise RuntimeError('Setup the paths in Dataset/Config/path.yaml first')
+        config = yaml_load(config_path)
+        return config[name]

@@ -1,6 +1,6 @@
 import os
 from Miscellaneous.platform_style_path import join_path
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from data.types.bounding_box_format import BoundingBoxFormat
 from .manipulator import VideoDatasetManipulator
 from Dataset.Type.specialized_dataset import SpecializedVideoDatasetType
 from Dataset.Base.Common.dataset import _BaseDataset, _BaseDatasetObject
@@ -132,8 +132,6 @@ class VideoDataset(_BaseDataset):
 
     def get_constructor(self, type_: SpecializedVideoDatasetType, version: int):
         assert isinstance(type_, SpecializedVideoDatasetType)
-        if self.dataset is None:
-            self.dataset = {}
         if type_ == SpecializedVideoDatasetType.SingleObjectTracking:
             from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructorGenerator
             return SingleObjectTrackingDatasetConstructorGenerator(self.dataset, self.root_path, version)
@@ -143,7 +141,7 @@ class VideoDataset(_BaseDataset):
         else:
             raise NotImplementedError
 
-    def specialize(self, type_: SpecializedVideoDatasetType, path: str, bounding_box_format: BoundingBoxFormat):
+    def specialize(self, type_: SpecializedVideoDatasetType, path: str):
         assert isinstance(type_, SpecializedVideoDatasetType)
         if type_ == SpecializedVideoDatasetType.SingleObjectTracking:
             from Dataset.SOT.Storage.MemoryMapped.constructor import \
@@ -151,14 +149,14 @@ class VideoDataset(_BaseDataset):
             from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
             return SingleObjectTrackingDataset_MemoryMapped(self.root_path,
                                                             construct_single_object_tracking_dataset_memory_mapped_from_base_video_dataset(
-                                                                self.dataset, path, bounding_box_format))
+                                                                self.dataset, path))
         elif type_ == SpecializedVideoDatasetType.MultipleObjectTracking:
             from Dataset.MOT.Storage.MemoryMapped.constructor import \
                 construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dataset
             from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped
             return MultipleObjectTrackingDataset_MemoryMapped(self.root_path,
                                                               construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dataset(
-                                                                  self.dataset, path, bounding_box_format))
+                                                                  self.dataset, path))
         else:
             raise NotImplementedError
 

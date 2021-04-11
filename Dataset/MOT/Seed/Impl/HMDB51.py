@@ -1,6 +1,7 @@
 from Dataset.MOT.Constructor.base import MultipleObjectTrackingDatasetConstructor
 from Dataset.Base.Tool.parse_THOTH_bb_file import parse_THOTH_bb_file
 import os
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 # https://serre-lab.clps.brown.edu/resource/hmdb-a-large-human-motion-database/
@@ -13,6 +14,7 @@ def construct_HMDB51(constructor: MultipleObjectTrackingDatasetConstructor, seed
 
     sequences = []
     constructor.set_category_id_name_map({0: 'person'})
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     for action in actions:
         action_path = os.path.join(root_path, action)

@@ -2,7 +2,6 @@ from native_extension import ImageDecoder
 from .utils.viz import show_frame
 import numpy as np
 import time
-from Dataset.Config.path import DatasetPath
 from .experiments.otb import ExperimentOTB
 from .experiments.got10k import ExperimentGOT10k
 from .experiments.lasot import ExperimentLaSOT
@@ -56,6 +55,3 @@ def run_evaluation_on_tracker(tracker, name, is_deterministic, result_path: str,
     for e in experiments:
         e.run(tracker, visualize=visualize)
         e.report([tracker.name])
-
-
-

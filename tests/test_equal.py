@@ -4,12 +4,8 @@ root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(root_path)
 
 from Dataset.SOT.Seed.NFS import NFS_Seed, NFSDatasetVersionFlag
-from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
 from evaluation.evaluator.got10k.datasets.nfs import NfS
-
-from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
-from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
 if __name__ == '__main__':
     dataset = SingleObjectTrackingDatasetFactory([NFS_Seed(version=NFSDatasetVersionFlag.fps_240)]).construct(filters=None)[0]

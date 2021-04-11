@@ -1,5 +1,4 @@
-from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped, \
-    SingleObjectTrackingDatasetSequence_MemoryMapped, SingleObjectTrackingDatasetFrame_MemoryMapped
+from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDatasetSequence_MemoryMapped, SingleObjectTrackingDatasetFrame_MemoryMapped
 
 class SingleObjectTrackingDatasetStandardDataGetter:
     def __call__(self, sequence: SingleObjectTrackingDatasetSequence_MemoryMapped, frame: SingleObjectTrackingDatasetFrame_MemoryMapped):

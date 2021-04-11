@@ -1,9 +1,6 @@
 import random
 import torch.utils.data
 from data.pytracking.tensordict import TensorDict
-from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
-from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped
-from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapped
 
 
 def no_processing(data):

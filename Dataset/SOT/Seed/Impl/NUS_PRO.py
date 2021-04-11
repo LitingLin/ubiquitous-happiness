@@ -1,6 +1,8 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+from data.types.bounding_box_format import BoundingBoxFormat
+import numpy as np
 
 
 _category_id_name_map = {0: 'airplane', 1: 'boat', 2: 'car', 3: 'face', 4: 'helicopter', 5: 'motorcycle person', 6: 'person'}
@@ -15,6 +17,7 @@ def construct_NUSPRO(constructor: SingleObjectTrackingDatasetConstructor, seed):
     sequences.sort()
     constructor.set_category_id_name_map(_category_id_name_map)
     constructor.set_total_number_of_sequences(len(sequences))
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
     category_name_id_map = {v: k for k, v in _category_id_name_map.items()}
     for sequence in sequences:
         sequence_path = os.path.join(root_path, sequence)
@@ -37,15 +40,7 @@ def construct_NUSPRO(constructor: SingleObjectTrackingDatasetConstructor, seed):
                 occlusions.append(bool(int(line)))
 
         groundtruth_file = os.path.join(sequence_path, 'groundtruth.txt')
-        bounding_boxes = []
-        for line in open(groundtruth_file):
-            line = line.strip()
-            if len(line) == 0:
-                continue
-            words = line.split(' ')
-            assert len(words) == 4
-            bounding_box = [int(words[0]), int(words[1]), int(words[2]) - int(words[0]), int(words[3]) - int(words[1])]
-            bounding_boxes.append(bounding_box)
+        bounding_boxes = np.loadtxt(groundtruth_file, dtype=np.int, delimiter=' ')
 
         if class_name == 'basketball':
             class_name = 'person'
@@ -93,5 +88,4 @@ def construct_NUSPRO(constructor: SingleObjectTrackingDatasetConstructor, seed):
                 image_path = os.path.join(sequence_path, image)
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_path)
-                    frame_constructor.set_bounding_box(bounding_box, validity=not occlusion)
-
+                    frame_constructor.set_bounding_box(bounding_box.tolist(), validity=not occlusion)

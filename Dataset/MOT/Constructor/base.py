@@ -1,15 +1,16 @@
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from data.types.bounding_box_format import BoundingBoxFormat
 from Dataset.Base.Common.ops import set_bounding_box_
 from Dataset.Base.Common.constructor import BaseDatasetConstructorGenerator, set_path_, BaseDatasetSequenceConstructorGenerator, BaseDatasetSequenceConstructor, BaseVideoDatasetConstructor
 
 
 class MultipleObjectTrackingDatasetSequenceFrameObjectConstructor:
-    def __init__(self, object_: dict):
+    def __init__(self, object_: dict, context):
         self.object_ = object_
+        self.context = context
 
     def set_bounding_box(self, bounding_box, bounding_box_format: BoundingBoxFormat = BoundingBoxFormat.XYWH,
-                         validity=None):
-        set_bounding_box_(self.object_, bounding_box, bounding_box_format, validity)
+                         validity=None, dtype=None):
+        set_bounding_box_(self.object_, bounding_box, bounding_box_format, self.context, validity, dtype)
 
     def set_attribute(self, name: str, value):
         self.object_[name] = value
@@ -20,27 +21,29 @@ class MultipleObjectTrackingDatasetSequenceFrameObjectConstructor:
 
 
 class MultipleObjectTrackingDatasetSequenceFrameObjectConstructorGenerator:
-    def __init__(self, object_: dict):
+    def __init__(self, object_: dict, context):
         self.object_ = object_
+        self.context = context
 
     def __enter__(self):
-        return MultipleObjectTrackingDatasetSequenceFrameObjectConstructor(self.object_)
+        return MultipleObjectTrackingDatasetSequenceFrameObjectConstructor(self.object_, self.context)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
 
 class MultipleObjectTrackingDatasetSequenceFrameConstructor:
-    def __init__(self, frame: dict, root_path):
+    def __init__(self, frame: dict, root_path, context):
         self.frame = frame
         self.root_path = root_path
+        self.context = context
 
     def new_object(self, object_id):
         if 'objects' not in self.frame:
             self.frame['objects'] = []
         object_ = {'id': object_id}
         self.frame['objects'].append(object_)
-        return MultipleObjectTrackingDatasetSequenceFrameObjectConstructorGenerator(object_)
+        return MultipleObjectTrackingDatasetSequenceFrameObjectConstructorGenerator(object_, self.context)
 
     def set_path(self, path, image_size=None):
         set_path_(self.frame, path, self.root_path, image_size)
@@ -54,12 +57,13 @@ class MultipleObjectTrackingDatasetSequenceFrameConstructor:
 
 
 class MultipleObjectTrackingDatasetSequenceFrameConstructorGenerator:
-    def __init__(self, frame: dict, root_path: str):
+    def __init__(self, frame: dict, root_path: str, context):
         self.frame = frame
         self.root_path = root_path
+        self.context = context
 
     def __enter__(self):
-        return MultipleObjectTrackingDatasetSequenceFrameConstructor(self.frame, self.root_path)
+        return MultipleObjectTrackingDatasetSequenceFrameConstructor(self.frame, self.root_path, self.context)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
@@ -92,8 +96,8 @@ class MultipleObjectTrackingDatasetSequenceObjectConstructorGenerator:
 
 
 class MultipleObjectTrackingDatasetSequenceConstructor(BaseDatasetSequenceConstructor):
-    def __init__(self, sequence: dict, root_path: str, pbar):
-        super(MultipleObjectTrackingDatasetSequenceConstructor, self).__init__(sequence, root_path, pbar)
+    def __init__(self, sequence: dict, root_path: str, context):
+        super(MultipleObjectTrackingDatasetSequenceConstructor, self).__init__(sequence, root_path, context)
 
     def new_object(self, object_id):
         if 'objects' not in self.sequence:
@@ -107,20 +111,20 @@ class MultipleObjectTrackingDatasetSequenceConstructor(BaseDatasetSequenceConstr
             self.sequence['frames'] = []
         frame = {}
         self.sequence['frames'].append(frame)
-        return MultipleObjectTrackingDatasetSequenceFrameConstructorGenerator(frame, self.root_path)
+        return MultipleObjectTrackingDatasetSequenceFrameConstructorGenerator(frame, self.root_path, self.context)
 
     def open_frame(self, index: int):
         frame = self.sequence['frames'][index]
-        return MultipleObjectTrackingDatasetSequenceFrameConstructorGenerator(frame, self.root_path)
+        return MultipleObjectTrackingDatasetSequenceFrameConstructorGenerator(frame, self.root_path, self.context)
 
 
 class MultipleObjectTrackingDatasetSequenceConstructorGenerator(BaseDatasetSequenceConstructorGenerator):
-    def __init__(self, sequence, root_path, pbar):
-        super(MultipleObjectTrackingDatasetSequenceConstructorGenerator, self).__init__(sequence, pbar)
+    def __init__(self, sequence, root_path, context):
+        super(MultipleObjectTrackingDatasetSequenceConstructorGenerator, self).__init__(sequence, context)
         self.root_path = root_path
 
     def __enter__(self):
-        return MultipleObjectTrackingDatasetSequenceConstructor(self.sequence, self.root_path, self.pbar)
+        return MultipleObjectTrackingDatasetSequenceConstructor(self.sequence, self.root_path, self.context)
 
 
 class MultipleObjectTrackingDatasetConstructor(BaseVideoDatasetConstructor):
@@ -132,7 +136,7 @@ class MultipleObjectTrackingDatasetConstructor(BaseVideoDatasetConstructor):
     def new_sequence(self):
         sequence = {}
         self.dataset['sequences'].append(sequence)
-        return MultipleObjectTrackingDatasetSequenceConstructorGenerator(sequence, self.root_path, self.pbar)
+        return MultipleObjectTrackingDatasetSequenceConstructorGenerator(sequence, self.root_path, self.context)
 
 
 class MultipleObjectTrackingDatasetConstructorGenerator(BaseDatasetConstructorGenerator):

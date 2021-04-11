@@ -1,23 +1,21 @@
 import Dataset.SOT.Storage.MemoryMapped.dataset
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
-import Dataset.Base.Common.ops
-import Dataset.Base.Common.Operator.bounding_box
 import numpy as np
 
-from Dataset.Base.Common.MemoryMapped.constructor import memory_mapped_constructor_common_preliminary_works,\
-    memory_mapped_constructor_commit_data, memory_mapped_constructor_get_bounding_box,\
-    memory_mapped_constructor_generate_bounding_box_matrix,\
+from Dataset.Base.Common.MemoryMapped.constructor import memory_mapped_constructor_common_preliminary_works, \
+    memory_mapped_constructor_commit_data, memory_mapped_constructor_get_bounding_box, \
+    memory_mapped_constructor_generate_bounding_box_matrix, \
     memory_mapped_constructor_generate_bounding_box_validity_flag_vector
-from Dataset.Base.Common.constructor import video_dataset_key_exclude_list, video_dataset_sequence_key_exclude_list,\
-    video_dataset_frame_key_exclude_list, video_dataset_sequence_object_key_exclude_list, video_dataset_frame_object_key_exclude_list
+from Dataset.Base.Common.constructor import video_dataset_key_exclude_list, video_dataset_sequence_key_exclude_list, \
+    video_dataset_frame_key_exclude_list, video_dataset_sequence_object_key_exclude_list, \
+    video_dataset_frame_object_key_exclude_list
 
 
-def construct_single_object_tracking_dataset_memory_mapped_from_base_video_dataset(base_dataset: dict, path: str,
-                                                                                   bounding_box_format: BoundingBoxFormat):
-    constructor = memory_mapped_constructor_common_preliminary_works(base_dataset, 'video', path, bounding_box_format,
-                                                                     Dataset.SOT.Storage.MemoryMapped.dataset.__version__,
-                                                                     'SingleObjectTracking',
-                                                                     video_dataset_key_exclude_list)
+def construct_single_object_tracking_dataset_memory_mapped_from_base_video_dataset(base_dataset: dict, path: str):
+    constructor, dataset_bounding_box_data_type = memory_mapped_constructor_common_preliminary_works(base_dataset,
+                                                                                                     'video', path,
+                                                                                                     Dataset.SOT.Storage.MemoryMapped.dataset.__version__,
+                                                                                                     'SingleObjectTracking',
+                                                                                                     video_dataset_key_exclude_list)
 
     sequences_list = []
 
@@ -110,7 +108,7 @@ def construct_single_object_tracking_dataset_memory_mapped_from_base_video_datas
 
                 if 'bounding_box' in base_object:
                     frame_bounding_box, frame_bounding_box_validity = memory_mapped_constructor_get_bounding_box(
-                        base_object, base_frame['size'], bounding_box_format)
+                        base_object)
 
             sequence_bounding_box_matrix.append(frame_bounding_box)
             sequence_bounding_box_validity_flag_vector.append(frame_bounding_box_validity)
@@ -125,8 +123,10 @@ def construct_single_object_tracking_dataset_memory_mapped_from_base_video_datas
             sequence_frame_sizes = np.array(sequence_frame_sizes)
         sequence_attributes['frames'] = frame_attributes_list
 
-        sequence_bounding_box_matrix, additional_sequence_bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_matrix(sequence_bounding_box_matrix)
-        sequence_bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_validity_flag_vector(sequence_bounding_box_validity_flag_vector, additional_sequence_bounding_box_validity_flag_vector)
+        sequence_bounding_box_matrix, additional_sequence_bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_matrix(
+            sequence_bounding_box_matrix, dataset_bounding_box_data_type)
+        sequence_bounding_box_validity_flag_vector = memory_mapped_constructor_generate_bounding_box_validity_flag_vector(
+            sequence_bounding_box_validity_flag_vector, additional_sequence_bounding_box_validity_flag_vector)
 
         if len(optional_frame_attributes) > 0:
             optional_sequence_attributes['frames'] = optional_frame_attributes

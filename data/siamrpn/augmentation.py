@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from data.operator.image.rgb_to_gray import tf_image_rgb_to_gray_keep_channels
-from data.operator.bbox.align_corner.flip import bbox_horizontal_flip
+from data.operator.bbox.aligned.flip import bbox_horizontal_flip
 
 
 def blur_augmentation(image):

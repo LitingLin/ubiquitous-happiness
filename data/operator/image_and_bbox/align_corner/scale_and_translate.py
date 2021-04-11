@@ -1,7 +1,8 @@
 from data.operator.image.align_corner.scale_and_translate import tf_image_scale_and_translate_align_corners
-from data.operator.bbox.scale_and_translate import bbox_scale_and_translate
-from data.operator.bbox.align_corner.validity import is_bbox_validity
+from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
+from data.operator.bbox.validity import is_bbox_valid
 from data.operator.bbox.intersection import bbox_compute_intersection
+from data.operator.bbox.aligned.rasterization import bbox_rasterization
 import tensorflow as tf
 import sys
 
@@ -17,23 +18,22 @@ def _generate_background_regions_rasterized(foreground_bbox, image_size):
     ]
 
     regions = [bbox_compute_intersection(region, [0, 0, image_size[0] - 1, image_size[1] - 1]) for region in regions]
-    regions = [region for region in regions if is_bbox_validity(region)]
+    regions = [region for region in regions if is_bbox_valid(region)]
 
-    # rasterization policy: round
-    regions = [[round(v) for v in region] for region in regions]
+    regions = [bbox_rasterization(region) for region in regions]
 
     # in interval: [begin, end)
     regions = [(region[0], region[1], region[2] + 1, region[3] + 1) for region in regions]
     return regions
 
 
-def tf_scale_and_translate_align_corners_numpy(img, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), kernel_type='triangle', antialias=False):
+def tf_scale_and_translate_numpy(img, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), kernel_type='triangle', antialias=False):
     n, h, w, c = img.shape
     assert c == len(background_color)
 
     output_bbox = bbox_scale_and_translate((0, 0, w - 1, h - 1), scale, input_center, output_center)
-    if not is_bbox_validity(bbox_compute_intersection(output_bbox, (0, 0, output_size[0] - 1, output_size[1] - 1))):
-        return tf.tile(tf.constant(background_color, shape=(1, 1, 1, c)), (n, h, w, 1))
+    if not is_bbox_valid(bbox_compute_intersection(output_bbox, (0, 0, output_size[0] - 1, output_size[1] - 1))):
+        return tf.tile(tf.constant(background_color, shape=(1, 1, 1, c)), (n, h, w, 1)).numpy()
     img = tf_image_scale_and_translate_align_corners(img, output_size, scale, input_center, output_center, kernel_type, antialias)
     img = img.numpy()
     regions = _generate_background_regions_rasterized(output_bbox, output_size)

@@ -2,6 +2,7 @@ import os
 from ..NFS import NFSDatasetVersionFlag
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 _category_id_name_map = {0: 'airboard', 1: 'aircraft', 2: 'animal', 3: 'bag', 4: 'ball', 5: 'bicycle', 6: 'bird', 7: 'cup', 8: 'dollar', 9: 'drone', 10: 'face', 11: 'fish', 12: 'motorcycle', 13: 'person', 14: 'shuffleboard', 15: 'vehicle', 16: 'yoyo'}
@@ -28,6 +29,7 @@ def construct_NFS(constructor: SingleObjectTrackingDatasetConstructor, seed):
 
     constructor.set_total_number_of_sequences(len(sequence_list))
     constructor.set_category_id_name_map(_category_id_name_map)
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
     category_name_id_map = {v: k for k, v in _category_id_name_map.items()}
 
     for sequence_name in sequence_list:
@@ -67,8 +69,6 @@ def construct_NFS(constructor: SingleObjectTrackingDatasetConstructor, seed):
                 assert track_id_ == track_id
             bbox = attributes[1:5]
             bbox = [int(v) for v in bbox]
-            bbox[2] = bbox[2] - bbox[0]
-            bbox[3] = bbox[3] - bbox[1]
             frame_index = int(attributes[5]) - 1
             if sequence_name == 'pingpong_2' and frame_index >= 263:
                 continue

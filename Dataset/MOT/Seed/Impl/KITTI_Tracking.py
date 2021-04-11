@@ -2,6 +2,7 @@ from Dataset.MOT.Constructor.base import MultipleObjectTrackingDatasetConstructo
 import os
 import csv
 from Dataset.Type.data_split import DataSplit
+from data.types.bounding_box_format import BoundingBoxFormat
 
 _category_id_name_map = {0: 'Car', 1: 'Cyclist', 2: 'Misc', 3: 'Pedestrian', 4: 'Person', 5: 'Tram', 6: 'Truck', 7: 'Van'}
 
@@ -16,6 +17,7 @@ def construct_KITTI_Tracking(constructor: MultipleObjectTrackingDatasetConstruct
     sequences.sort()
     constructor.set_total_number_of_sequences(len(sequences))
     constructor.set_category_id_name_map(_category_id_name_map)
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
     category_name_id_map = {v: k for k, v in _category_id_name_map.items()}
     for sequence in sequences:
         with constructor.new_sequence() as sequence_constructor:
@@ -62,7 +64,7 @@ def construct_KITTI_Tracking(constructor: MultipleObjectTrackingDatasetConstruct
                     y_m = float(row[14])
                     z_m = float(row[15])
                     yaw_angle = float(row[16])
-                    bounding_box = [x1, y1, x2 - x1, y2 - y1]
+                    bounding_box = [x1, y1, x2, y2]
                     is_present = not(truncation == 2 or occlusion == 2)
                     with sequence_constructor.open_frame(frame_index) as frame_constructor:
                         with frame_constructor.new_object(tracklet_id) as object_constructor:

@@ -1,6 +1,12 @@
 from Dataset.Base.Video.manipulator import VideoDatasetManipulator
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
 import copy
+import numpy as np
+from Dataset.Base.Common.Operator.manipulator import fit_objects_bounding_box_in_image_size, \
+    update_objects_bounding_box_validity, prepare_bounding_box_annotation_standard_conversion
+from data.types.bounding_box_format import BoundingBoxFormat
+from data.types.pixel_coordinate_system import PixelCoordinateSystem
+from data.types.bounding_box_coordinate_system import BoundingBoxCoordinateSystem
+from data.types.pixel_definition import PixelDefinition
 
 
 class VideoDatasetTweakTool:
@@ -10,37 +16,38 @@ class VideoDatasetTweakTool:
     def apply_index_filter(self, indices):
         self.manipulator.apply_index_filter(indices)
 
-    def bounding_box_convert_format(self, target_format: BoundingBoxFormat):
-        for sequence in self.manipulator:
-            for frame in sequence:
-                for object_ in frame:
-                    if object_.has_bounding_box():
-                        object_.convert_bounding_box_format(target_format)
-
     def bounding_box_fit_in_image_size(self, exclude_non_validity=True):
         for sequence in self.manipulator:
             for frame in sequence:
-                for object_ in frame:
-                    if object_.has_bounding_box():
-                        _, _, bounding_box_validity = object_.get_bounding_box()
-                        if exclude_non_validity:
-                            if bounding_box_validity is False:
-                                continue
-                        object_.bounding_box_fit_in_image_size()
+                fit_objects_bounding_box_in_image_size(frame, self.manipulator.context_dao, exclude_non_validity)
 
     def bounding_box_update_validity(self, skip_if_mark_non_validity=True):
         for sequence in self.manipulator:
             for frame in sequence:
+                update_objects_bounding_box_validity(frame, self.manipulator.context_dao, skip_if_mark_non_validity)
+
+    def annotation_standard_conversion(self, bounding_box_format: BoundingBoxFormat = None,
+                                       pixel_coordinate_system: PixelCoordinateSystem = None,
+                                       bounding_box_coordinate_system: BoundingBoxCoordinateSystem = None,
+                                       pixel_definition: PixelDefinition = None):
+        converter = prepare_bounding_box_annotation_standard_conversion(bounding_box_format, pixel_coordinate_system,
+                                                                        bounding_box_coordinate_system,
+                                                                        pixel_definition,
+                                                                        self.manipulator.context_dao)
+        for sequence in self.manipulator:
+            for frame in sequence:
                 for object_ in frame:
                     if object_.has_bounding_box():
-                        object_.bounding_box_update_validity(skip_if_mark_non_validity)
+                        bounding_box, bounding_box_validity = object_.get_bounding_box()
+                        bounding_box = converter(bounding_box)
+                        object_.set_bounding_box(bounding_box, bounding_box_validity)
 
     def bounding_box_remove_non_validity_objects(self):
         for sequence in self.manipulator:
             for frame in sequence:
                 for object_ in frame:
                     if object_.has_bounding_box():
-                        _, _, validity = object_.get_bounding_box()
+                        _, validity = object_.get_bounding_box()
                         if validity is False:
                             object_.delete()
 
@@ -104,5 +111,18 @@ class VideoDatasetTweakTool:
                     if object_.has_category_id():
                         if object_.get_category_id() in old_new_category_id_map:
                             object_.set_category_id(old_new_category_id_map[object_.get_category_id()])
-        new_category_id_name_map = {n: category_id_name_map[o] for n, o in zip(new_category_ids, category_id_name_map.keys())}
+        new_category_id_name_map = {n: category_id_name_map[o] for n, o in
+                                    zip(new_category_ids, category_id_name_map.keys())}
         self.manipulator.set_category_id_name_map(new_category_id_name_map)
+
+    def sort_by_sequence_size(self, descending=False):
+        sizes = []
+        for sequence in self.manipulator:
+            sequence_frame_size = sequence.get_sequence_frame_size()
+            sizes.append(sequence_frame_size[0] * sequence_frame_size[1])
+            sizes = np.array(sizes)
+            if descending:
+                indices = (-sizes).argsort()
+            else:
+                indices = sizes.argsort()
+            self.manipulator.apply_index_filter(indices)

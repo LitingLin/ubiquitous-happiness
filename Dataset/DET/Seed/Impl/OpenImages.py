@@ -3,6 +3,7 @@ from Dataset.Type.data_split import DataSplit
 import os
 import csv
 from collections import namedtuple
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
@@ -57,6 +58,7 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
                 images[last_row_image] = image_annos
 
         constructor.set_total_number_of_images(len(images))
+        constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
         for image_name, image_annos in images.items():
             with constructor.new_image() as image_constructor:
@@ -66,8 +68,6 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
                     object_category = mid_index_mapper[image_anno.LabelName]
                     bounding_box = [float(image_anno.XMin) * image_size[0], float(image_anno.XMax) * image_size[0],
                                     float(image_anno.YMin) * image_size[1], float(image_anno.YMax) * image_size[1]]
-                    bounding_box = [bounding_box[0], bounding_box[2], bounding_box[1] - bounding_box[0],
-                                    bounding_box[3] - bounding_box[2]]
                     with image_constructor.new_object() as object_constructor:
                         object_constructor.set_category_id(object_category)
                         object_constructor.set_bounding_box(bounding_box)

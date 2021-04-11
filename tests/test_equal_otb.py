@@ -4,12 +4,10 @@ root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(root_path)
 
 from Dataset.SOT.Seed.OTB100 import OTB100_Seed
-from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
 from evaluation.evaluator.got10k.datasets.otb import OTB
 
 from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
-from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
 
 if __name__ == '__main__':
     dataset = SingleObjectTrackingDatasetFactory([OTB100_Seed()]).construct(filters=[DataCleaning_Integrity()], cache_base_format=True, dump_human_readable=True)[0]

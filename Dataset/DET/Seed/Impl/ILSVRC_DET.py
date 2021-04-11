@@ -2,6 +2,7 @@ from Dataset.Type.data_split import DataSplit
 import os
 from Dataset.Base.Meta.imagenet_200 import ImageNet200
 from Dataset.DET.Constructor.base import DetectionDatasetConstructor
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def construct_ILSVRC_DET(constructor: DetectionDatasetConstructor, seed):
@@ -38,6 +39,7 @@ def construct_ILSVRC_DET(constructor: DetectionDatasetConstructor, seed):
             image_file_paths.append(current_image)
 
     constructor.set_total_number_of_images(len(annotation_file_paths))
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     for annotation_file_path, image_file_path in zip(annotation_file_paths, image_file_paths):
         with open(annotation_file_path, 'r') as fid:
@@ -69,19 +71,14 @@ def construct_ILSVRC_DET(constructor: DetectionDatasetConstructor, seed):
             ymax = int(file_content[ymax_begin_index + 6: ymax_end_index])
             ymin = int(file_content[ymin_begin_index + 6: ymin_end_index])
 
-            x = xmin
-            y = ymin
-            w = xmax - xmin
-            h = ymax - ymin
-
-            return object_category_index, x, y, w, h, ymax_end_index + 7
+            return object_category_index, xmin, ymin, xmax, ymax, ymax_end_index + 7
 
         while True:
             next_object_in_annotation_file = _findNextObject(file_content, offset)
             if next_object_in_annotation_file is None:
                 break
-            object_category_index, x, y, w, h, offset = next_object_in_annotation_file
-            bounding_boxes.append((x, y, w, h))
+            object_category_index, xmin, ymin, xmax, ymax, offset = next_object_in_annotation_file
+            bounding_boxes.append((xmin, ymin, xmax, ymax))
             object_category_indices.append(object_category_index)
         if len(bounding_boxes) > 0:
             with constructor.new_image() as image_constructor:

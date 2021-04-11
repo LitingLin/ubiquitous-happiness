@@ -3,7 +3,7 @@ import os
 import copy
 import importlib
 from Dataset.Type.data_split import DataSplit
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def merge_config(default: dict, user_defined: dict):

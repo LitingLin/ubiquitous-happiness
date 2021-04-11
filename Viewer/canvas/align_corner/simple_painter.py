@@ -1,8 +1,6 @@
-from data.operator.image.align_corner.scale_and_translate import tf_image_scale_and_translate_align_corners
-from data.operator.bbox.scale_and_translate import bbox_scale_and_translate
-from data.operator.bbox.align_corner.validity import is_bbox_validity
+from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
+from data.operator.bbox.aligned.validity import is_bbox_validity
 from data.operator.bbox.intersection import bbox_compute_intersection
-from data.operator.image.dtype import tf_image_round_to_uint8
 import tensorflow as tf
 from Miscellaneous.qt_numpy_interop import numpy_rgb888_to_qimage
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QPixmap

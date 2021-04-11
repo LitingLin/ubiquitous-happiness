@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional
-from data.operator.bbox.scale_and_translate import bbox_scale_and_translate
-from data.operator.bbox.half_pixel_center.validity import is_bbox_validity
+from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
+from data.operator.bbox.validity import is_bbox_valid
 from data.operator.bbox.intersection import bbox_compute_intersection
 
 
@@ -26,7 +26,7 @@ def torch_scale_and_translate_nchw(img: torch.Tensor, output_size, scale, input_
     output_bbox = tuple(round(v) for v in output_bbox)
 
     in_range_bbox = bbox_compute_intersection(output_bbox, (0, 0, output_size[0], output_size[1]))
-    if not is_bbox_validity(in_range_bbox):
+    if not is_bbox_valid(in_range_bbox):
         return output_img, output_bbox
 
     input_bbox = bbox_scale_and_translate(in_range_bbox, (1 / scale[0], 1 / scale[1]), output_center, input_center)

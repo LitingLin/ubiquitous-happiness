@@ -1,6 +1,7 @@
 from Dataset.Type.data_split import DataSplit
 import os
 from Dataset.DET.Constructor.base import DetectionDatasetConstructor
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def construct_KITTI_Detection(constructor: DetectionDatasetConstructor, seed):
@@ -38,6 +39,7 @@ def construct_KITTI_Detection(constructor: DetectionDatasetConstructor, seed):
                      'Misc', 'DontCare']
 
     constructor.set_category_id_name_map({index: name for index, name in enumerate(category_list)})
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     category_name_id_mapper = {name: id_ for id_, name in enumerate(category_list)}
 
@@ -66,7 +68,6 @@ def construct_KITTI_Detection(constructor: DetectionDatasetConstructor, seed):
                 occlusion = int(words[2])
                 alpha = float(words[3])
                 bounding_box = [float(words[4]), float(words[5]), float(words[6]), float(words[7])]
-                bounding_box = [bounding_box[0], bounding_box[1], bounding_box[2] - bounding_box[0], bounding_box[3] - bounding_box[1]]
                 dimensions = [float(words[8]), float(words[9]), float(words[10])]
                 location = [float(words[11]), float(words[12]), float(words[13])]
                 rotation_y = float(words[14])

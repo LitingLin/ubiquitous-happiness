@@ -1,0 +1,14 @@
+Pixel Center
+    1. pixels center is at (0.5 + x, 0.5 + y)
+    2. pixels center is at (x, y)
+    comments:
+        a) 1. assumes that pixel represent a 1*1 rectangle, center located at (0.5 + x, 0.5 + y)
+        b) 2. assumes that pixel represent a point
+    See pdf for more details, 1. just like d3d10 behaviour, 2. is the d3d9 one.
+
+Bounding Box:
+    1. around pixels, consisting of lines
+    2. edge pixels themselves
+    comments:
+        a) 1. sounds more mathematically correct
+        b) 2. is used in rasterization process

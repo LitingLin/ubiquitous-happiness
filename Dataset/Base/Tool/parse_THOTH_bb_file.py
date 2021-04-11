@@ -1,4 +1,4 @@
-from Miscellaneous.compute_iou import compute_iou
+from data.operator.bbox.spatial.iou import bbox_compute_iou
 
 
 def parse_THOTH_bb_file(file: str):
@@ -18,14 +18,12 @@ def parse_THOTH_bb_file(file: str):
             if index >= len(words):
                 break
             bounding_box = [float(words[index]), float(words[index + 1]), float(words[index + 2]), float(words[index + 3])]
-            bounding_box[2] = bounding_box[2] - bounding_box[0]
-            bounding_box[3] = bounding_box[3] - bounding_box[1]
             confidence = float(words[index + 4])
             index += 5
             object_id = None
             max_iou = 0
             for candidate_object_id, candidate_bounding_box in object_id_last_bounding_box.items():
-                iou = compute_iou(bounding_box, candidate_bounding_box)
+                iou = bbox_compute_iou(bounding_box, candidate_bounding_box)
                 if candidate_object_id in annotation:
                     continue
                 if iou > max_iou:

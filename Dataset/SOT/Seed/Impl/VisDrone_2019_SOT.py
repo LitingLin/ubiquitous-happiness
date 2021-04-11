@@ -1,6 +1,7 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+import numpy as np
 
 
 def construct_VisDrone_2019_SOT(constructor: SingleObjectTrackingDatasetConstructor, seed):
@@ -23,17 +24,8 @@ def construct_VisDrone_2019_SOT(constructor: SingleObjectTrackingDatasetConstruc
                     frame_constructor.set_path(image_path)
             annotation_file_name = sequence + '.txt'
             annotation_file_path = os.path.join(annotations_path, annotation_file_name)
-            index = 0
-            for line in open(annotation_file_path, 'r', encoding='utf-8'):
-                line = line.strip()
-                if len(line) == 0:
-                    continue
-                words = line.split(',')
-                assert len(words) == 4
-                bounding_box = [int(word) for word in words]
-                bounding_box[0] -= 1
-                bounding_box[1] -= 1
+            bounding_boxes = np.loadtxt(annotation_file_path, dtype=np.int, delimiter=',')
+            bounding_boxes[:, 0:2] -= 1
+            for index, bounding_box in enumerate(bounding_boxes):
                 with sequence_constructor.open_frame(index) as frame_constructor:
-                    frame_constructor.set_bounding_box(bounding_box)
-                index += 1
-            assert index == len(image_file_names)
+                    frame_constructor.set_bounding_box(bounding_box.tolist())

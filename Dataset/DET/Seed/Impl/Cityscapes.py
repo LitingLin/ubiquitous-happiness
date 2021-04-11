@@ -4,6 +4,7 @@ from Dataset.Base.Meta.cityscapes import name2label, labels
 from Dataset.Type.data_split import DataSplit
 import os
 import json
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def construct_CityScapes(constructor: DetectionDatasetConstructor, seed):
@@ -60,6 +61,7 @@ def construct_CityScapes(constructor: DetectionDatasetConstructor, seed):
                 image_file_paths.append(image_file_path)
 
     constructor.set_total_number_of_images(len(image_file_paths))
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     for annotation_file_path, image_file_path in zip(annotation_file_paths, image_file_paths):
         with open(annotation_file_path, 'r') as fid:
@@ -97,7 +99,7 @@ def construct_CityScapes(constructor: DetectionDatasetConstructor, seed):
                 if ymax < y:
                     ymax = y
 
-            bounding_box = [xmin, ymin, xmax-xmin, ymax-ymin]
+            bounding_box = [xmin, ymin, xmax, ymax]
             bounding_boxes.append(bounding_box)
             class_ids.append(label.id)
 

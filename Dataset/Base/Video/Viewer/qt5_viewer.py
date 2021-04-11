@@ -72,7 +72,7 @@ class VideoDatasetViewer:
                             object_category_id_accessor = (object_, sequence_object)
                             break
 
-                draw_object(painter, object_, object_category_id_accessor, object_, None, self.category_id_color_map, self.dataset)
+                draw_object(painter, object_, None, object_category_id_accessor, object_, self.category_id_color_map, self.dataset, self.dataset)
         painter.update()
 
     def _stopTimer(self):

@@ -2,6 +2,7 @@ import os
 import json
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+import numpy as np
 
 
 _category_id_name_map = {0: 'toy', 1: 'child', 2: 'face', 3: 'person', 4: 'cup'}
@@ -44,18 +45,16 @@ def construct_PTB(constructor: SingleObjectTrackingDatasetConstructor, seed):
         else:
             raise Exception
 
+        bounding_boxes = np.loadtxt(bbox_groundtruth_file, dtype=np.float, delimiter=',')
+        bounding_boxes = bounding_boxes[:, 0: 4]
+
         with constructor.new_sequence(category_name_id_map[category]) as sequence_constructor:
             sequence_constructor.set_name(sequence)
 
-            count = 0
-            for line in open(bbox_groundtruth_file, 'r'):
-                words = line.split(',')
-                words = [word.strip() for word in words]
-
-                image_path = os.path.join(rgb_image_file_dir, 'r-{}-{}.png'.format(image_timestamps[count], image_frame_ids[count]))
+            for index_of_frame, bounding_box in enumerate(bounding_boxes):
                 with sequence_constructor.new_frame() as frame_constructor:
-                    frame_constructor.set_path(image_path)
-                if words[0] != 'NaN':
-                    bounding_box = [int(words[0]), int(words[1]), int(words[2]), int(words[3])]
-                    frame_constructor.set_bounding_box(bounding_box)
-                count += 1
+                    image_path = os.path.join(rgb_image_file_dir,
+                                              'r-{}-{}.png'.format(image_timestamps[index_of_frame], image_frame_ids[index_of_frame]))
+                    frame_constructor.set_path(os.path.join(rgb_image_file_dir, image_path))
+                    if not np.any(np.isnan(bounding_box)):
+                        frame_constructor.set_bounding_box(bounding_box.tolist())

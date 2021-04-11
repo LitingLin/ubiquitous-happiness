@@ -32,8 +32,8 @@ class DetectionDatasetQt5Viewer:
         if len(image) > 0:
             with painter:
                 for object_ in image:
-                    draw_object(painter, object_, object_, None, None, self.category_id_color_map,
-                                self.dataset)
+                    draw_object(painter, object_, object_, object_, None, self.category_id_color_map,
+                                self.dataset, self.dataset)
         painter.update()
 
     def run(self):

@@ -2,6 +2,7 @@ from Dataset.DET.Constructor.base import DetectionDatasetConstructor
 from Dataset.Type.data_split import DataSplit
 import json
 import os
+from data.types.bounding_box_format import BoundingBoxFormat
 
 _category_id_name_map = {0: 'bike', 1: 'bus', 2: 'car', 3: 'motor', 4: 'person', 5: 'rider', 6: 'traffic light', 7: 'traffic sign', 8: 'train', 9: 'truck'}
 
@@ -13,6 +14,7 @@ def construct_BDD100k_Images(constructor: DetectionDatasetConstructor, seed):
 
     category_name_id_map = {v: k for k, v in _category_id_name_map.items()}
     constructor.set_category_id_name_map(_category_id_name_map)
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     def _construct(images_path: str, annotation_file_path: str):
         with open(annotation_file_path, 'r', encoding='utf-8') as fid:
@@ -32,7 +34,7 @@ def construct_BDD100k_Images(constructor: DetectionDatasetConstructor, seed):
                         continue
                     object_category = label['category']
                     bounding_box = label['box2d']
-                    bounding_box = [bounding_box['x1'], bounding_box['y1'], bounding_box['x2'] - bounding_box['x1'], bounding_box['y2'] - bounding_box['y1']]
+                    bounding_box = [bounding_box['x1'], bounding_box['y1'], bounding_box['x2'], bounding_box['y2']]
                     object_attributes = label['attributes']
                     occluded = object_attributes['occluded']
                     truncated = object_attributes['truncated']

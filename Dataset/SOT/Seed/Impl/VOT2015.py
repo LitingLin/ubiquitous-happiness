@@ -1,5 +1,6 @@
 import os
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def constructVOT2015(constructor: SingleObjectTrackingDatasetConstructor, seed):
@@ -8,6 +9,7 @@ def constructVOT2015(constructor: SingleObjectTrackingDatasetConstructor, seed):
     sequence_list = [dirname for dirname in sequence_list if os.path.isdir(os.path.join(root_path, dirname))]
     sequence_list.sort()
     constructor.set_total_number_of_sequences(len(sequence_list))
+    constructor.set_bounding_box_format(BoundingBoxFormat.Polygon)
     for sequence in sequence_list:
         with constructor.new_sequence() as sequence_constructor:
             sequence_constructor.set_name(sequence)

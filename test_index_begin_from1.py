@@ -1,10 +1,10 @@
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
-from Dataset.SOT.Seed.LaSOT import LaSOT_Seed
+from Dataset.SOT.Seed.PTB import PTB_Seed
 import numpy as np
 from Miscellaneous.Numpy.dtype import try_get_int_array
 
 if __name__ == '__main__':
-    datasets = SingleObjectTrackingDatasetFactory([LaSOT_Seed()]).construct()
+    datasets = SingleObjectTrackingDatasetFactory([PTB_Seed()]).construct()
 
     is_all_int = True
     is_all_float = True
@@ -42,3 +42,5 @@ if __name__ == '__main__':
 
     print(is_all_int)
     print(is_all_float)
+
+    print(dataset.get_bounding_box_data_type())

@@ -1,15 +1,19 @@
 import os
 from Dataset.Type.data_split import DataSplit
+from data.types.bounding_box_format import BoundingBoxFormat
+from data.types.pixel_coordinate_system import PixelCoordinateSystem
+from data.types.bounding_box_coordinate_system import BoundingBoxCoordinateSystem
+from data.types.pixel_definition import PixelDefinition
 from PIL import Image
 from tqdm import tqdm
 import Dataset.Base.Video.dataset
 import Dataset.Base.Image.dataset
 
-image_dataset_key_exclude_list = ('name', 'split', 'version', 'filters', 'type', 'category_id_name_map', 'images')
+image_dataset_key_exclude_list = ('name', 'split', 'version', 'filters', 'type', 'category_id_name_map', 'images', 'context')
 image_dataset_image_key_exclude_list = ('size', 'path', 'objects')
 image_dataset_object_key_exclude_list = ('category_id', 'bounding_box')
 
-video_dataset_key_exclude_list = ('name', 'split', 'version', 'filters', 'type', 'category_id_name_map', 'sequences')
+video_dataset_key_exclude_list = ('name', 'split', 'version', 'filters', 'type', 'category_id_name_map', 'sequences', 'context')
 video_dataset_sequence_key_exclude_list = ('name', 'path', 'fps', 'frames', 'objects')
 video_dataset_frame_key_exclude_list = ('path', 'size', 'objects')
 video_dataset_sequence_object_key_exclude_list = ('category_id', 'id')
@@ -69,6 +73,107 @@ class DatasetConstructorProcessBar:
             self.pbar = None
 
 
+class _DatasetConstructionContext:
+    def __init__(self):
+        self.bounding_box_data_type = None
+        self.bounding_box_format = None
+        self.pixel_coordinate_system = None
+        self.bounding_box_coordinate_system = None
+        self.pixel_definition = None
+        self.pbar = DatasetConstructorProcessBar()
+
+    def initialize_from(self, dataset: dict):
+        if 'context' in dataset:
+            dataset_context = dataset['context']
+            if 'bounding_box_data_type' in dataset_context:
+                if dataset_context['bounding_box_data_type'] == 'int':
+                    self.bounding_box_data_type = int
+                elif dataset_context['bounding_box_data_type'] == 'float':
+                    self.bounding_box_data_type = float
+                else:
+                    raise RuntimeError(f"unknown value {dataset_context['bounding_box_data_type']} in dataset['bounding_box_data_type']")
+            if 'bounding_box_format' in dataset_context:
+                self.bounding_box_format = BoundingBoxFormat[dataset_context['bounding_box_format']]
+            if 'pixel_coordinate_system' in dataset_context:
+                self.pixel_coordinate_system = PixelCoordinateSystem[dataset_context['pixel_coordinate_system']]
+            if 'pixel_definition' in dataset_context:
+                self.pixel_definition = PixelDefinition[dataset_context['pixel_definition']]
+            if 'bounding_box_coordinate_system' in dataset_context:
+                self.bounding_box_coordinate_system = BoundingBoxCoordinateSystem[dataset_context['bounding_box_coordinate_system']]
+
+    def dump_with_default_value(self, dataset: dict):
+        if self.bounding_box_data_type is None:
+            return
+
+        if 'context' not in dataset:
+            dataset['context'] = {}
+        dataset_context = dataset['context']
+
+        if self.bounding_box_data_type == int:
+            dataset_context['bounding_box_data_type'] = 'int'
+        elif self.bounding_box_data_type == float:
+            dataset_context['bounding_box_data_type'] = 'float'
+        elif self.bounding_box_data_type == 'mixed':
+            dataset_context['bounding_box_data_type'] = 'float'
+        else:
+            raise RuntimeError(f'Unknown value {self.bounding_box_data_type}')
+
+        if self.bounding_box_format is None:
+            dataset_context['bounding_box_format'] = BoundingBoxFormat.XYWH.name
+        else:
+            dataset_context['bounding_box_format'] = self.bounding_box_format.name
+
+        if self.bounding_box_coordinate_system is None:
+            if dataset_context['bounding_box_data_type'] == 'float':
+                dataset_context['bounding_box_coordinate_system'] = BoundingBoxCoordinateSystem.Spatial.name
+            else:
+                dataset_context['bounding_box_coordinate_system'] = BoundingBoxCoordinateSystem.Rasterized.name
+        else:
+            dataset_context['bounding_box_coordinate_system'] = self.bounding_box_coordinate_system.name
+
+        if self.pixel_coordinate_system is None:
+            if dataset_context['bounding_box_data_type'] == 'float':
+                dataset_context['pixel_coordinate_system'] = PixelCoordinateSystem.HalfPixelOffset.name
+            else:
+                dataset_context['pixel_coordinate_system'] = PixelCoordinateSystem.Aligned.name
+        else:
+            dataset_context['pixel_coordinate_system'] = self.pixel_coordinate_system.name
+
+        if self.pixel_definition is None:
+            dataset_context['pixel_definition'] = PixelDefinition.Point.name
+        else:
+            dataset_context['pixel_definition'] = self.pixel_definition.name
+
+    def set_bounding_box_dtype(self, type_):
+        if self.bounding_box_data_type is None:
+            self.bounding_box_data_type = type_
+            return
+        if self.bounding_box_data_type != type_:
+            self.bounding_box_data_type = 'mixed'
+
+    def set_bounding_box_format(self, format_):
+        assert isinstance(format_, BoundingBoxFormat)
+        self.bounding_box_format = format_
+
+    def get_processing_bar(self):
+        return self.pbar
+
+    def set_pixel_coordinate_system(self, pixel_coordinate_system: PixelCoordinateSystem):
+        assert isinstance(pixel_coordinate_system, PixelCoordinateSystem)
+        self.pixel_coordinate_system = pixel_coordinate_system
+
+    def set_bounding_box_coordinate_system(self, bounding_box_coordinate_system: BoundingBoxCoordinateSystem):
+        assert isinstance(bounding_box_coordinate_system, BoundingBoxCoordinateSystem)
+        self.bounding_box_coordinate_system = bounding_box_coordinate_system
+
+    def set_pixel_definition(self, pixel_definition: PixelDefinition):
+        assert isinstance(pixel_definition, PixelDefinition)
+        self.pixel_definition = pixel_definition
+
+    def __del__(self):
+        self.pbar.close()
+
+
 def _root_path_impl(root_path):
     return os.path.abspath(root_path)
 
@@ -105,14 +210,14 @@ def generate_sequence_path_(sequence: dict):
 
 
 class BaseDatasetSequenceConstructor:
-    def __init__(self, sequence: dict, root_path: str, pbar: DatasetConstructorProcessBar):
+    def __init__(self, sequence: dict, root_path: str, context: _DatasetConstructionContext):
         self.sequence = sequence
         self.root_path = root_path
-        self.pbar = pbar
+        self.context = context
 
     def set_name(self, name: str):
         self.sequence['name'] = name
-        self.pbar.set_sequence_name(name)
+        self.context.get_processing_bar().set_sequence_name(name)
 
     def set_fps(self, fps):
         self.sequence['fps'] = fps
@@ -126,9 +231,10 @@ class BaseDatasetSequenceConstructor:
 
 
 class BaseDatasetImageConstructor:
-    def __init__(self, image: dict, root_path: str):
+    def __init__(self, image: dict, root_path: str, context: _DatasetConstructionContext):
         self.image = image
         self.root_path = root_path
+        self.context = context
 
     def set_attribute(self, name: str, value):
         self.image[name] = value
@@ -145,25 +251,25 @@ class BaseDatasetImageConstructor:
 
 
 class BaseDatasetImageConstructorGenerator:
-    def __init__(self, pbar):
-        self.pbar = pbar
+    def __init__(self, context: _DatasetConstructionContext):
+        self.context = context
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.pbar.update()
+        self.context.get_processing_bar().update()
 
 
 class BaseDatasetSequenceConstructorGenerator:
-    def __init__(self, sequence: dict, pbar):
+    def __init__(self, sequence: dict, context: _DatasetConstructionContext):
         self.sequence = sequence
-        self.pbar = pbar
+        self.context = context
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         generate_sequence_path_(self.sequence)
-        self.pbar.update()
+        self.context.get_processing_bar().update()
 
 
 class _BaseDatasetConstructor:
-    def __init__(self, dataset: dict, root_path: str, dataset_type: str, schema_version: int, data_version: int, pbar: DatasetConstructorProcessBar):
+    def __init__(self, dataset: dict, root_path: str, dataset_type: str, schema_version: int, data_version: int, context: _DatasetConstructionContext):
         if 'type' in dataset:
             assert dataset['type'] == dataset_type
         else:
@@ -178,38 +284,50 @@ class _BaseDatasetConstructor:
 
         self.dataset = dataset
         self.root_path = _root_path_impl(root_path)
-        self.pbar = pbar
+        self.context = context
 
     def set_category_id_name_map(self, category_id_name_map: dict):
         self.dataset['category_id_name_map'] = category_id_name_map
 
     def set_name(self, name: str):
         self.dataset['name'] = name
-        self.pbar.set_dataset_name(name)
+        self.context.get_processing_bar().set_dataset_name(name)
 
     def set_split(self, split: DataSplit):
         assert len(split.name) > 0
         self.dataset['split'] = split.name
-        self.pbar.set_dataset_split(split)
+        self.context.get_processing_bar().set_dataset_split(split)
+
+    def set_pixel_coordinate_system(self, pixel_coordinate_system: PixelCoordinateSystem):
+        self.context.set_pixel_coordinate_system(pixel_coordinate_system)
+
+    def set_bounding_box_format(self, bounding_box_format: BoundingBoxFormat):
+        self.context.set_bounding_box_format(bounding_box_format)
+
+    def set_bounding_box_coordinate_system(self, bounding_box_coordinate_system: BoundingBoxCoordinateSystem):
+        self.context.set_bounding_box_coordinate_system(bounding_box_coordinate_system)
+
+    def set_pixel_definition(self, pixel_definition: PixelDefinition):
+        self.context.set_pixel_definition(pixel_definition)
 
 
 class BaseVideoDatasetConstructor(_BaseDatasetConstructor):
-    def __init__(self, dataset: dict, root_path: str, data_version: int, pbar: DatasetConstructorProcessBar):
-        super(BaseVideoDatasetConstructor, self).__init__(dataset, root_path, 'video', Dataset.Base.Video.dataset.__version__, data_version, pbar)
+    def __init__(self, dataset: dict, root_path: str, data_version: int, context: _DatasetConstructionContext):
+        super(BaseVideoDatasetConstructor, self).__init__(dataset, root_path, 'video', Dataset.Base.Video.dataset.__version__, data_version, context)
 
     def set_total_number_of_sequences(self, number: int):
-        self.pbar.set_total(number)
+        self.context.get_processing_bar().set_total(number)
 
     def set_attribute(self, name: str, value):
         self.dataset[name] = value
 
 
 class BaseImageDatasetConstructor(_BaseDatasetConstructor):
-    def __init__(self, dataset: dict, root_path: str, data_version: int, pbar: DatasetConstructorProcessBar):
-        super(BaseImageDatasetConstructor, self).__init__(dataset, root_path, 'image', Dataset.Base.Image.dataset.__version__, data_version, pbar)
+    def __init__(self, dataset: dict, root_path: str, data_version: int, context: _DatasetConstructionContext):
+        super(BaseImageDatasetConstructor, self).__init__(dataset, root_path, 'image', Dataset.Base.Image.dataset.__version__, data_version, context)
 
     def set_total_number_of_images(self, number: int):
-        self.pbar.set_total(number)
+        self.context.get_processing_bar().set_total(number)
 
     def set_attribute(self, name: str, value):
         self.dataset[name] = value
@@ -221,12 +339,16 @@ class BaseDatasetConstructorGenerator:
         self.root_path = root_path
         self.version = version
         self.constructor_type = constructor_type
-        self.pbar = DatasetConstructorProcessBar()
 
     def __enter__(self):
-        return self.constructor_type(self.dataset, self.root_path, self.version, self.pbar)
+        self.context = _DatasetConstructionContext()
+        self.context.initialize_from(self.dataset)
+        return self.constructor_type(self.dataset, self.root_path, self.version, self.context)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         assert 'split' in self.dataset
         assert 'name' in self.dataset
-        self.pbar.close()
+
+        self.context.dump_with_default_value(self.dataset)
+
+        del self.context

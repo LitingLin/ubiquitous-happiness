@@ -1,7 +1,12 @@
 from Dataset.Base.Image.manipulator import ImageDatasetManipulator
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
 import numpy as np
 import copy
+from Dataset.Base.Common.Operator.manipulator import fit_objects_bounding_box_in_image_size, \
+    update_objects_bounding_box_validity, prepare_bounding_box_annotation_standard_conversion
+from data.types.bounding_box_format import BoundingBoxFormat
+from data.types.pixel_coordinate_system import PixelCoordinateSystem
+from data.types.bounding_box_coordinate_system import BoundingBoxCoordinateSystem
+from data.types.pixel_definition import PixelDefinition
 
 
 class ImageDatasetTweakTool:
@@ -11,44 +16,48 @@ class ImageDatasetTweakTool:
     def apply_index_filter(self, indices):
         self.manipulator.apply_index_filter(indices)
 
-    def sort_by_image_size_ratio(self):
+    def sort_by_image_size_ratio(self, descending=False):
         image_sizes = []
         for image in self.manipulator:
             image_sizes.append(image.get_image_size())
         image_sizes = np.array(image_sizes)
-        ratio = image_sizes[:, 1] / image_sizes[:, 0]
+        if descending:
+            ratio = image_sizes[:, 0] / image_sizes[:, 1]
+        else:
+            ratio = image_sizes[:, 1] / image_sizes[:, 0]
         indices = ratio.argsort()
         self.manipulator.apply_index_filter(indices)
 
-    def bounding_box_convert_format(self, target_format: BoundingBoxFormat):
-        for image in self.manipulator:
-            for object_ in image:
-                if object_.has_bounding_box():
-                    object_.convert_bounding_box_format(target_format)
-
     def bounding_box_fit_in_image_size(self, exclude_non_validity=True):
         for image in self.manipulator:
-            for object_ in image:
-                if object_.has_bounding_box():
-                    _, _, bounding_box_validity = object_.get_bounding_box()
-                    if exclude_non_validity:
-                        if bounding_box_validity is False:
-                            continue
-                    object_.bounding_box_fit_in_image_size()
+            fit_objects_bounding_box_in_image_size(image, self.manipulator.context_dao, exclude_non_validity)
 
     def bounding_box_update_validity(self, skip_if_mark_non_validity=True):
         for image in self.manipulator:
-            for object_ in image:
-                if object_.has_bounding_box():
-                    object_.bounding_box_update_validity(skip_if_mark_non_validity)
+            update_objects_bounding_box_validity(image, self.manipulator.context_dao, skip_if_mark_non_validity)
 
     def bounding_box_remove_non_validity_objects(self):
         for image in self.manipulator:
             for object_ in image:
                 if object_.has_bounding_box():
-                    _, _, validity = object_.get_bounding_box()
+                    _, validity = object_.get_bounding_box()
                     if validity is False:
                         object_.delete()
+
+    def annotation_standard_conversion(self, bounding_box_format: BoundingBoxFormat = None,
+                                       pixel_coordinate_system: PixelCoordinateSystem = None,
+                                       bounding_box_coordinate_system: BoundingBoxCoordinateSystem = None,
+                                       pixel_definition: PixelDefinition = None):
+        converter = prepare_bounding_box_annotation_standard_conversion(bounding_box_format, pixel_coordinate_system,
+                                                                        bounding_box_coordinate_system,
+                                                                        pixel_definition,
+                                                                        self.manipulator.context_dao)
+        for image in self.manipulator:
+            for object_ in image:
+                if object_.has_bounding_box():
+                    bounding_box, bounding_box_validity = object_.get_bounding_box()
+                    bounding_box = converter(bounding_box)
+                    object_.set_bounding_box(bounding_box, bounding_box_validity)
 
     def bounding_box_remove_empty_annotation_objects(self):
         for image in self.manipulator:

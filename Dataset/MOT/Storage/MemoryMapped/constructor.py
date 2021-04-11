@@ -1,20 +1,18 @@
-import Dataset.SOT.Storage.MemoryMapped.dataset
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
-import Dataset.Base.Common.ops
-import Dataset.Base.Common.Operator.bounding_box
+import Dataset.MOT.Storage.MemoryMapped.dataset
 import numpy as np
-from Dataset.Base.Common.MemoryMapped.constructor import memory_mapped_constructor_common_preliminary_works,\
+from Dataset.Base.Common.MemoryMapped.constructor import memory_mapped_constructor_common_preliminary_works, \
     memory_mapped_constructor_commit_data, memory_mapped_constructor_get_bounding_box
-from Dataset.Base.Common.constructor import video_dataset_key_exclude_list, video_dataset_sequence_key_exclude_list,\
-    video_dataset_frame_key_exclude_list, video_dataset_sequence_object_key_exclude_list, video_dataset_frame_object_key_exclude_list
+from Dataset.Base.Common.constructor import video_dataset_key_exclude_list, video_dataset_sequence_key_exclude_list, \
+    video_dataset_frame_key_exclude_list, video_dataset_sequence_object_key_exclude_list, \
+    video_dataset_frame_object_key_exclude_list
 
 
-def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dataset(base_dataset: dict, path: str,
-                                                                                   bounding_box_format: BoundingBoxFormat):
-    constructor = memory_mapped_constructor_common_preliminary_works(base_dataset, 'video', path, bounding_box_format,
-                                                                     Dataset.MOT.Storage.MemoryMapped.dataset.__version__,
-                                                                     'MultipleObjectTracking',
-                                                                     video_dataset_key_exclude_list)
+def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dataset(base_dataset: dict, path: str):
+    constructor, bounding_box_data_type = memory_mapped_constructor_common_preliminary_works(base_dataset, 'video',
+                                                                                             path,
+                                                                                             Dataset.MOT.Storage.MemoryMapped.dataset.__version__,
+                                                                                             'MultipleObjectTracking',
+                                                                                             video_dataset_key_exclude_list)
 
     sequences_list = []
 
@@ -30,8 +28,8 @@ def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dat
             sequence_attributes['fps'] = base_sequence['fps']
 
         # sequence_frame_object_attribute_indices_vector = [] # a) index the objects in a frame in object* matrix b) being indexed by 'object_attributes_index_range' in frame_attribute
-        sequence_frame_object_id_vector = [] # a) object ids in a frame b) being indexed by 'object_attributes_index_range' in frame_attribute
-        sequence_object_frame_index_vector = [] # a) frame indices the object occurs b) being indexed by 'object_attributes_index_range' in object_attribute sequential c) being indexed by sequence_frame_object_attribute_indices_vector unsequentail
+        sequence_frame_object_id_vector = []  # a) object ids in a frame b) being indexed by 'object_attributes_index_range' in frame_attribute
+        sequence_object_frame_index_vector = []  # a) frame indices the object occurs b) being indexed by 'object_attributes_index_range' in object_attribute sequential c) being indexed by sequence_frame_object_attribute_indices_vector unsequentail
         sequence_object_bounding_box_matrix = []
         sequence_object_bounding_box_validity_flag_matrix = []
 
@@ -72,7 +70,8 @@ def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dat
                 if len(additional_sequence_object_attributes_dict) > 0:
                     if 'objects' not in additional_sequence_attributes_dict:
                         additional_sequence_attributes_dict['objects'] = {}
-                    additional_sequence_attributes_dict['objects'][object_id] = additional_sequence_object_attributes_dict
+                    additional_sequence_attributes_dict['objects'][
+                        object_id] = additional_sequence_object_attributes_dict
 
         sequence_attributes['frames'] = []
 
@@ -101,9 +100,10 @@ def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dat
                     sequence_object_frame_index_vector_dict[object_id].append(index_of_base_frame)
                     if 'bounding_box' in base_frame_object:
                         bounding_box, bounding_box_validity_flag = memory_mapped_constructor_get_bounding_box(
-                            base_frame_object, base_frame['size'], bounding_box_format)
+                            base_frame_object)
                         sequence_object_bounding_box_matrix_dict[object_id].append(bounding_box)
-                        sequence_object_bounding_box_validity_flag_matrix_dict[object_id].append(bounding_box_validity_flag)
+                        sequence_object_bounding_box_validity_flag_matrix_dict[object_id].append(
+                            bounding_box_validity_flag)
                         sequence_has_bounding_box_annotation = True
                     else:
                         sequence_object_bounding_box_matrix_dict[object_id].append([-1, -1, -1, -1])
@@ -133,20 +133,26 @@ def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dat
                 additional_sequence_attributes_dict['frames'][index_of_base_frame] = additional_frame_attributes_dict
 
         sequence_frame_object_id_vector = np.array(sequence_frame_object_id_vector)
-        sequence_frame_object_attribute_indices_vector = np.zeros(shape=sequence_frame_object_id_vector.shape, dtype=np.int32)
+        sequence_frame_object_attribute_indices_vector = np.zeros(shape=sequence_frame_object_id_vector.shape,
+                                                                  dtype=np.int32)
         current_annotation_index = 0
         for object_id in sequence_object_frame_index_vector_dict.keys():
             object_annotation_length = len(sequence_object_frame_index_vector_dict[object_id])
             sequence_object_attribute_dict = sequence_attributes['objects'][object_id]
             sequence_object_frame_index_vector.extend(sequence_object_frame_index_vector_dict[object_id])
             sequence_object_bounding_box_matrix.extend(sequence_object_bounding_box_matrix_dict[object_id])
-            sequence_object_bounding_box_validity_flag_matrix.extend(sequence_object_bounding_box_validity_flag_matrix_dict[object_id])
+            sequence_object_bounding_box_validity_flag_matrix.extend(
+                sequence_object_bounding_box_validity_flag_matrix_dict[object_id])
             for i, frame_index in enumerate(sequence_object_frame_index_vector_dict[object_id]):
-                frame_object_attributes_index_range = sequence_attributes['frames'][frame_index]['object_attributes_index_range']
-                object_ids = sequence_frame_object_id_vector[frame_object_attributes_index_range[0]: frame_object_attributes_index_range[1]]
+                frame_object_attributes_index_range = sequence_attributes['frames'][frame_index][
+                    'object_attributes_index_range']
+                object_ids = sequence_frame_object_id_vector[
+                             frame_object_attributes_index_range[0]: frame_object_attributes_index_range[1]]
                 index = np.where(object_ids == object_id)[0][0]
-                sequence_frame_object_attribute_indices_vector[frame_object_attributes_index_range[0] + index] = current_annotation_index + i
-            sequence_object_attribute_dict['object_attributes_index_range'] = (current_annotation_index, current_annotation_index + object_annotation_length)
+                sequence_frame_object_attribute_indices_vector[
+                    frame_object_attributes_index_range[0] + index] = current_annotation_index + i
+            sequence_object_attribute_dict['object_attributes_index_range'] = (
+            current_annotation_index, current_annotation_index + object_annotation_length)
             current_annotation_index += object_annotation_length
 
         if sequence_frame_size_all_equal:
@@ -165,8 +171,9 @@ def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dat
             sequence_object_frame_index_vector = None
 
         if sequence_has_bounding_box_annotation:
-            sequence_object_bounding_box_matrix = np.array(sequence_object_bounding_box_matrix)
-            sequence_object_bounding_box_validity_flag_matrix = np.array(sequence_object_bounding_box_validity_flag_matrix)
+            sequence_object_bounding_box_matrix = np.array(sequence_object_bounding_box_matrix, dtype=bounding_box_data_type)
+            sequence_object_bounding_box_validity_flag_matrix = np.array(
+                sequence_object_bounding_box_validity_flag_matrix)
         else:
             sequence_object_bounding_box_matrix = None
             sequence_object_bounding_box_validity_flag_matrix = None

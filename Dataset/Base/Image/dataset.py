@@ -1,6 +1,6 @@
 import os
 from Dataset.Type.specialized_dataset import SpecializedImageDatasetType
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from data.types.bounding_box_format import BoundingBoxFormat
 from Dataset.Base.Common.dataset import _BaseDataset, _BaseDatasetObject
 from Miscellaneous.platform_style_path import join_path
 
@@ -49,22 +49,20 @@ class ImageDataset(_BaseDataset):
 
     def get_constructor(self, type_: SpecializedImageDatasetType, version: int):
         assert isinstance(type_, SpecializedImageDatasetType)
-        if self.dataset is None:
-            self.dataset = {}
         if type_ == SpecializedImageDatasetType.Detection:
             from Dataset.DET.Constructor.base import DetectionDatasetConstructorGenerator
             return DetectionDatasetConstructorGenerator(self.dataset, self.root_path, version)
         else:
             raise NotImplementedError
 
-    def specialize(self, type_: SpecializedImageDatasetType, path: str, bounding_box_format: BoundingBoxFormat):
+    def specialize(self, type_: SpecializedImageDatasetType, path: str):
         assert isinstance(type_, SpecializedImageDatasetType)
         if type_ == SpecializedImageDatasetType.Detection:
             from Dataset.DET.Storage.MemoryMapped.constructor import construct_detection_dataset_memory_mapped_from_base_image_dataset
             from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapped
             return DetectionDataset_MemoryMapped(self.root_path,
                                                  construct_detection_dataset_memory_mapped_from_base_image_dataset(
-                                                     self.dataset, path, bounding_box_format))
+                                                     self.dataset, path))
         else:
             raise NotImplementedError
 

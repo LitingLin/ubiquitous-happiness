@@ -2,6 +2,7 @@ from Dataset.MOT.Constructor.base import MultipleObjectTrackingDatasetConstructo
 from Dataset.Type.data_split import DataSplit
 import xml.etree.ElementTree as ET
 import os
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def construct_ILSVRC_VID(constructor: MultipleObjectTrackingDatasetConstructor, seed):
@@ -72,6 +73,7 @@ def construct_ILSVRC_VID(constructor: MultipleObjectTrackingDatasetConstructor, 
         _generate_and_append_sequence_paths(os.path.join(image_path, 'val'), os.path.join(annotation_path, 'val'), 'val')
 
     constructor.set_total_number_of_sequences(len(sequence_image_paths))
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     for sequence, sequence_image_path, sequence_annotation_path, split in zip(sequence_names, sequence_image_paths, sequence_annotation_paths, sequence_splits):
         with constructor.new_sequence() as sequence_constructor:
@@ -133,7 +135,7 @@ def construct_ILSVRC_VID(constructor: MultipleObjectTrackingDatasetConstructor, 
                                     ymin = int(bounding_box_element.text)
                                 else:
                                     raise Exception
-                            bounding_box = [xmin, ymin, xmax - xmin, ymax - ymin]
+                            bounding_box = [xmin, ymin, xmax, ymax]
                         elif attribute.tag == 'occluded':
                             occluded = int(attribute.text)
                         elif attribute.tag == 'generated':

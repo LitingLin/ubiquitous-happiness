@@ -1,16 +1,15 @@
-from Dataset.Base.Common.constructor import BaseDatasetConstructorGenerator, set_path_, BaseImageDatasetConstructor, BaseDatasetImageConstructorGenerator, BaseDatasetImageConstructor
-import Dataset.Base.Image.dataset
-from Dataset.Base.Common.ops import set_bounding_box_
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from Dataset.Base.Common.constructor import BaseDatasetConstructorGenerator, BaseImageDatasetConstructor, BaseDatasetImageConstructorGenerator, BaseDatasetImageConstructor
+from Dataset.Base.Common.Operator.bounding_box import set_bounding_box_
 
 
 class DetectionDatasetObjectConstructor:
-    def __init__(self, object_: dict, category_id_name_map: dict):
+    def __init__(self, object_: dict, category_id_name_map: dict, context):
         self.object_ = object_
         self.category_id_name_map = category_id_name_map
+        self.context = context
 
-    def set_bounding_box(self, bounding_box, bounding_box_format: BoundingBoxFormat=BoundingBoxFormat.XYWH, validity=None):
-        set_bounding_box_(self.object_, bounding_box, bounding_box_format, validity)
+    def set_bounding_box(self, bounding_box, validity=None, dtype=None):
+        set_bounding_box_(self.object_, bounding_box, validity, dtype, self.context)
 
     def set_category_id(self, category_id):
         assert category_id in self.category_id_name_map
@@ -25,20 +24,21 @@ class DetectionDatasetObjectConstructor:
 
 
 class DetectionDatasetObjectConstructorGenerator:
-    def __init__(self, object_: dict, category_id_name_map: dict):
+    def __init__(self, object_: dict, category_id_name_map: dict, context):
         self.object_ = object_
         self.category_id_name_map = category_id_name_map
+        self.context = context
 
     def __enter__(self):
-        return DetectionDatasetObjectConstructor(self.object_, self.category_id_name_map)
+        return DetectionDatasetObjectConstructor(self.object_, self.category_id_name_map, self.context)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
 
 class DetectionDatasetImageConstructor(BaseDatasetImageConstructor):
-    def __init__(self, image: dict, root_path: str, category_id_name_map: dict):
-        super(DetectionDatasetImageConstructor, self).__init__(image, root_path)
+    def __init__(self, image: dict, root_path: str, category_id_name_map: dict, context):
+        super(DetectionDatasetImageConstructor, self).__init__(image, root_path, context)
         self.category_id_name_map = category_id_name_map
 
     def new_object(self):
@@ -46,23 +46,23 @@ class DetectionDatasetImageConstructor(BaseDatasetImageConstructor):
         if 'objects' not in self.image:
             self.image['objects'] = []
         self.image['objects'].append(object_)
-        return DetectionDatasetObjectConstructorGenerator(object_, self.category_id_name_map)
+        return DetectionDatasetObjectConstructorGenerator(object_, self.category_id_name_map, self.context)
 
 
 class DetectionDatasetImageConstructorGenerator(BaseDatasetImageConstructorGenerator):
-    def __init__(self, image: dict, root_path: str, category_id_name_map: dict, pbar):
-        super(DetectionDatasetImageConstructorGenerator, self).__init__(pbar)
+    def __init__(self, image: dict, root_path: str, category_id_name_map: dict, context):
+        super(DetectionDatasetImageConstructorGenerator, self).__init__(context)
         self.image = image
         self.root_path = root_path
         self.category_id_name_map = category_id_name_map
 
     def __enter__(self):
-        return DetectionDatasetImageConstructor(self.image, self.root_path, self.category_id_name_map)
+        return DetectionDatasetImageConstructor(self.image, self.root_path, self.category_id_name_map, self.context)
 
 
 class DetectionDatasetConstructor(BaseImageDatasetConstructor):
-    def __init__(self, dataset: dict, root_path: str, version: int, pbar):
-        super(DetectionDatasetConstructor, self).__init__(dataset, root_path, version, pbar)
+    def __init__(self, dataset: dict, root_path: str, version: int, context):
+        super(DetectionDatasetConstructor, self).__init__(dataset, root_path, version, context)
         if 'images' not in dataset:
             dataset['images'] = []
 
@@ -73,7 +73,7 @@ class DetectionDatasetConstructor(BaseImageDatasetConstructor):
             category_id_name_map = self.dataset['category_id_name_map']
         else:
             category_id_name_map = None
-        return DetectionDatasetImageConstructorGenerator(image, self.root_path, category_id_name_map, self.pbar)
+        return DetectionDatasetImageConstructorGenerator(image, self.root_path, category_id_name_map, self.context)
 
 
 class DetectionDatasetConstructorGenerator(BaseDatasetConstructorGenerator):

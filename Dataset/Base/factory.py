@@ -1,7 +1,7 @@
 from Dataset.Base.CacheService.path import prepare_dataset_cache_path
 import os
 from Dataset.Type.incompatible_error import IncompatibleError
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from data.types.bounding_box_format import BoundingBoxFormat
 from Dataset.Type.data_split import DataSplit
 import copy
 
@@ -31,7 +31,7 @@ class _DatasetFactory:
             os.remove(cache_file_path)
         return None, os.path.join(cache_folder_path, cache_file_name)
 
-    def construct(self, filters=None, cache_meta_data=False, dump_human_readable=False, bounding_box_format: BoundingBoxFormat = BoundingBoxFormat.XYWH):
+    def construct(self, filters=None, cache_meta_data=False, dump_human_readable=False):
         if filters is not None and len(filters) == 0:
             filters = None
 
@@ -39,7 +39,7 @@ class _DatasetFactory:
         if dataset is not None:
             return dataset
         base_dataset = self.construct_base_interface(filters, cache_meta_data, dump_human_readable)
-        dataset = base_dataset.specialize(self.specialized_dataset_enum, cache_file_prefix + '.np', bounding_box_format)
+        dataset = base_dataset.specialize(self.specialized_dataset_enum, cache_file_prefix + '.np')
         return dataset
 
     @staticmethod
@@ -113,8 +113,8 @@ class DatasetFactory:
         self.factories = [_DatasetFactory(seed, base_dataset_type, base_dataset_constructor_enum, base_filter_func, specialized_dataset_enum, specialized_dataset_type)
                           for seed in expanded_seeds]
 
-    def construct(self, filters=None, cache_base_format=False, dump_human_readable=False, bounding_box_format: BoundingBoxFormat = BoundingBoxFormat.XYWH):
-        return [factory.construct(filters, cache_base_format, dump_human_readable, bounding_box_format) for factory in self.factories]
+    def construct(self, filters=None, cache_base_format=False, dump_human_readable=False):
+        return [factory.construct(filters, cache_base_format, dump_human_readable) for factory in self.factories]
 
     def construct_base_interface(self, filters=None, make_cache=False, dump_human_readable=False):
         return [factory.construct_base_interface(filters, make_cache, dump_human_readable) for factory in self.factories]

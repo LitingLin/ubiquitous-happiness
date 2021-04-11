@@ -1,7 +1,7 @@
 from Dataset.Base.Engine.memory_mapped import ListMemoryMapped
 from Dataset.Type.incompatible_error import IncompatibleError
 from Dataset.Base.Common.Operator.filters import filter_list_deserialize
-from Dataset.Type.bounding_box_format import BoundingBoxFormat
+from Dataset.Base.Common.dataset_context_dao import DatasetContextDAO
 
 
 class LazyAttributesLoader:
@@ -87,6 +87,7 @@ class MemoryMappedDataset:
             del self.storage
             raise IncompatibleError
         self.index_matrix = self.storage[1].copy()
+        self.context = DatasetContextDAO(self.dataset_attributes)
 
     @staticmethod
     def load_storage(path: str):
@@ -115,9 +116,6 @@ class MemoryMappedDataset:
             return filter_list_deserialize(self.dataset_attributes['filters'])
         return None
 
-    def get_bounding_box_format(self):
-        return BoundingBoxFormat[self.dataset_attributes['bounding_box_format']]
-
     def get_attribute(self, name):
         return self.dataset_attributes[name]
 
@@ -136,3 +134,18 @@ class MemoryMappedDataset:
     def get_adhoc_manipulator(self):
         from Dataset.Base.Common.manipulator import SimpleAdHocManipulator
         return SimpleAdHocManipulator(self.dataset_attributes)
+
+    def get_bounding_box_format(self):
+        return self.context.get_bounding_box_format()
+
+    def get_pixel_definition(self):
+        return self.context.get_pixel_definition()
+
+    def get_pixel_coordinate_system(self):
+        return self.context.get_pixel_coordinate_system()
+
+    def get_bounding_box_coordinate_system(self):
+        return self.context.get_bounding_box_coordinate_system()
+
+    def get_bounding_box_data_type(self):
+        return self.context.get_bounding_box_data_type()

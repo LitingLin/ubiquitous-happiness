@@ -2,9 +2,9 @@ from Dataset.Type.data_split import DataSplit
 import os
 from typing import Dict, List, Tuple
 import csv
-import cv2
 from Dataset.MOT.Constructor.base import MultipleObjectTrackingDatasetConstructor
 from PIL import Image
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 class YoutubeBBAnnotationEntry:
@@ -89,6 +89,7 @@ def construct_YoutubeBB(constructor: MultipleObjectTrackingDatasetConstructor, s
 
     constructor.set_total_number_of_sequences(len(annotations))
     constructor.set_category_id_name_map(YoutubeBBClassIndexNameMapper)
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     for youtube_id, video_annotations in annotations.items():
         video_path = os.path.join(root_path, youtube_id)
@@ -122,7 +123,7 @@ def construct_YoutubeBB(constructor: MultipleObjectTrackingDatasetConstructor, s
                     else:
                         id_ = registered_object[(object_id, class_id)]
                     bounding_box = [bounding_box[0] * image_size[0], bounding_box[1] * image_size[0], bounding_box[2] * image_size[1], bounding_box[3] * image_size[1]]
-                    bounding_box = [bounding_box[0], bounding_box[2], bounding_box[1] - bounding_box[0], bounding_box[3] - bounding_box[2]]
+                    bounding_box = [bounding_box[0], bounding_box[2], bounding_box[1], bounding_box[3]]
                     with sequence_constructor.open_frame(index_of_frame) as frame_constructor:
                         with frame_constructor.new_object(id_) as object_constructor:
                             object_constructor.set_bounding_box(bounding_box, validity=is_present == 'present')

@@ -1,4 +1,4 @@
-from data.operator.bbox.align_corner.xywh2cxcywh_normalize import bbox_denormalize_cxcywh2xywh
+from data.operator.bbox.aligned.xywh2cxcywh_normalize import bbox_denormalize_cxcywh2xywh
 from data.operator.bbox.numpy_pytorch_interop import bbox_torch_to_numpy
 
 

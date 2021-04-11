@@ -1,5 +1,6 @@
 import copy
 import importlib
+import enum
 
 
 class _BaseFilter:
@@ -16,7 +17,16 @@ class _BaseFilter:
         if len(self.__dict__) == 0:
             return self.__class__.__name__
         else:
-            return self.__class__.__name__, copy.deepcopy(self.__dict__)
+            class_members = {}
+            for key, value in self.__dict__.items():
+                if isinstance(value, (int, float, bool, str)):
+                    class_members[key] = value
+                elif isinstance(value, enum.Enum):
+                    class_members[key] = value.value
+                else:
+                    raise RuntimeError(f"Unsupported type {type(value)}")
+
+            return self.__class__.__name__, class_members
 
     @staticmethod
     def deserialize(state):

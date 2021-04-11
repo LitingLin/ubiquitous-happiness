@@ -63,8 +63,7 @@ class MOTDatasetQt5Viewer:
 
         with painter:
             for object_ in frame:
-                draw_object(painter, object_, object_, object_, self.dataset.get_bounding_box_format(),
-                            self.category_id_color_map, self.dataset)
+                draw_object(painter, object_, object_, object_, object_, self.category_id_color_map, self.dataset, self.dataset)
         painter.update()
 
     def _stopTimer(self):

@@ -2,6 +2,7 @@ from Dataset.MOT.Constructor.base import MultipleObjectTrackingDatasetConstructo
 from Dataset.MOT.Seed.QingDao import QingDaoDataset_SceneTypes
 import os
 import subprocess
+from data.types.bounding_box_format import BoundingBoxFormat
 
 
 def construct_QingDao(constructor: MultipleObjectTrackingDatasetConstructor, seed):
@@ -87,7 +88,7 @@ def construct_QingDao(constructor: MultipleObjectTrackingDatasetConstructor, see
             else:
                 assert category == label
 
-            boundingBoxes.append([xmin, ymin, xmax - xmin, ymax - ymin])
+            boundingBoxes.append([xmin, ymin, xmax, ymax])
             frame_indices.append(frame_index)
             outOfViews.append(outOfView)
             occludeds.append(occluded)
@@ -150,6 +151,7 @@ def construct_QingDao(constructor: MultipleObjectTrackingDatasetConstructor, see
             sequences.append(('-'.join((scene_type, video_name)), output_path, annotation_path))
 
     constructor.set_total_number_of_sequences(len(sequences))
+    constructor.set_bounding_box_format(BoundingBoxFormat.XYXY)
 
     for video_name, sequence_path, annotation_path in sequences:
         with constructor.new_sequence() as sequence_constructor:

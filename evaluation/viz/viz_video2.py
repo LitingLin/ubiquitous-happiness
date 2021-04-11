@@ -37,9 +37,6 @@ def generate_video_on_sequence(sequence: SingleObjectTrackingDatasetSequence_Mem
 
 if __name__ == '__main__':
     from Dataset.SOT.Seed.OTB100 import OTB100_Seed
-    from Dataset.SOT.Seed.GOT10k import GOT10k_Seed
-    from Dataset.SOT.Seed.LaSOT import LaSOT_Seed
-    from Dataset.Type.data_split import DataSplit
     from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
     from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
     from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox

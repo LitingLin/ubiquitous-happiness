@@ -1,5 +1,5 @@
 import numpy as np
-from data.operator.bbox.half_pixel_center.center import get_center_point_from_xywh
+from data.operator.bbox.half_pixel_offset.center import get_center_point_from_xywh
 from data.operator.image_and_bbox.half_pixel_center.torch_scale_and_translate import torch_scale_and_translate
 
 
