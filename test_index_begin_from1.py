@@ -1,10 +1,10 @@
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
-from Dataset.SOT.Seed.PTB import PTB_Seed
+from Dataset.SOT.Seed.NFS import NFS_Seed
 import numpy as np
 from Miscellaneous.Numpy.dtype import try_get_int_array
 
 if __name__ == '__main__':
-    datasets = SingleObjectTrackingDatasetFactory([PTB_Seed()]).construct()
+    datasets = SingleObjectTrackingDatasetFactory([NFS_Seed()]).construct()
 
     is_all_int = True
     is_all_float = True

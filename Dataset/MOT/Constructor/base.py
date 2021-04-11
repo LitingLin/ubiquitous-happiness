@@ -1,5 +1,4 @@
-from data.types.bounding_box_format import BoundingBoxFormat
-from Dataset.Base.Common.ops import set_bounding_box_
+from Dataset.Base.Common.Operator.bounding_box import set_bounding_box_
 from Dataset.Base.Common.constructor import BaseDatasetConstructorGenerator, set_path_, BaseDatasetSequenceConstructorGenerator, BaseDatasetSequenceConstructor, BaseVideoDatasetConstructor
 
 
@@ -8,9 +7,8 @@ class MultipleObjectTrackingDatasetSequenceFrameObjectConstructor:
         self.object_ = object_
         self.context = context
 
-    def set_bounding_box(self, bounding_box, bounding_box_format: BoundingBoxFormat = BoundingBoxFormat.XYWH,
-                         validity=None, dtype=None):
-        set_bounding_box_(self.object_, bounding_box, bounding_box_format, self.context, validity, dtype)
+    def set_bounding_box(self, bounding_box, validity=None, dtype=None):
+        set_bounding_box_(self.object_, bounding_box, validity, dtype, self.context)
 
     def set_attribute(self, name: str, value):
         self.object_[name] = value
