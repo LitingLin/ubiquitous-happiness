@@ -172,8 +172,12 @@ def construct_multiple_object_tracking_dataset_memory_mapped_from_base_video_dat
 
         if sequence_has_bounding_box_annotation:
             sequence_object_bounding_box_matrix = np.array(sequence_object_bounding_box_matrix, dtype=bounding_box_data_type)
-            sequence_object_bounding_box_validity_flag_matrix = np.array(
-                sequence_object_bounding_box_validity_flag_matrix)
+            if all([flag is None for flag in sequence_object_bounding_box_validity_flag_matrix]):
+                sequence_object_bounding_box_validity_flag_matrix = None
+            else:
+                sequence_object_bounding_box_validity_flag_matrix = [False if flag is None else flag for flag in sequence_object_bounding_box_validity_flag_matrix]
+                sequence_object_bounding_box_validity_flag_matrix = np.array(
+                    sequence_object_bounding_box_validity_flag_matrix)
         else:
             sequence_object_bounding_box_matrix = None
             sequence_object_bounding_box_validity_flag_matrix = None

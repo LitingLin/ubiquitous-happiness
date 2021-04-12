@@ -105,23 +105,39 @@ class MultipleObjectTrackingDatasetFrame_MemoryMapped:
     def get_object_by_id(self, id_: int):
         index = np.where(self.frame_object_id_vector == id_)[0].item()
         object_attribute = self.sequence_attributes['objects'][id_]
+
+        frame_object_bounding_box = None
+        frame_object_bounding_box_validity_flag = None
+
+        if self.frame_object_bounding_box_matrix is not None:
+            frame_object_bounding_box = self.frame_object_bounding_box_matrix[index, :]
+        if self.frame_object_bounding_box_validity_flag_vector is not None:
+            frame_object_bounding_box_validity_flag = self.frame_object_bounding_box_validity_flag_vector[index]
+
         return MultipleObjectTrackingDatasetFrameObject_MemoryMapped(self.index_of_frame,
                                                                      id_,
                                                                      object_attribute,
-                                                                     self.frame_object_bounding_box_matrix[index, :],
-                                                                     self.frame_object_bounding_box_validity_flag_vector[
-                                                                         index],
+                                                                     frame_object_bounding_box,
+                                                                     frame_object_bounding_box_validity_flag,
                                                                      self.sequence_additional_attributes)
 
     def __getitem__(self, index: int):
         object_id = self.frame_object_id_vector[index].item()
         object_attribute = self.sequence_attributes['objects'][object_id]
+
+        frame_object_bounding_box = None
+        frame_object_bounding_box_validity_flag = None
+
+        if self.frame_object_bounding_box_matrix is not None:
+            frame_object_bounding_box = self.frame_object_bounding_box_matrix[index, :]
+        if self.frame_object_bounding_box_validity_flag_vector is not None:
+            frame_object_bounding_box_validity_flag = self.frame_object_bounding_box_validity_flag_vector[index]
+
         return MultipleObjectTrackingDatasetFrameObject_MemoryMapped(self.index_of_frame,
                                                                      object_id,
                                                                      object_attribute,
-                                                                     self.frame_object_bounding_box_matrix[index, :],
-                                                                     self.frame_object_bounding_box_validity_flag_vector[
-                                                                         index],
+                                                                     frame_object_bounding_box,
+                                                                     frame_object_bounding_box_validity_flag,
                                                                      self.sequence_additional_attributes)
 
     def __len__(self):
@@ -168,12 +184,18 @@ class MultipleObjectTrackingDatasetSequenceObject_MemoryMapped:
         return self.sequence_additional_attributes.get_all_attribute_name_tree_query(('objects', self.object_id))
 
     def __getitem__(self, index: int):
+        frame_object_bounding_box = None
+        frame_object_bounding_box_validity_flag = None
+
+        if self.object_bounding_box_matrix is not None:
+            frame_object_bounding_box = self.object_bounding_box_matrix[index]
+        if self.object_bounding_box_validity_flag_vector is not None:
+            frame_object_bounding_box_validity_flag = self.object_bounding_box_validity_flag_vector[index]
         return MultipleObjectTrackingDatasetFrameObject_MemoryMapped(self.object_frame_index_vector[index],
                                                                      self.object_id,
                                                                      self.object_attribute,
-                                                                     self.object_bounding_box_matrix[index],
-                                                                     self.object_bounding_box_validity_flag_vector[
-                                                                         index],
+                                                                     frame_object_bounding_box,
+                                                                     frame_object_bounding_box_validity_flag,
                                                                      self.sequence_additional_attributes)
 
     def __len__(self):
