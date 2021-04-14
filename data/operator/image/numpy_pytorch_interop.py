@@ -1,9 +1,9 @@
 import torch
 
 
-def image_numpy_to_torch_HWC_to_CHW_to_float(image):
+def image_numpy_to_torch_HWC_to_CHW(image):
     # HWC -> CHW
-    return torch.from_numpy(image).permute((2, 0, 1)).float()
+    return torch.from_numpy(image).permute((2, 0, 1))
 
 
 def image_torch_to_numpy_CHW_to_HWC_to_uint8(image: torch.Tensor):

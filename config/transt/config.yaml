@@ -1,19 +1,17 @@
-common:
-  batch_size: 38
-  normalize_mean: [0.485, 0.456, 0.406]
-  normalize_std: [0.229, 0.224, 0.225]
-  search_area_factor: 4.0
-  template_area_factor: 2.0
-  search_feature_sz: 32
-  template_feature_sz: 16
-  search_sz: 256
-  temp_sz: 128
-  center_jitter_factor:
-    search: 3
-    template: 0
-  scale_jitter_factor:
-    search: 0.25
-    template: 0
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  feature_size:
+    template: [16, 16]
+    search: [32, 32]
+  template_size: [128, 128] # 16 * 8
+  search_size: [256, 256] # 32 * 8
+
+backbone:
+  type: resnet50
+  position_embedding: sine
+  output_layers: [3]
 
 transformer:
   position_embedding: sine
@@ -22,3 +20,4 @@ transformer:
   nheads: 8
   dim_feedforward: 2048
   featurefusion_layers: 4
+  activation: relu

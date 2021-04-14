@@ -20,7 +20,7 @@ class DataCleaning_AnnotationStandard(_BaseFilter):
             self.pixel_coordinate_system = pixel_coordinate_system
 
         if isinstance(bounding_box_coordinate_system, str):
-            self.bounding_box_coordinate_system = BoundingBoxCoordinateSystem[bounding_box_format]
+            self.bounding_box_coordinate_system = BoundingBoxCoordinateSystem[bounding_box_coordinate_system]
         else:
             self.bounding_box_coordinate_system = bounding_box_coordinate_system
 

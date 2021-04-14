@@ -1,0 +1,35 @@
+data:
+  scale_jitter_factor:
+    template: 0
+    search: 0.25
+  translation_jitter_factor:
+    search: 3
+    template: 0
+  gray_scale_probability: 0.05
+  brightness_factor: 0.2
+
+train:
+  lr: 1.e-4
+  lr_backbone: 1.e-5
+  batch_size: 38
+  weight_decay: 1.e-4
+  epochs: 1000
+  lr_drop: 500
+  clip_max_norm: 0.1
+  optimizer: AdamW
+
+  data:
+    repeat_times_per_epoch: 2
+
+  loss:
+    weight:
+      cross_entropy: 8.334
+      bbox: 5
+      giou: 2
+    eos_coef: 0.0625
+
+val:
+  batch_size: 38
+
+  data:
+    repeat_times_per_epoch: 1

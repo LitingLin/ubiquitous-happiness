@@ -1,14 +1,17 @@
 # Copyright (c) SenseTime. All Rights Reserved.
 
 import numpy as np
-import torch
 from torch.utils.data import Dataset
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
 import copy
-
-from native_extension import ImageDecoder
+from data.operator.image.decoder import tf_decode_image
+from data.operator.image.batchify import tf_batchify
 from torchvision.transforms import ToTensor
 from .sampler import SOTDatasetSiamFCSampler, DetectionDatasetSiamFCSampler, MOTDatasetSiamFCSampler
+
+
+def _decode_image(path):
+    return tf_batchify(tf_decode_image(path))
 
 
 class ConcateDatasetPositioning:
@@ -77,7 +80,6 @@ class TrackingDataset(Dataset):
         if repeat_times_per_epoch is not None and repeat_times_per_epoch > 0:
             self.num *= repeat_times_per_epoch
         self.generate_shuffled_picks()
-        self.image_decoder = ImageDecoder()
         self.to_tensor = ToTensor()
         self.post_processor = post_processor
         self.neg_ratio = neg_ratio
@@ -115,8 +117,8 @@ class TrackingDataset(Dataset):
             z_path, z_bbox = z
             x_path, x_bbox = x
 
-            z_image = self.image_decoder.decode(z_path)
-            x_image = self.image_decoder.decode(x_path)
+            z_image = _decode_image(z_path)
+            x_image = _decode_image(x_path)
 
             is_positive = False
         else:
@@ -128,13 +130,13 @@ class TrackingDataset(Dataset):
 
             if len(pair) == 2:
                 z_path, z_bbox = pair
-                z_image = self.image_decoder.decode(z_path)
+                z_image = _decode_image(z_path)
                 x_image = z_image
                 x_bbox = z_bbox
             else:
                 z_path, z_bbox, x_path, x_bbox = pair
-                z_image = self.image_decoder.decode(z_path)
-                x_image = self.image_decoder.decode(x_path)
+                z_image = _decode_image(z_path)
+                x_image = _decode_image(x_path)
             is_positive = True
 
         if self.post_processor is None:

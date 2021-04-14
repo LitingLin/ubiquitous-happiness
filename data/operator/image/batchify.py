@@ -7,3 +7,7 @@ def tf_batchify(tensor):
 
 def tf_unbatchify(tensor):
     return tf.squeeze(tensor, 0)
+
+
+def unbatchify(tensor):
+    return tensor.squeeze()
