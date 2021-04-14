@@ -11,7 +11,7 @@ data:
 train:
   lr: 1.e-4
   lr_backbone: 1.e-5
-  batch_size: 38
+  batch_size: 16
   weight_decay: 1.e-4
   epochs: 1000
   lr_drop: 500

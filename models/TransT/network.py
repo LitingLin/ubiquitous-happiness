@@ -33,8 +33,8 @@ class TransTTracking(nn.Module):
 
 
 def build_transt(network_config: dict):
-    from feature_fusion import build_featurefusion_network
-    from backbone import build_backbone
+    from .feature_fusion import build_featurefusion_network
+    from .backbone import build_backbone
     transformer = build_featurefusion_network(network_config)
     backbone = build_backbone(network_config)
     return TransTTracking(backbone, transformer)

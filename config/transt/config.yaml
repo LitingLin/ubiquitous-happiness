@@ -3,13 +3,13 @@ data:
     template: 2.0
     search: 4.0
   feature_size:
-    template: [16, 16]
-    search: [32, 32]
+    template: [15, 15]
+    search: [31, 31]
   template_size: [128, 128] # 16 * 8
   search_size: [256, 256] # 32 * 8
 
 backbone:
-  type: resnet50
+  type: resnet50_atrous
   position_embedding: sine
   output_layers: [3]
 

@@ -1,4 +1,4 @@
-from models.transformer.position_encoding import build_position_encoding
+from .position_encoding import build_position_encoding
 from torch import nn
 
 

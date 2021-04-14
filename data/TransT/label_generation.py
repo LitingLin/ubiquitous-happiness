@@ -10,13 +10,14 @@ import torch
 def get_target_feat_map_indices(search_feat_size, search_region_size, target_bbox):
     feat_map_indices = np.arange(0, search_feat_size[0] * search_feat_size[1])
 
-    feat_map_indices.reshape(search_feat_size)
+    feat_map_indices = feat_map_indices.reshape(search_feat_size)
 
-    target_bbox = np.array(target_bbox, dtype=np.float)
-    target_bbox = bbox_scale_with_image_resize(target_bbox, search_region_size, search_feat_size)
-    target_bbox = bbox_rasterize_aligned(target_bbox)
-    target_feat_map_indices = feat_map_indices[target_bbox[1]: target_bbox[3] + 1, target_bbox[0]: target_bbox[2] + 1]
-    return torch.tensor(target_feat_map_indices)
+    target_bbox_ = bbox_scale_with_image_resize(target_bbox, search_region_size, search_feat_size)
+    target_bbox_ = bbox_rasterize_aligned(target_bbox_)
+
+    target_feat_map_indices = feat_map_indices[target_bbox_[1]: target_bbox_[3] + 1, target_bbox_[0]: target_bbox_[2] + 1].flatten()
+    assert len(target_feat_map_indices) != 0
+    return torch.tensor(target_feat_map_indices, dtype=torch.long)
 
 
 def generate_target_class_vector(search_feat_size, target_feat_map_indices: torch.Tensor):

@@ -13,8 +13,7 @@ from torchvision.transforms.functional import adjust_brightness
 from data.operator.image.numpy_pytorch_interop import image_numpy_to_torch_HWC_to_CHW
 from data.operator.image.batchify import unbatchify
 from data.operator.image.normalize import torch_image_normalize
-from data.operator.bbox.spatial.xywh2cxcywh import bbox_xywh2cxcywh
-from data.operator.bbox.spatial.normalize import bbox_normalize
+from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary, bounding_box_is_intersect_with_image
 
 
 def get_jittered_scaling_and_translate_factor(bbox, scaling, scaling_jitter_factor, translation_jitter_factor):
@@ -33,16 +32,21 @@ def get_scaling_factor_from_area_factor(bbox, area_factor, output_size):
 
 
 def jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_factor, translation_jitter_factor):
-    scaling = get_scaling_factor_from_area_factor(bbox, area_factor, output_size)
-    scaling, translate = get_jittered_scaling_and_translate_factor(bbox, scaling, scaling_jitter_factor, translation_jitter_factor)
+    while True:
+        scaling = get_scaling_factor_from_area_factor(bbox, area_factor, output_size)
+        scaling, translate = get_jittered_scaling_and_translate_factor(bbox, scaling, scaling_jitter_factor, translation_jitter_factor)
 
-    source_center = bbox_get_center_point(bbox)
-    target_center = get_image_center_point(output_size)
-    target_center = (torch.tensor(target_center) + translate).tolist()
-    scaling = scaling.tolist()
+        source_center = bbox_get_center_point(bbox)
+        target_center = get_image_center_point(output_size)
+        target_center = (torch.tensor(target_center) + translate).tolist()
+        scaling = scaling.tolist()
+
+        output_bbox = bbox_scale_and_translate(bbox, scaling, source_center, target_center)
+
+        if bounding_box_is_intersect_with_image(output_bbox, output_size):
+            break
 
     output_image = tf_scale_and_translate_numpy(image, output_size, scaling, source_center, target_center, tf_get_image_mean(image).numpy())
-    output_bbox = bbox_scale_and_translate(bbox, scaling, source_center, target_center)
     return output_image, output_bbox
 
 
@@ -51,6 +55,7 @@ def transt_preprocessing_pipeline(image, bbox, area_factor, output_size, scaling
         image = tf_image_rgb_to_gray_keep_channels(image)
 
     image, bbox = jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_factor, translation_jitter_factor)
+    bbox = bounding_box_fit_in_image_boundary(bbox, output_size)
 
     image = unbatchify(image)
     image = image_numpy_to_torch_HWC_to_CHW(image)

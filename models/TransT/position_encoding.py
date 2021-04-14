@@ -27,9 +27,11 @@ class PositionEmbeddingSine(nn.Module):
     def forward(self, x):
         if len(self.size_pos_mapping) > 4:
             print(f'Warn: too many cache (size: {len(self.size_pos_mapping)})')
-        if (x.dtype, x.device, x.shape) in self.size_pos_mapping:
-            return self.size_pos_mapping[(x.dtype, x.device, x.shape)]
-        not_mask = torch.ones_like(x, dtype=torch.bool, device=x.device)
+        n, _, h, w = x.shape
+        shape = (n, h, w)
+        if (x.dtype, x.device, shape) in self.size_pos_mapping:
+            return self.size_pos_mapping[(x.dtype, x.device, shape)]
+        not_mask = torch.ones(shape, dtype=torch.bool, device=x.device)
         y_embed = not_mask.cumsum(1, dtype=torch.float32)
         x_embed = not_mask.cumsum(2, dtype=torch.float32)
         if self.normalize:
@@ -44,7 +46,7 @@ class PositionEmbeddingSine(nn.Module):
         pos_y = torch.stack((pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4).flatten(3)
         pos = torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
         pos = pos.to(x.dtype)
-        self.size_pos_mapping[(x.dtype, x.device, x.shape)] = pos
+        self.size_pos_mapping[(x.dtype, x.device, shape)] = pos
         return pos
 
 
@@ -75,14 +77,15 @@ class PositionEmbeddingLearned(nn.Module):
         return pos
 
 
-def build_position_encoding(settings):
-    N_steps = settings.hidden_dim // 2
-    if settings.position_embedding in ('v2', 'sine'):
+def build_position_encoding(network_config):
+    N_steps = network_config['transformer']['hidden_dim'] // 2
+    position_embedding_args = network_config['backbone']['position_embedding']
+    if position_embedding_args in ('v2', 'sine'):
         # TODO find a better way of exposing other arguments
         position_embedding = PositionEmbeddingSine(N_steps, normalize=True)
-    elif settings.position_embedding in ('v3', 'learned'):
+    elif position_embedding_args in ('v3', 'learned'):
         position_embedding = PositionEmbeddingLearned(N_steps)
     else:
-        raise ValueError(f"not supported {settings.position_embedding}")
+        raise ValueError(f"not supported {position_embedding_args}")
 
     return position_embedding

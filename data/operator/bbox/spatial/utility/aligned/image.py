@@ -17,3 +17,16 @@ def bbox_scale_with_image_resize(bbox, old_size, new_size):
              (new_bounding_box[3] - new_bounding_box[1]) / (old_bounding_box[3] - old_bounding_box[1]))
 
     return tuple(v * scale[0] if i % 2 == 0 else v * scale[1] for i, v in enumerate(bbox))
+
+
+def bounding_box_fit_in_image_boundary(bbox, image_size):
+    image_bounding_box = get_image_bounding_box(image_size)
+    from data.operator.bbox.intersection import bbox_fit_in_boundary
+    return bbox_fit_in_boundary(bbox, image_bounding_box)
+
+
+def bounding_box_is_intersect_with_image(bounding_box, image_size):
+    image_bounding_box = get_image_bounding_box(image_size)
+    from data.operator.bbox.intersection import bbox_get_intersection
+    from data.operator.bbox.validity import bbox_is_valid
+    return bbox_is_valid(bbox_get_intersection(image_bounding_box, bounding_box))

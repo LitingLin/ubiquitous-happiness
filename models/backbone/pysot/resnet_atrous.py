@@ -150,7 +150,7 @@ class ResNet(nn.Module):
     def load_pretrained(self):
         self.load_state_dict(
             torch.load(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'weight', 'pysot', 'resnet50.model'),
-                       map_location='cpu'), strict=True)
+                       map_location='cpu'), strict=False)
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1):
         downsample = None
@@ -231,4 +231,5 @@ def construct_resnet50_atrous(output_layers=(2, 3, 4)):
     net = ResNet(Bottleneck, [3, 4, 6, 3], output_layers)
     net.num_channels_output = [64, 256, 512, 1024, 2048]
     net.num_channels_output = [net.num_channels_output[i] for i in output_layers]
+    net.load_pretrained()
     return net
