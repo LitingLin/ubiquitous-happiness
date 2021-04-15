@@ -1,6 +1,9 @@
 from tensorflow.python.ops import gen_image_ops
 
 
+kernel_types = ["lanczos1", "lanczos3",  "lanczos5", "box", "triangle", "keyscubic", "mitchellcubic"]
+
+
 def align_corners_resize(img, output_size, kernel_type='triangle', antialias=False):
     '''
         For tensorflow v2, image resize functions assume the pixels are locating at (0.5 * x, 0.5 * y),
@@ -32,7 +35,7 @@ def align_corners_resize(img, output_size, kernel_type='triangle', antialias=Fal
     return img
 
 
-def tf_image_scale_and_translate_align_corners(img, output_size, scale, input_center=(0, 0), output_center=(0, 0), kernel_type='triangle', antialias=False):
+def tf_image_scale_and_translate_align_corners(img, output_size, scale, input_center=(0, 0), output_center=(0, 0), kernel_type='keyscubic', antialias=False):
     '''
         (i_edge_point + 0.5) * tf_scale + tf_translate = o_edge_point + 0.5
             ==> tf_scale = (o_edge_point_1 - o_edge_point_2) / (i_edge_point_1 - i_edge_point_2)

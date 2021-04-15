@@ -28,7 +28,7 @@ def _generate_background_regions_rasterized(foreground_bbox, image_size):
     return regions
 
 
-def tf_scale_and_translate_numpy(img, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), kernel_type='triangle', antialias=False):
+def tf_scale_and_translate_numpy(img, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), kernel_type='keyscubic', antialias=False):
     n, h, w, c = img.shape
     assert c == len(background_color)
 
