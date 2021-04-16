@@ -191,6 +191,12 @@ class Qt5Viewer:
     def getPainter(self, canvas: QPixmap = None, width: int=None, height: int=None):
         return _QtPainter(self.canvasLabel, canvas, width, height)
 
+    def newCanvas(self, canvas: QPixmap = None, width: int=None, height: int=None):
+        canvasLabel = _QLabel_autoFitToWidgetSize()
+        canvasLabel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.contentLayout.addWidget(canvasLabel)
+        return _QtPainter(canvasLabel, canvas, width, height)
+
     def _onTimerTimeOut(self):
         self.callback()
 
