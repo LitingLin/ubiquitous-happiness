@@ -29,7 +29,7 @@ train:
     eos_coef: 0.0625
 
 val:
-  batch_size: 38
+  batch_size: 16
 
   data:
     repeat_times_per_epoch: 1
