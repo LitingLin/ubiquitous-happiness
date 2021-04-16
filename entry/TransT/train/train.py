@@ -7,7 +7,7 @@ default_config_path = os.path.join(root_path, 'config', 'transt')
 import argparse
 from pathlib import Path
 import Utils.detr_misc as utils
-from training.transt.training_loop import training_loop
+from training.transt.training_loop import run_training_loop
 from training.transt.builder import build_training_actor_and_dataloader
 
 from Utils.yaml_config import load_config
@@ -21,7 +21,6 @@ def get_args_parser():
     parser.add_argument('--train_config', type=str, default=os.path.join(default_config_path, 'train.yaml'), help='Path to the train config')
     parser.add_argument('--train_dataset_config', type=str, default=os.path.join(default_config_path, 'dataset', 'train.yaml'), help='Path to the train dataset config')
     parser.add_argument('--val_dataset_config', type=str, default=os.path.join(default_config_path, 'dataset', 'val.yaml'), help='Path to the val dataset config')
-    parser.add_argument('--detr-pretrained-weight-path', type=str)
     parser.add_argument('--output_dir', default='',
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda',
@@ -53,7 +52,7 @@ def main(args):
     train_config = load_config(args.train_config)
 
     actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, net_config, train_config, args.train_dataset_config, args.val_dataset_config)
-    training_loop(args, train_config, actor, train_data_loader, val_data_loader)
+    run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
 
 
 if __name__ == '__main__':

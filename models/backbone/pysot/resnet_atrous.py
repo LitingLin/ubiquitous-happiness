@@ -227,9 +227,10 @@ def resnet50(**kwargs):
     return model
 
 
-def construct_resnet50_atrous(output_layers=(2, 3, 4)):
+def construct_resnet50_atrous(load_pretrained=True, output_layers=(2, 3, 4)):
     net = ResNet(Bottleneck, [3, 4, 6, 3], output_layers)
     net.num_channels_output = [64, 256, 512, 1024, 2048]
     net.num_channels_output = [net.num_channels_output[i] for i in output_layers]
-    net.load_pretrained()
+    if load_pretrained:
+        net.load_pretrained()
     return net

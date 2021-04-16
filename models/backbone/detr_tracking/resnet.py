@@ -70,6 +70,6 @@ class BackboneWrapper(nn.Module):
         pass
 
 
-def construct_resnet50(dilation=False, output_layers=(4,)):
+def construct_resnet50(load_pretrained, dilation=False, output_layers=(4,)):
     net = torchvision.models.resnet50(pretrained=is_main_process(), norm_layer=FrozenBatchNorm2d, replace_stride_with_dilation=[False, False, dilation])
     return BackboneWrapper(net, output_layers)

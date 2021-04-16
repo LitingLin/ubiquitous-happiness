@@ -11,7 +11,8 @@ data:
 backbone:
   type: resnet50_atrous
   position_embedding: sine
-  output_layers: [3]
+  parameters:
+    output_layers: [3]
 
 transformer:
   position_embedding: sine

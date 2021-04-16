@@ -32,9 +32,9 @@ class TransTTracking(nn.Module):
         return outputs_class[-1], outputs_coord[-1]
 
 
-def build_transt(network_config: dict):
+def build_transt(network_config: dict, load_pretrained=True):
     from .feature_fusion import build_featurefusion_network
     from .backbone import build_backbone
     transformer = build_featurefusion_network(network_config)
-    backbone = build_backbone(network_config)
+    backbone = build_backbone(network_config, load_pretrained)
     return TransTTracking(backbone, transformer)

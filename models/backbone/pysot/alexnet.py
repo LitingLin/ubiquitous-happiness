@@ -95,8 +95,10 @@ class AlexNet(nn.Module):
                        map_location='cpu'), strict=True)
 
 
-def construct_alexnet(width_mult=1, output_layers=(4,)):
+def construct_alexnet(load_pretrained, width_mult=1, output_layers=(4,)):
     net = AlexNet(width_mult=width_mult, output_layers=output_layers)
     net.num_channels_output = net.configs[1:]
     net.num_channels_output = [net.num_channels_output[i] for i in output_layers]
+    if load_pretrained:
+        net.load_pretrained()
     return net

@@ -30,7 +30,7 @@ def _setup_optimizer(model, train_config):
 
 
 def build_transt_training_actor(args, net_config: dict, train_config: dict, epoch_changed_event_signal_slots=None):
-    model = build_transt(net_config)
+    model = build_transt(net_config, True)
     device = torch.device(args.device)
 
     criterion = build_transt_criterion(train_config)
