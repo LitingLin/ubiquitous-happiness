@@ -12,6 +12,8 @@ class TransTBackbone(nn.Module):
 
     def forward(self, x):
         x_feat = self.backbone(x)
+        if isinstance(x_feat, (list, tuple)):
+            x_feat = x_feat[0]
         return x_feat, self.position_encoding(x_feat)
 
 
@@ -32,7 +34,8 @@ def build_backbone(net_config: dict, load_pretrained=True):
         from models.backbone.detr_tracking.resnet import construct_resnet50
         backbone = construct_resnet50(load_pretrained, **backbone_build_params)
     elif backbone_config['type'] == 'swin_transformer':
-        pass
+        from models.backbone.swint.swin_transformer import build_swint_backbone
+        backbone = build_swint_backbone(load_pretrained=load_pretrained, **backbone_build_params)
     else:
         raise Exception(f'unsupported {backbone_config["type"]}')
 
