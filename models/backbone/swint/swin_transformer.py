@@ -577,7 +577,7 @@ class SwinTransformer(nn.Module):
 
         if isinstance(pretrained, str):
             self.apply(_init_weights)
-            self.load_state_dict(torch.hub.load_state_dict_from_url(pretrained)['model'], strict=False)
+            self.load_state_dict(torch.hub.load_state_dict_from_url(pretrained, map_location='cpu')['model'], strict=False)
             # from models.backbone.swint.load_pretrained import load_checkpoint
             # load_checkpoint(self, pretrained, strict=False)
         elif pretrained is None:
