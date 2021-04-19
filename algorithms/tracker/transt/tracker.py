@@ -3,12 +3,13 @@ import torch.nn.functional as F
 
 
 class TransTTracker(object):
-    def __init__(self, model, device, window_penalty, template_size, search_size, search_feat_size, template_area_factor, search_area_factor):
+    def __init__(self, model, device, window_penalty, min_wh, template_size, search_size, search_feat_size, template_area_factor, search_area_factor):
         model = model.to(device)
         model.eval()
         self.net = model
         self.device = device
         self.window_penalty = window_penalty
+        self.min_wh = min_wh
         self.template_size = template_size
         self.search_size = search_size
         self.search_feat_size = search_feat_size
@@ -71,7 +72,7 @@ class TransTTracker(object):
         bbox = pred_bbox[:, best_idx]
 
         from data.TransT.label_generation import get_bounding_box_from_label
-        bbox = get_bounding_box_from_label(bbox, self.search_size)
+        bbox = get_bounding_box_from_label(bbox, self.search_size, self.min_wh)
         from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
         bbox = bbox_scale_and_translate(bbox, [1.0 / curation_scaling_ for curation_scaling_ in curation_scaling], curation_target_center_point, curation_source_center_point)
         from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary

@@ -36,7 +36,7 @@ def generate_target_bounding_box_label_matrix(bbox, search_region_size, target_f
     return bbox.repeat(length, 1)
 
 
-def get_bounding_box_from_label(label, search_region_size):
+def get_bounding_box_from_label(label, search_region_size, min_wh=None):
     label = label.tolist()
 
     from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
@@ -44,6 +44,12 @@ def get_bounding_box_from_label(label, search_region_size):
     from data.operator.bbox.spatial.cxcywh2xywh import bbox_cxcywh2xywh
 
     bbox = bbox_denormalize(label, search_region_size)
+
+    if min_wh is not None:
+        if bbox[2] < min_wh[0]:
+            bbox[2] = min_wh[0]
+        if bbox[3] < min_wh[1]:
+            bbox[3] = min_wh[1]
 
     bbox = bbox_cxcywh2xywh(bbox)
     return bbox_xywh2xyxy(bbox)
