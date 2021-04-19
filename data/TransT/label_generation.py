@@ -46,6 +46,7 @@ def get_bounding_box_from_label(label, search_region_size, min_wh=None):
     bbox = bbox_denormalize(label, search_region_size)
 
     if min_wh is not None:
+        bbox = list(bbox)
         if bbox[2] < min_wh[0]:
             bbox[2] = min_wh[0]
         if bbox[3] < min_wh[1]:
