@@ -1,3 +1,4 @@
+name: TransT-Swin-SameLR
 data:
   area_factor:
     template: 2.0
