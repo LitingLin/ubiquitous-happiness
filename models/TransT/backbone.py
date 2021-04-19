@@ -36,6 +36,9 @@ def build_backbone(net_config: dict, load_pretrained=True):
     elif backbone_config['type'] == 'swin_transformer':
         from models.backbone.swint.swin_transformer import build_swint_backbone
         backbone = build_swint_backbone(load_pretrained=load_pretrained, **backbone_build_params)
+    elif backbone_config['type'] == 'resnet50_pytracking':
+        from .resnet50 import resnet50
+        backbone = resnet50(pretrained=load_pretrained, **backbone_build_params)
     else:
         raise Exception(f'unsupported {backbone_config["type"]}')
 
