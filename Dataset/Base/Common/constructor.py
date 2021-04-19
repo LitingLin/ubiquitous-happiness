@@ -20,7 +20,7 @@ video_dataset_sequence_object_key_exclude_list = ('category_id', 'id')
 video_dataset_frame_object_key_exclude_list = ('id', 'bounding_box')
 
 
-class DatasetConstructorProcessBar:
+class DatasetProcessBar:
     def __init__(self):
         self.pbar = None
         self.total = None
@@ -80,7 +80,7 @@ class _DatasetConstructionContext:
         self.pixel_coordinate_system = None
         self.bounding_box_coordinate_system = None
         self.pixel_definition = None
-        self.pbar = DatasetConstructorProcessBar()
+        self.pbar = DatasetProcessBar()
 
     def initialize_from(self, dataset: dict):
         if 'context' in dataset:

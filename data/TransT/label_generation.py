@@ -36,6 +36,19 @@ def generate_target_bounding_box_label_matrix(bbox, search_region_size, target_f
     return bbox.repeat(length, 1)
 
 
+def get_bounding_box_from_label(label, search_region_size):
+    label = label.tolist()
+
+    from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
+    from data.operator.bbox.spatial.xywh2xyxy import bbox_xywh2xyxy
+    from data.operator.bbox.spatial.cxcywh2xywh import bbox_cxcywh2xywh
+
+    bbox = bbox_denormalize(label, search_region_size)
+
+    bbox = bbox_cxcywh2xywh(bbox)
+    return bbox_xywh2xyxy(bbox)
+
+
 def label_generation(bbox, search_feat_size, search_region_size):
     target_feat_map_indices = get_target_feat_map_indices(search_feat_size, search_region_size, bbox)
     target_class_label_vector = generate_target_class_vector(search_feat_size, target_feat_map_indices)

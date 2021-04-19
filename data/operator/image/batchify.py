@@ -11,3 +11,7 @@ def tf_unbatchify(tensor):
 
 def unbatchify(tensor):
     return tensor.squeeze()
+
+
+def torch_batchify(tensor):
+    return tensor.unsqueeze(0)

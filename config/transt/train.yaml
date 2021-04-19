@@ -3,8 +3,8 @@ data:
     template: 0
     search: 0.25
   translation_jitter_factor:
-    search: 3
     template: 0
+    search: 3
   gray_scale_probability: 0.05
   color_jitter: 0.4
 

@@ -30,6 +30,8 @@ class _SimplePrefetcherIterator:
                             if len(self.queue) != 0:
                                 break
                             elif self.end_flag:
+                                if self.exp is not None:
+                                    raise self.exp
                                 raise StopIteration
                             # Release GIL
                             if not self.thread.is_alive():
@@ -58,11 +60,12 @@ class _SimplePrefetcherIterator:
                     if len(self.queue) == 1:
                         with self.produced_condition:
                             self.produced_condition.notify()
-                except StopIteration:
+                except (StopIteration, IndexError):
                     break
-            self.end_flag = True
         except Exception as e:
             self.exp = e
+        finally:
+            self.end_flag = True
 
 
 class SimplePrefetcher:

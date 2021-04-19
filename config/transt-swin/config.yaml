@@ -1,3 +1,4 @@
+name: TransT-Swin
 data:
   area_factor:
     template: 2.0

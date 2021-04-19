@@ -31,6 +31,23 @@ class TransTTracking(nn.Module):
 
         return outputs_class[-1], outputs_coord[-1]
 
+    def template(self, z):
+        z_feat, z_feat_pos = self.backbone(z)
+        z_feat = self.input_proj(z_feat)
+        return z_feat, z_feat_pos
+
+    def track(self, z_feats, x):
+        z_feat, z_feat_pos = z_feats
+        x_feat, x_feat_pos = self.backbone(x)
+        x_feat = self.input_proj(x_feat)
+
+        hs = self.transformer(z_feat, x_feat, z_feat_pos, x_feat_pos)
+
+        outputs_class = self.class_embed(hs)
+        outputs_coord = self.bbox_embed(hs).sigmoid()
+
+        return outputs_class[-1], outputs_coord[-1]
+
 
 def build_transt(network_config: dict, load_pretrained=True):
     from .feature_fusion import build_featurefusion_network
