@@ -28,9 +28,4 @@ if __name__ == '__main__':
 
     tracker = build_transt_tracker(network_config, evaluation_config, args.weight_path, args.device)
 
-    result_path = os.path.join(args.output_path, 'results')
-    os.makedirs(result_path, exist_ok=True)
-    report_path = os.path.join(args.output_path, 'reports')
-    os.makedirs(report_path, exist_ok=True)
-
     run_standard_evaluation(network_config['name'], tracker, args.output_path)
