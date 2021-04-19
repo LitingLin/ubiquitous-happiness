@@ -101,7 +101,7 @@ def transt_preprocessing_pipeline(image, bbox, output_size, curation_scaling, cu
     output_image = unbatchify(output_image)
 
     if transform is not None:
-        output_image /= 255
+        output_image /= 255.0
         output_image = transform(output_image)
 
     output_image = torch_batchify(output_image)
@@ -121,7 +121,7 @@ def transt_training_preprocessing_pipeline(image, bbox, area_factor, output_size
     image = unbatchify(image)
 
     if transform is not None:
-        image /= 255
+        image /= 255.0
         image = transform(image)
 
     return image, bbox
