@@ -72,11 +72,12 @@ class TransTTracker(object):
         bbox = pred_bbox[:, best_idx]
 
         from data.TransT.label_generation import get_bounding_box_from_label
-        bbox = get_bounding_box_from_label(bbox, self.search_size, self.min_wh)
+        bbox = get_bounding_box_from_label(bbox, self.search_size)
         from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
         bbox = bbox_scale_and_translate(bbox, [1.0 / curation_scaling_ for curation_scaling_ in curation_scaling], curation_target_center_point, curation_source_center_point)
         from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary
         bbox = bounding_box_fit_in_image_boundary(bbox, (w, h))
-        self.object_bbox = bbox
+        if not (bbox[2] - bbox[0] < self.min_wh[0] or bbox[3] - bbox[1] < self.min_wh[1]):
+            self.object_bbox = bbox
 
         return bbox
