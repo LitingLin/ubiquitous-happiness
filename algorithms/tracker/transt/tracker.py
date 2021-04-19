@@ -48,7 +48,6 @@ class TransTTracker(object):
         self.z = self.net.template(curated_template_image)
 
     def track(self, image):
-        n, h, w, c = image.shape
         from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_preprocessing_pipeline
         curation_scaling, curation_source_center_point, curation_target_center_point = \
             get_scaling_and_translation_parameters(self.object_bbox, self.search_area_factor, self.search_size)
@@ -75,9 +74,39 @@ class TransTTracker(object):
         bbox = get_bounding_box_from_label(bbox, self.search_size)
         from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
         bbox = bbox_scale_and_translate(bbox, [1.0 / curation_scaling_ for curation_scaling_ in curation_scaling], curation_target_center_point, curation_source_center_point)
-        from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary
-        bbox = bounding_box_fit_in_image_boundary(bbox, (w, h))
-        if not (bbox[2] - bbox[0] < self.min_wh[0] or bbox[3] - bbox[1] < self.min_wh[1]):
-            self.object_bbox = bbox
+
+        self._update_target_bbox_state(bbox, image)
 
         return bbox
+
+    def _update_target_bbox_state(self, bbox, image):
+        n, h, w, c = image.shape
+        from data.operator.bbox.spatial.xyxy2cxcywh import bbox_xyxy2cxcywh
+        from data.operator.bbox.spatial.cxcywh2xyxy import bbox_cxcywh2xyxy
+        from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary, \
+            get_image_bounding_box
+        bbox = bounding_box_fit_in_image_boundary(bbox, (w, h))
+        image_boundary = get_image_bounding_box((w, h))
+
+        if self.min_wh[0] < (image_boundary[2] - image_boundary[0]) and self.min_wh[1] < (image_boundary[3] - image_boundary[1]):
+            bbox = list(bbox_xyxy2cxcywh(bbox))
+
+            if bbox[2] < self.min_wh[0]:
+                bbox[2] = self.min_wh[0]
+            if bbox[3] < self.min_wh[1]:
+                bbox[3] = self.min_wh[1]
+
+            valid_bbox_center_image_boundary = [image_boundary[0] + self.min_wh[0] / 2,
+                                                image_boundary[1] + self.min_wh[1] / 2,
+                                                image_boundary[2] - self.min_wh[0] / 2,
+                                                image_boundary[3] - self.min_wh[1] / 2]
+            if bbox[0] < valid_bbox_center_image_boundary[0]:
+                bbox[0] = valid_bbox_center_image_boundary[0]
+            if bbox[1] < valid_bbox_center_image_boundary[1]:
+                bbox[1] = valid_bbox_center_image_boundary[1]
+            if bbox[0] > valid_bbox_center_image_boundary[2]:
+                bbox[0] = valid_bbox_center_image_boundary[2]
+            if bbox[1] > valid_bbox_center_image_boundary[3]:
+                bbox[1] = valid_bbox_center_image_boundary[3]
+            bbox = bbox_cxcywh2xyxy(bbox)
+        self.object_bbox = bbox
