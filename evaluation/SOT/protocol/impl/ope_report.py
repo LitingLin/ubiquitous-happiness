@@ -111,8 +111,10 @@ def generate_sequence_report(sequence: SingleObjectTrackingDatasetSequence_Memor
         ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve = _get_mean_of_multiple_run(metrics)
         running_times = np.mean(running_times, axis=0)
     else:
-        ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve = _calculate_evaluation_metrics(bounding_boxes, sequence, parameter)
-    sequence_report = _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve, running_times)
+        ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve = _calculate_evaluation_metrics(
+            bounding_boxes, sequence, parameter)
+    sequence_report = _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve,
+                                                running_times)
 
     report_file_path = os.path.join(report_path, 'report.json')
     if not os.path.exists(report_file_path):
@@ -125,7 +127,8 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
                             parameter: OPEEvaluationParameter = OPEEvaluationParameter):
     with open(os.path.join(report_path, 'sequences_report.csv'), 'w') as f:
         csv_writer = csv.writer(f)
-        csv_writer.writerow(('Sequence Name', 'Success Score', 'Precision Score', 'Normalized Precision Score', 'Average Overlap', 'Success Rate @ IOU 0.5', 'Success Rate @ IOU 0.75', 'FPS'))
+        csv_writer.writerow(('Sequence Name', 'Success Score', 'Precision Score', 'Normalized Precision Score',
+                             'Average Overlap', 'Success Rate @ IOU>=0.5', 'Success Rate @ IOU>=0.75', 'FPS'))
         for sequence, sequence_report in zip(dataset, sequence_reports):
             csv_writer.writerow((sequence.get_name(), sequence_report['success_score'],
                                  sequence_report['precision_score'], sequence_report['normalized_precision_score'],
@@ -135,27 +138,33 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
 
     success_curve = np.mean([sequence_report['success_curve'] for sequence_report in sequence_reports], axis=0)
     precision_curve = np.mean([sequence_report['precision_curve'] for sequence_report in sequence_reports], axis=0)
-    normalized_precision_curve = np.mean([sequence_report['normalized_precision_curve'] for sequence_report in sequence_reports], axis=0)
+    normalized_precision_curve = np.mean(
+        [sequence_report['normalized_precision_curve'] for sequence_report in sequence_reports], axis=0)
 
     draw_success_plot(success_curve[np.newaxis, :], [tracker_name], report_path, parameter=parameter)
     draw_precision_plot(precision_curve[np.newaxis, :], [tracker_name], report_path, parameter=parameter)
-    draw_normalized_precision_plot(normalized_precision_curve[np.newaxis, :], [tracker_name], report_path, parameter=parameter)
+    draw_normalized_precision_plot(normalized_precision_curve[np.newaxis, :], [tracker_name], report_path,
+                                   parameter=parameter)
 
     success_score = np.mean(success_curve)
     precision_score = precision_curve[20]
     normalized_precision_score = normalized_precision_curve[20]
 
     average_overlap = np.mean([sequence_report['average_overlap'] for sequence_report in sequence_reports])
-    success_rate_at_iou_0_5 = np.mean([sequence_report['success_rate_at_iou_0.5'] for sequence_report in sequence_reports])
-    success_rate_at_iou_0_75 = np.mean([sequence_report['success_rate_at_iou_0.75'] for sequence_report in sequence_reports])
+    success_rate_at_iou_0_5 = np.mean(
+        [sequence_report['success_rate_at_iou_0.5'] for sequence_report in sequence_reports])
+    success_rate_at_iou_0_75 = np.mean(
+        [sequence_report['success_rate_at_iou_0.75'] for sequence_report in sequence_reports])
 
+    dataset_report = {'success_score': success_score,
+                      'precision_score': precision_score,
+                      'normalized_precision_score': normalized_precision_score,
+                      'average_overlap': average_overlap,
+                      'success_rate_at_iou_0.5': success_rate_at_iou_0_5,
+                      'success_rate_at_iou_0.75': success_rate_at_iou_0_75}
     with open(os.path.join(report_path, 'report.json'), 'w') as f:
-        json.dump({'success_score': success_score,
-                   'precision_score': precision_score,
-                   'normalized_precision_score': normalized_precision_score,
-                   'average_overlap': average_overlap,
-                   'success_rate_at_iou_0.5': success_rate_at_iou_0_5,
-                   'success_rate_at_iou_0.75': success_rate_at_iou_0_75}, f, indent=2)
+        json.dump(dataset_report, f, indent=2)
+    return dataset_report
 
 
 def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
@@ -169,6 +178,8 @@ def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjec
     os.mkdir(sequences_report_path)
 
     result_path = os.path.join(output_path, 'ope', tracker_name, 'result')
+
+    dataset_reports = {}
 
     for dataset in datasets:
         process_bar = DatasetProcessBar()
@@ -194,13 +205,27 @@ def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjec
                 sequence_result_path, _ = get_sequence_result_path(result_path, sequence)
                 bounding_boxes = _load_predicted_bounding_boxes(sequence_result_path)
                 running_times = _load_running_time(sequence_result_path)
-            sequence_reports.append(generate_sequence_report(sequence, sequence_report_path, bounding_boxes, running_times, run_times))
+            sequence_reports.append(
+                generate_sequence_report(sequence, sequence_report_path, bounding_boxes, running_times, run_times))
             process_bar.update()
 
         print(f'Generating {dataset.get_name()} dataset report...', end=' ')
         dataset_report_path = os.path.join(report_path, dataset.get_name())
         os.mkdir(dataset_report_path)
-        generate_dataset_report(tracker_name, sequence_reports, dataset, dataset_report_path, parameter)
+        dataset_reports[dataset.get_name()] = generate_dataset_report(tracker_name, sequence_reports, dataset, dataset_report_path, parameter)
         print('done')
 
         process_bar.close()
+
+    print(f'Generating all datasets report...', end=' ')
+    with open(os.path.join(report_path, 'report.csv'), 'w') as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerow(('Dataset Name', 'Success Score', 'Precision Score', 'Normalized Precision Score',
+                             'Average Overlap', 'Success Rate @ IOU>=0.5', 'Success Rate @ IOU>=0.75', 'FPS'))
+        for dataset_name, dataset_report in dataset_reports.items():
+            csv_writer.writerow((dataset_name, dataset_report['success_score'],
+                                 dataset_report['precision_score'], dataset_report['normalized_precision_score'],
+                                 dataset_report['average_overlap'], dataset_report['success_rate_at_iou_0.5'],
+                                 dataset_report['success_rate_at_iou_0.75'],
+                                 dataset_report['fps']))
+    print('done')
