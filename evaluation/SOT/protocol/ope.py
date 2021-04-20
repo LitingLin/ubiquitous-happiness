@@ -5,10 +5,19 @@ class OPEEvaluationParameter:
 
 
 def run_OPE_evalutation_and_generate_report(tracker_name, tracker, datasets, output_path, run_times=None, parameter: OPEEvaluationParameter = OPEEvaluationParameter):
-    from evaluation.SOT.protocol.impl.ope_run_evalution import run_one_pass_evaluation
-    run_one_pass_evaluation(tracker_name, tracker, datasets, output_path, run_times)
-    from evaluation.SOT.protocol.impl.ope_report import generate_report_one_pass_evaluation
-    generate_report_one_pass_evaluation(tracker_name, datasets, output_path, run_times, parameter)
+    from evaluation.SOT.protocol.impl.ope_run_evalution import prepare_result_path, run_one_pass_evaluation_on_dataset
+    from evaluation.SOT.protocol.impl.ope_report import prepare_report_path, generate_dataset_report_one_pass_evaluation, dump_datasets_report
+
+    result_path = prepare_result_path(output_path, datasets, tracker_name)
+    report_path, sequences_report_path = prepare_report_path(output_path, tracker_name)
+
+    datasets_report = {}
+
+    for dataset in datasets:
+        run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times)
+        datasets_report[dataset.get_name()] = generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_path, report_path, sequences_report_path, run_times, parameter)
+
+    dump_datasets_report(report_path, datasets_report)
 
 
 def pack_OPE_result_and_report(tracker_name, output_path):

@@ -81,23 +81,32 @@ def check_no_sequence_name_conflict(datasets):
             names.add(sequence.get_name())
 
 
-def run_one_pass_evaluation(tracker_name, tracker, datasets: List[SingleObjectTrackingDataset_MemoryMapped], output_path: str, run_times: Optional[int]=None):
+def run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times=None):
+    process_bar = DatasetProcessBar()
+    process_bar.set_dataset_name(dataset.get_name())
+    total_sequences = len(dataset)
+    if run_times is not None:
+        total_sequences *= run_times
+    process_bar.set_total(total_sequences)
+    for sequence in dataset:
+        if run_times is not None:
+            for run_time in range(run_times):
+                run_one_pass_evaluation_on_sequence(tracker, sequence, result_path, run_time, process_bar)
+        else:
+            run_one_pass_evaluation_on_sequence(tracker, sequence, result_path, None, process_bar)
+    process_bar.close()
+
+
+def prepare_result_path(output_path, datasets, tracker_name):
     output_path = os.path.join(output_path, 'ope', tracker_name, 'result')
     os.makedirs(output_path, exist_ok=True)
 
     check_no_sequence_name_conflict(datasets)
+    return output_path
+
+
+def run_one_pass_evaluation(tracker_name, tracker, datasets: List[SingleObjectTrackingDataset_MemoryMapped], output_path: str, run_times: Optional[int]=None):
+    result_path = prepare_result_path(output_path, datasets, tracker_name)
 
     for dataset in datasets:
-        process_bar = DatasetProcessBar()
-        process_bar.set_dataset_name(dataset.get_name())
-        total_sequences = len(dataset)
-        if run_times is not None:
-            total_sequences *= run_times
-        process_bar.set_total(total_sequences)
-        for sequence in dataset:
-            if run_times is not None:
-                for run_time in range(run_times):
-                    run_one_pass_evaluation_on_sequence(tracker, sequence, output_path, run_time, process_bar)
-            else:
-                run_one_pass_evaluation_on_sequence(tracker, sequence, output_path, None, process_bar)
-        process_bar.close()
+        run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times)

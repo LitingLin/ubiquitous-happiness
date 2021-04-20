@@ -155,77 +155,96 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
         [sequence_report['success_rate_at_iou_0.5'] for sequence_report in sequence_reports])
     success_rate_at_iou_0_75 = np.mean(
         [sequence_report['success_rate_at_iou_0.75'] for sequence_report in sequence_reports])
+    fps = np.mean(
+        [sequence_report['fps'] for sequence_report in sequence_reports])
 
     dataset_report = {'success_score': success_score,
                       'precision_score': precision_score,
                       'normalized_precision_score': normalized_precision_score,
                       'average_overlap': average_overlap,
                       'success_rate_at_iou_0.5': success_rate_at_iou_0_5,
-                      'success_rate_at_iou_0.75': success_rate_at_iou_0_75}
+                      'success_rate_at_iou_0.75': success_rate_at_iou_0_75,
+                      'fps': fps}
     with open(os.path.join(report_path, 'report.json'), 'w') as f:
         json.dump(dataset_report, f, indent=2)
     return dataset_report
 
 
-def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
-                                        output_path: str, run_times: Optional[int] = None,
+def generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_path, report_path, sequences_report_path, run_times=None,
                                         parameter: OPEEvaluationParameter = OPEEvaluationParameter):
-    report_path = os.path.join(output_path, 'ope', tracker_name, 'report')
-    if os.path.exists(report_path):
-        shutil.rmtree(report_path)
-    os.makedirs(report_path)
-    sequences_report_path = os.path.join(report_path, 'sequences')
-    os.mkdir(sequences_report_path)
+    process_bar = DatasetProcessBar()
+    process_bar.set_dataset_name(dataset.get_name())
+    process_bar.set_total(len(dataset))
+    sequence_reports = []
+    for sequence in dataset:
+        process_bar.set_sequence_name(sequence.get_name())
 
-    result_path = os.path.join(output_path, 'ope', tracker_name, 'result')
+        sequence_report_path = os.path.join(sequences_report_path, sequence.get_name())
 
-    dataset_reports = {}
+        if not os.path.exists(sequence_report_path):
+            os.mkdir(sequence_report_path)
 
-    for dataset in datasets:
-        process_bar = DatasetProcessBar()
-        process_bar.set_dataset_name(dataset.get_name())
-        process_bar.set_total(len(dataset))
-        sequence_reports = []
-        for sequence in dataset:
-            process_bar.set_sequence_name(sequence.get_name())
+        if run_times is not None:
+            bounding_boxes = []
+            running_times = []
+            for run_time in range(run_times):
+                sequence_result_path, _ = get_sequence_result_path(result_path, sequence, run_time)
+                bounding_boxes.append(_load_predicted_bounding_boxes(sequence_result_path))
+                running_times.append(_load_running_time(sequence_result_path))
+        else:
+            sequence_result_path, _ = get_sequence_result_path(result_path, sequence)
+            bounding_boxes = _load_predicted_bounding_boxes(sequence_result_path)
+            running_times = _load_running_time(sequence_result_path)
+        sequence_reports.append(
+            generate_sequence_report(sequence, sequence_report_path, bounding_boxes, running_times, run_times))
+        process_bar.update()
 
-            sequence_report_path = os.path.join(sequences_report_path, sequence.get_name())
+    print(f'Generating {dataset.get_name()} dataset report...', end=' ')
+    dataset_report_path = os.path.join(report_path, dataset.get_name())
+    os.mkdir(dataset_report_path)
+    dataset_report = generate_dataset_report(tracker_name, sequence_reports, dataset,
+                                                                  dataset_report_path, parameter)
+    print('done')
 
-            if not os.path.exists(sequence_report_path):
-                os.mkdir(sequence_report_path)
+    process_bar.close()
+    return dataset_report
 
-            if run_times is not None:
-                bounding_boxes = []
-                running_times = []
-                for run_time in range(run_times):
-                    sequence_result_path, _ = get_sequence_result_path(result_path, sequence, run_time)
-                    bounding_boxes.append(_load_predicted_bounding_boxes(sequence_result_path))
-                    running_times.append(_load_running_time(sequence_result_path))
-            else:
-                sequence_result_path, _ = get_sequence_result_path(result_path, sequence)
-                bounding_boxes = _load_predicted_bounding_boxes(sequence_result_path)
-                running_times = _load_running_time(sequence_result_path)
-            sequence_reports.append(
-                generate_sequence_report(sequence, sequence_report_path, bounding_boxes, running_times, run_times))
-            process_bar.update()
 
-        print(f'Generating {dataset.get_name()} dataset report...', end=' ')
-        dataset_report_path = os.path.join(report_path, dataset.get_name())
-        os.mkdir(dataset_report_path)
-        dataset_reports[dataset.get_name()] = generate_dataset_report(tracker_name, sequence_reports, dataset, dataset_report_path, parameter)
-        print('done')
-
-        process_bar.close()
-
+def dump_datasets_report(report_path, datasets_report):
     print(f'Generating all datasets report...', end=' ')
     with open(os.path.join(report_path, 'report.csv'), 'w') as f:
         csv_writer = csv.writer(f)
         csv_writer.writerow(('Dataset Name', 'Success Score', 'Precision Score', 'Normalized Precision Score',
                              'Average Overlap', 'Success Rate @ IOU>=0.5', 'Success Rate @ IOU>=0.75', 'FPS'))
-        for dataset_name, dataset_report in dataset_reports.items():
+        for dataset_name, dataset_report in datasets_report.items():
             csv_writer.writerow((dataset_name, dataset_report['success_score'],
                                  dataset_report['precision_score'], dataset_report['normalized_precision_score'],
                                  dataset_report['average_overlap'], dataset_report['success_rate_at_iou_0.5'],
                                  dataset_report['success_rate_at_iou_0.75'],
                                  dataset_report['fps']))
     print('done')
+
+
+def prepare_report_path(output_path, tracker_name):
+    report_path = os.path.join(output_path, 'ope', tracker_name, 'report')
+    if os.path.exists(report_path):
+        shutil.rmtree(report_path)
+    os.makedirs(report_path)
+    sequences_report_path = os.path.join(report_path, 'sequences')
+    os.mkdir(sequences_report_path)
+    return report_path, sequences_report_path
+
+
+def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
+                                        output_path: str, run_times: Optional[int] = None,
+                                        parameter: OPEEvaluationParameter = OPEEvaluationParameter):
+    report_path, sequences_report_path = prepare_report_path(output_path, tracker_name)
+    from .ope_run_evalution import prepare_result_path
+    result_path = prepare_result_path(output_path, datasets, tracker_name)
+
+    datasets_report = {}
+
+    for dataset in datasets:
+        datasets_report[dataset.get_name()] = generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_path, report_path, sequences_report_path, run_times, parameter)
+
+    dump_datasets_report(report_path, datasets_report)
