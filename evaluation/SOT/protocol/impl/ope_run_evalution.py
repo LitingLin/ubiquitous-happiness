@@ -73,9 +73,19 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
     process_bar.update()
 
 
+def check_no_sequence_name_conflict(datasets):
+    names = set()
+    for dataset in datasets:
+        for sequence in dataset:
+            assert sequence.get_name() not in names
+            names.add(sequence.get_name())
+
+
 def run_one_pass_evaluation(tracker_name, tracker, datasets: List[SingleObjectTrackingDataset_MemoryMapped], output_path: str, run_times: Optional[int]=None):
     output_path = os.path.join(output_path, 'ope', tracker_name, 'result')
     os.makedirs(output_path, exist_ok=True)
+
+    check_no_sequence_name_conflict(datasets)
 
     for dataset in datasets:
         process_bar = DatasetProcessBar()

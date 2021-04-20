@@ -27,3 +27,14 @@ def run_standard_evaluation(tracker_name, tracker, output_path, run_times=None):
     from evaluation.SOT.protocol.ope import run_OPE_evalutation_and_generate_report, pack_OPE_result_and_report
     run_OPE_evalutation_and_generate_report(tracker_name, tracker, datasets, output_path, run_times)
     pack_OPE_result_and_report(tracker_name, output_path)
+
+
+def visualize_sequence(result_path, sequence_name, output_video_file_path, run_time=None):
+    from evaluation.SOT.protocol.ope import OPE_visualize_sequence
+
+    datasets = get_standard_evaluation_datasets()
+    for dataset in datasets:
+        for sequence in dataset:
+            if sequence.get_name() == sequence_name:
+                OPE_visualize_sequence(result_path, sequence, output_video_file_path, run_time)
+                return

@@ -1,8 +1,6 @@
 class IdentityTracker:
-    @staticmethod
-    def initialize(image, bbox):
-        pass
+    def initialize(self, image, bbox):
+        self.bbox = bbox
 
-    @staticmethod
-    def track(bbox):
-        return bbox
+    def track(self, image):
+        return self.bbox

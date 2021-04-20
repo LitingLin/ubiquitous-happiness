@@ -57,7 +57,6 @@ def construct_LaSOT_Extension(constructor: SingleObjectTrackingDatasetConstructo
             for index_of_frame, (bounding_box, is_fully_occlusion, is_out_of_view) in enumerate(
                     zip(bounding_boxes, is_fully_occlusions, is_out_of_views)):
                 with sequence_constructor.open_frame(index_of_frame) as frame_constructor:
-                    frame_constructor.set_path(image_path)
                     frame_constructor.set_bounding_box(bounding_box.tolist(), validity=not(is_fully_occlusion or is_out_of_view))
                     frame_constructor.set_object_attribute('occlusion', is_fully_occlusion.item())
                     frame_constructor.set_object_attribute('out of view', is_out_of_view.item())
