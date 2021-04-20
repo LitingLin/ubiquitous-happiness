@@ -23,7 +23,8 @@ def get_sequence_result_path(result_path, sequence, run_time=None):
 def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingDatasetSequence_MemoryMapped, result_path, run_time, process_bar: DatasetProcessBar):
     result_path, sequence_name = get_sequence_result_path(result_path, sequence, run_time)
     if os.path.exists(result_path):
-        print(f'{sequence_name} evaluated')
+        process_bar.set_sequence_name(f'{sequence_name}: evaluated')
+        process_bar.update()
         return
 
     tmp_path = result_path + '-tmp'

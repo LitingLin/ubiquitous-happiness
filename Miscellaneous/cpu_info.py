@@ -3,9 +3,8 @@ import os, platform, subprocess, re
 
 def get_processor_name():
     if platform.system() == "Windows":
-        family = platform.processor()
         name = subprocess.check_output(["wmic", "cpu", "get", "name"], universal_newlines=True).strip().split("\n")[-1]
-        return ' '.join([name, family])
+        return name
     elif platform.system() == "Darwin":
         os.environ['PATH'] = os.environ['PATH'] + os.pathsep + '/usr/sbin'
         command = "sysctl -n machdep.cpu.brand_string"
