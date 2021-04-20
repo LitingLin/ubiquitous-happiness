@@ -69,8 +69,7 @@ def _calculate_evaluation_metrics(predicted_bounding_boxes,
     return ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve
 
 
-def _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve, running_time,
-                              parameter: OPEEvaluationParameter = OPEEvaluationParameter):
+def _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve, running_time):
     return {
         'average_overlap': ao,
         'success_rate_at_iou_0.5': sr_at_0_5,
@@ -81,7 +80,6 @@ def _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve,
         'success_score': np.mean(succ_curve),
         'precision_score': prec_curve[20],  # center location error @ 20 pix
         'normalized_precision_score': np.mean(norm_prec_curve),
-        'success_rate': succ_curve[parameter.bins_of_intersection_of_union // 2],  # iou @ 0.5
         'running_time': running_time.tolist(),
         'fps': 1.0 / np.mean(running_time)}
 
@@ -113,12 +111,12 @@ def generate_sequence_report(sequence: SingleObjectTrackingDatasetSequence_Memor
         running_times = np.mean(running_times, axis=0)
     else:
         ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve = _calculate_evaluation_metrics(bounding_boxes, sequence, parameter)
-    sequence_report = _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve, running_times, parameter)
+    sequence_report = _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve, running_times)
 
     report_file_path = os.path.join(report_path, 'report.json')
     if not os.path.exists(report_file_path):
         with open(os.path.join(report_path, 'report.json'), 'w') as f:
-            json.dump(sequence_report, f)
+            json.dump(sequence_report, f, indent=2)
     return sequence_report
 
 
@@ -156,7 +154,7 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
                    'normalized_precision_score': normalized_precision_score,
                    'average_overlap': average_overlap,
                    'success_rate_at_iou_0.5': success_rate_at_iou_0_5,
-                   'success_rate_at_iou_0.75': success_rate_at_iou_0_75,}, f)
+                   'success_rate_at_iou_0.75': success_rate_at_iou_0_75,}, f, indent=2)
 
 
 def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
