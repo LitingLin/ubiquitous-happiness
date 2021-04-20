@@ -62,10 +62,11 @@ def _calculate_evaluation_metrics(predicted_bounding_boxes,
         normalized_center_location_errors = normalized_center_location_errors[
             sequence.get_all_bounding_box_validity_flag()]
 
-    ao, sr_at_0_5, sr_at_0_75 = _calc_ao_sr(ious)
-
     succ_curve, prec_curve, norm_prec_curve = _calc_curves(ious, center_location_errors,
                                                            normalized_center_location_errors, parameter)
+    ious[ious < 0.] = 0
+    ao, sr_at_0_5, sr_at_0_75 = _calc_ao_sr(ious)
+
     return ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve
 
 
@@ -79,7 +80,7 @@ def _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve,
         'normalized_precision_curve': norm_prec_curve.tolist(),
         'success_score': np.mean(succ_curve),
         'precision_score': prec_curve[20],  # center location error @ 20 pix
-        'normalized_precision_score': np.mean(norm_prec_curve),
+        'normalized_precision_score': norm_prec_curve[20],
         'running_time': running_time.tolist(),
         'fps': 1.0 / np.mean(running_time)}
 
@@ -140,9 +141,9 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
     draw_precision_plot(precision_curve[np.newaxis, :], [tracker_name], report_path, parameter=parameter)
     draw_normalized_precision_plot(normalized_precision_curve[np.newaxis, :], [tracker_name], report_path, parameter=parameter)
 
-    success_score = success_curve[parameter.bins_of_intersection_of_union // 2]
+    success_score = np.mean(success_curve)
     precision_score = precision_curve[20]
-    normalized_precision_score = np.mean(normalized_precision_curve)
+    normalized_precision_score = normalized_precision_curve[20]
 
     average_overlap = np.mean([sequence_report['average_overlap'] for sequence_report in sequence_reports])
     success_rate_at_iou_0_5 = np.mean([sequence_report['success_rate_at_iou_0.5'] for sequence_report in sequence_reports])
@@ -154,7 +155,7 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
                    'normalized_precision_score': normalized_precision_score,
                    'average_overlap': average_overlap,
                    'success_rate_at_iou_0.5': success_rate_at_iou_0_5,
-                   'success_rate_at_iou_0.75': success_rate_at_iou_0_75,}, f, indent=2)
+                   'success_rate_at_iou_0.75': success_rate_at_iou_0_75}, f, indent=2)
 
 
 def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],

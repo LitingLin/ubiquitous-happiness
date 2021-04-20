@@ -85,9 +85,9 @@ def generate_plot(y, x, scores, tracker_names, plot_draw_styles, output_path, pl
 def draw_success_plot(succ_curves, tracker_names, output_path, generate_tex_file=False,
                       parameter: OPEEvaluationParameter = OPEEvaluationParameter):
     success_plot_opts = {'plot_type': 'success', 'legend_loc': 'lower left', 'xlabel': 'Overlap threshold',
-                         'ylabel': 'Overlap Precision [%]', 'xlim': (0, 1.0), 'ylim': (0, 1.0), 'title': 'Success plot'}
+                         'ylabel': 'Overlap Precision', 'xlim': (0, 1.0), 'ylim': (0, 1.0), 'title': 'Success plot'}
     threshold = np.linspace(0, 1, parameter.bins_of_intersection_of_union)
-    auc = np.array([succ_curve[parameter.bins_of_intersection_of_union // 2] for succ_curve in succ_curves])
+    auc = np.mean(succ_curves, axis=1)
     generate_plot(succ_curves, threshold, auc, tracker_names, _plot_draw_style, output_path,
                   success_plot_opts, generate_tex_file)
 
@@ -106,9 +106,9 @@ def draw_precision_plot(prec_curves, tracker_names, output_path, generate_tex_fi
 def draw_normalized_precision_plot(norm_prec_curves, tracker_names, output_path, generate_tex_file=False,
                       parameter: OPEEvaluationParameter = OPEEvaluationParameter):
     norm_precision_plot_opts = {'plot_type': 'norm_precision', 'legend_loc': 'lower right',
-                                'xlabel': 'Location error threshold', 'ylabel': 'Distance Precision [%]',
+                                'xlabel': 'Location error threshold', 'ylabel': 'Distance Precision',
                                 'xlim': (0, 0.5), 'ylim': (0, 1.0), 'title': 'Normalized Precision plot'}
     threshold = np.linspace(0, 0.5, parameter.bins_of_normalized_center_location_error)
-    norm_prec_scores = np.mean(norm_prec_curves, axis=1)
+    norm_prec_scores = np.array([norm_prec_curve[20] for norm_prec_curve in norm_prec_curves])
     generate_plot(norm_prec_curves, threshold, norm_prec_scores, tracker_names, _plot_draw_style, output_path,
                   norm_precision_plot_opts, generate_tex_file)

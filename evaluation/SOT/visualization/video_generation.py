@@ -1,7 +1,6 @@
-from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDatasetSequence_MemoryMapped
 import cv2
-import numpy as np
 from tqdm import tqdm
+import os
 
 
 def get_standard_bounding_box_rasterizer():
@@ -22,7 +21,10 @@ def generate_sequence_video(sequence, predicted_bboxes, bounding_box_rasterizer,
         fps = 30
     frame = sequence[0]
     size = frame.get_image_size()
-    writer = cv2.VideoWriter(output_file_path, cv2.VideoWriter_fourcc('X', '2', '6', '4'), fps, size, True)
+    tmp_file_path = output_file_path + '.tmp'
+    if os.path.exists(tmp_file_path):
+        os.remove(tmp_file_path)
+    writer = cv2.VideoWriter(tmp_file_path, cv2.VideoWriter_fourcc('X', '2', '6', '4'), fps, size, True)
     assert predicted_bboxes.shape[0] == len(sequence)
     for frame, predicted_bbox in tqdm(zip(sequence, predicted_bboxes), desc=f'Rendering {sequence.get_name()}', total=len(sequence)):
         image = cv2.imread(frame.get_image_path(), cv2.IMREAD_COLOR)
@@ -39,3 +41,4 @@ def generate_sequence_video(sequence, predicted_bboxes, bounding_box_rasterizer,
         cv2.rectangle(image, (predicted_bbox[0], predicted_bbox[1]), (predicted_bbox[2], predicted_bbox[3]), (0, 0, 255), 2)
         writer.write(image)
     writer.release()
+    os.rename(tmp_file_path, output_file_path)
