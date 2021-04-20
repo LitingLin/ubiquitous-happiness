@@ -24,5 +24,6 @@ def get_standard_evaluation_datasets():
 
 def run_standard_evaluation(tracker_name, tracker, output_path, run_times=None):
     datasets = get_standard_evaluation_datasets()
-    from evaluation.SOT.protocol.ope import run_OPE_evalutation_and_generate_report
+    from evaluation.SOT.protocol.ope import run_OPE_evalutation_and_generate_report, pack_OPE_result_and_report
     run_OPE_evalutation_and_generate_report(tracker_name, tracker, datasets, output_path, run_times)
+    pack_OPE_result_and_report(tracker_name, output_path)
