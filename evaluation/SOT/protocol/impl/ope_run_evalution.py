@@ -103,10 +103,3 @@ def prepare_result_path(output_path, datasets, tracker_name):
 
     check_no_sequence_name_conflict(datasets)
     return output_path
-
-
-def run_one_pass_evaluation(tracker_name, tracker, datasets: List[SingleObjectTrackingDataset_MemoryMapped], output_path: str, run_times: Optional[int]=None):
-    result_path = prepare_result_path(output_path, datasets, tracker_name)
-
-    for dataset in datasets:
-        run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times)

@@ -233,18 +233,3 @@ def prepare_report_path(output_path, tracker_name):
     sequences_report_path = os.path.join(report_path, 'sequences')
     os.mkdir(sequences_report_path)
     return report_path, sequences_report_path
-
-
-def generate_report_one_pass_evaluation(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
-                                        output_path: str, run_times: Optional[int] = None,
-                                        parameter: OPEEvaluationParameter = OPEEvaluationParameter):
-    report_path, sequences_report_path = prepare_report_path(output_path, tracker_name)
-    from .ope_run_evalution import prepare_result_path
-    result_path = prepare_result_path(output_path, datasets, tracker_name)
-
-    datasets_report = {}
-
-    for dataset in datasets:
-        datasets_report[dataset.get_name()] = generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_path, report_path, sequences_report_path, run_times, parameter)
-
-    dump_datasets_report(report_path, datasets_report)

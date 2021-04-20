@@ -1,10 +1,14 @@
+from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
+from typing import List, Optional
+
+
 class OPEEvaluationParameter:
     bins_of_center_location_error = 51
     bins_of_normalized_center_location_error = 51
     bins_of_intersection_of_union = 21
 
 
-def run_OPE_evalutation_and_generate_report(tracker_name, tracker, datasets, output_path, run_times=None, parameter: OPEEvaluationParameter = OPEEvaluationParameter):
+def run_OPE_evalutation_and_report_generation(tracker_name, tracker, datasets, output_path, run_times=None, parameter: OPEEvaluationParameter = OPEEvaluationParameter):
     from evaluation.SOT.protocol.impl.ope_run_evalution import prepare_result_path, run_one_pass_evaluation_on_dataset
     from evaluation.SOT.protocol.impl.ope_report import prepare_report_path, generate_dataset_report_one_pass_evaluation, dump_datasets_report
 
@@ -15,6 +19,31 @@ def run_OPE_evalutation_and_generate_report(tracker_name, tracker, datasets, out
 
     for dataset in datasets:
         run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times)
+        datasets_report[dataset.get_name()] = generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_path, report_path, sequences_report_path, run_times, parameter)
+
+    dump_datasets_report(report_path, datasets_report)
+
+
+def run_one_pass_evaluation(tracker_name, tracker, datasets: List[SingleObjectTrackingDataset_MemoryMapped], output_path: str, run_times: Optional[int]=None):
+    from evaluation.SOT.protocol.impl.ope_run_evalution import prepare_result_path, run_one_pass_evaluation_on_dataset
+    result_path = prepare_result_path(output_path, datasets, tracker_name)
+
+    for dataset in datasets:
+        run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times)
+
+
+def generate_one_pass_evaluation_report(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
+                                        output_path: str, run_times: Optional[int] = None,
+                                        parameter: OPEEvaluationParameter = OPEEvaluationParameter):
+    from evaluation.SOT.protocol.impl.ope_run_evalution import prepare_result_path
+    from evaluation.SOT.protocol.impl.ope_report import prepare_report_path, generate_dataset_report_one_pass_evaluation, dump_datasets_report
+
+    report_path, sequences_report_path = prepare_report_path(output_path, tracker_name)
+    result_path = prepare_result_path(output_path, datasets, tracker_name)
+
+    datasets_report = {}
+
+    for dataset in datasets:
         datasets_report[dataset.get_name()] = generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_path, report_path, sequences_report_path, run_times, parameter)
 
     dump_datasets_report(report_path, datasets_report)
