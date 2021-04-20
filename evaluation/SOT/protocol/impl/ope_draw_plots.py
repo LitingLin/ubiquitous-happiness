@@ -62,7 +62,7 @@ def generate_plot(y, x, scores, tracker_names, plot_draw_styles, output_path, pl
 
         disp_name = tracker_names[id_sort]
 
-        legend_text.append('{} [{:.1f}]'.format(disp_name, scores[id_sort]))
+        legend_text.append('{} [{:.3f}]'.format(disp_name, scores[id_sort]))
 
     ax.legend(plotted_lines[::-1], legend_text[::-1], loc=legend_loc, fancybox=False, edgecolor='black',
               fontsize=font_size_legend, framealpha=1.0)
