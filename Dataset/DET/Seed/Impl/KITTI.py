@@ -47,6 +47,7 @@ def construct_KITTI_Detection(constructor: DetectionDatasetConstructor, seed):
     annotation_files = os.listdir(annotation_root_path)
     annotation_files = [annotation_file for annotation_file in annotation_files if annotation_file.endswith('.txt')]
     annotation_files.sort()
+    constructor.set_total_number_of_images(len(annotation_files))
 
     for annotation_file in annotation_files:
         image_path = os.path.join(root_path, annotation_file[:-4] + '.png')
