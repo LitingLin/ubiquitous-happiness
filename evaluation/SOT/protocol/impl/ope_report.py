@@ -45,6 +45,7 @@ def _calculate_evaluation_metrics(predicted_bounding_boxes,
                                   sequence: SingleObjectTrackingDatasetSequence_MemoryMapped,
                                   parameter: OPEEvaluationParameter = OPEEvaluationParameter):
     ious = bbox_compute_iou_numpy_vectorized(predicted_bounding_boxes, sequence.get_all_bounding_box())
+    assert not (ious > 1.).any()
     center_location_errors = calculate_center_location_error_torch_vectorized(predicted_bounding_boxes,
                                                                               sequence.get_all_bounding_box())
     normalized_center_location_errors = calculate_center_location_error_torch_vectorized(predicted_bounding_boxes,
@@ -61,6 +62,8 @@ def _calculate_evaluation_metrics(predicted_bounding_boxes,
         center_location_errors = center_location_errors[sequence.get_all_bounding_box_validity_flag()]
         normalized_center_location_errors = normalized_center_location_errors[
             sequence.get_all_bounding_box_validity_flag()]
+
+    ious[ious == 0] = -1.0
 
     succ_curve, prec_curve, norm_prec_curve = _calc_curves(ious, center_location_errors,
                                                            normalized_center_location_errors, parameter)
@@ -116,16 +119,16 @@ def generate_sequence_report(sequence: SingleObjectTrackingDatasetSequence_Memor
     sequence_report = _generate_sequence_report(ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve,
                                                 running_times)
 
-    report_file_path = os.path.join(report_path, 'report.json')
+    report_file_path = os.path.join(report_path, 'performance.json')
     if not os.path.exists(report_file_path):
-        with open(os.path.join(report_path, 'report.json'), 'w') as f:
+        with open(report_file_path, 'w') as f:
             json.dump(sequence_report, f, indent=2)
     return sequence_report
 
 
 def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path: str,
                             parameter: OPEEvaluationParameter = OPEEvaluationParameter):
-    with open(os.path.join(report_path, 'sequences_report.csv'), 'w') as f:
+    with open(os.path.join(report_path, 'sequences_performance.csv'), 'w', newline='') as f:
         csv_writer = csv.writer(f)
         csv_writer.writerow(('Sequence Name', 'Success Score', 'Precision Score', 'Normalized Precision Score',
                              'Average Overlap', 'Success Rate @ IOU>=0.5', 'Success Rate @ IOU>=0.75', 'FPS'))
@@ -164,8 +167,11 @@ def generate_dataset_report(tracker_name, sequence_reports, dataset, report_path
                       'average_overlap': average_overlap,
                       'success_rate_at_iou_0.5': success_rate_at_iou_0_5,
                       'success_rate_at_iou_0.75': success_rate_at_iou_0_75,
+                      'success_curve': success_curve.tolist(),
+                      'precision_curve': precision_curve.tolist(),
+                      'normalized_precision_curve': normalized_precision_curve.tolist(),
                       'fps': fps}
-    with open(os.path.join(report_path, 'report.json'), 'w') as f:
+    with open(os.path.join(report_path, 'performance.json'), 'w') as f:
         json.dump(dataset_report, f, indent=2)
     return dataset_report
 
@@ -202,21 +208,20 @@ def generate_dataset_report_one_pass_evaluation(tracker_name, dataset, result_pa
     print(f'Generating {dataset.get_name()} dataset report...', end=' ')
     dataset_report_path = os.path.join(report_path, dataset.get_name())
     os.mkdir(dataset_report_path)
-    dataset_report = generate_dataset_report(tracker_name, sequence_reports, dataset,
-                                                                  dataset_report_path, parameter)
+    dataset_report = generate_dataset_report(tracker_name, sequence_reports, dataset, dataset_report_path, parameter)
     print('done')
 
     process_bar.close()
-    return dataset_report
+    return dataset_report, sequence_reports
 
 
 def dump_datasets_report(report_path, datasets_report):
     print(f'Generating all datasets report...', end=' ')
-    with open(os.path.join(report_path, 'report.csv'), 'w') as f:
+    with open(os.path.join(report_path, 'performance.csv'), 'w', newline='') as f:
         csv_writer = csv.writer(f)
         csv_writer.writerow(('Dataset Name', 'Success Score', 'Precision Score', 'Normalized Precision Score',
                              'Average Overlap', 'Success Rate @ IOU>=0.5', 'Success Rate @ IOU>=0.75', 'FPS'))
-        for dataset_name, dataset_report in datasets_report.items():
+        for dataset_name, (dataset_report, _) in datasets_report.items():
             csv_writer.writerow((dataset_name, dataset_report['success_score'],
                                  dataset_report['precision_score'], dataset_report['normalized_precision_score'],
                                  dataset_report['average_overlap'], dataset_report['success_rate_at_iou_0.5'],

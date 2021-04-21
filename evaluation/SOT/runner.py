@@ -39,12 +39,23 @@ def run_standard_report_generation(tracker_name, output_path, run_times=None):
     pack_OPE_result_and_report(tracker_name, output_path)
 
 
-def visualize_sequence(result_path, sequence_name, output_video_file_path, run_time=None):
+def visualize_sequence(tracker_name, result_path, sequence_name, output_video_file_path, run_time=None):
     from evaluation.SOT.protocol.ope import OPE_visualize_sequence
 
     datasets = get_standard_evaluation_datasets()
     for dataset in datasets:
         for sequence in dataset:
             if sequence.get_name() == sequence_name:
-                OPE_visualize_sequence(result_path, sequence, output_video_file_path, run_time)
+                OPE_visualize_sequence(tracker_name, result_path, sequence, output_video_file_path, run_time)
+                return
+
+
+def visualize_tracking_results(tracker_names, result_paths, sequence_name, output_video_file_path, run_time=None):
+    from evaluation.SOT.protocol.ope import OPE_visualize_tracking_results
+
+    datasets = get_standard_evaluation_datasets()
+    for dataset in datasets:
+        for sequence in dataset:
+            if sequence.get_name() == sequence_name:
+                OPE_visualize_tracking_results(tracker_names, result_paths, sequence, output_video_file_path, run_time)
                 return
