@@ -2,8 +2,8 @@ from Dataset.Filter.Selector import Selector
 from Dataset.Filter.SortByImageRatio import SortByImageRatio
 from Dataset.Filter.DataCleaning.Integrity import DataCleaning_Integrity
 from Dataset.Filter.DataCleaning.BoundingBox import DataCleaning_BoundingBox
+from Dataset.Filter.DataCleaning.AnnotationStandard import DataCleaning_AnnotationStandard
 from .tweak_tool import ImageDatasetTweakTool
-from data.types.bounding_box_format import BoundingBoxFormat
 from Dataset.Filter.DataCleaning.ObjectCategory import DataCleaning_ObjectCategory
 
 
@@ -45,6 +45,11 @@ def apply_filters_on_image_dataset_(dataset: dict, filters: list):
                 dataset_tweak_tool.remove_category_ids(filter_.category_ids_to_remove)
             if filter_.make_category_id_sequential:
                 dataset_tweak_tool.make_category_id_sequential()
+        elif isinstance(filter_, DataCleaning_AnnotationStandard):
+            dataset_tweak_tool.annotation_standard_conversion(filter_.bounding_box_format,
+                                                              filter_.pixel_coordinate_system,
+                                                              filter_.bounding_box_coordinate_system,
+                                                              filter_.pixel_definition)
         else:
             raise RuntimeError(f"{type(filter_)} not implemented for Image Dataset")
 
