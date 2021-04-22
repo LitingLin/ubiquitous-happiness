@@ -100,7 +100,7 @@ class TrackingDataset(Dataset):
 
     def generate_shuffled_picks(self, seed=None):
         if is_main_process():
-            print('Beginning dataset shuffling', end=' ')
+            print('Shuffling datasets...', end=' ')
         if seed is not None:
             if self.rng_seed is not None:
                 seed += self.rng_seed

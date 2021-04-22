@@ -18,7 +18,7 @@ class _DatasetFactory:
         self.specialized_dataset_type = specialized_dataset_type
 
     def get_dataset_name(self):
-        return f'{self.seed.name}-{self.seed.data_split}'
+        return f'{self.seed.name}-{self.seed.data_split.name}'
 
     def _try_load_from_cache(self, dataset_class, cache_extension, filters):
         cache_folder_path, cache_file_name = prepare_dataset_cache_path(dataset_class.__name__, self.seed.name, filters, self.seed.data_split)
