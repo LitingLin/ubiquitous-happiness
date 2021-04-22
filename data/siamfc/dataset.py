@@ -44,6 +44,8 @@ class TrackingDataset(Dataset):
         self.datasets = []
         start_index = 0
         self.num = 0
+        if is_main_process():
+            print('Building dataset indices...', end=' ')
         for dataset in datasets:
             self.dataset_positioning.register(len(dataset))
             if dataset.has_attribute('NUM_USE'):
@@ -85,6 +87,8 @@ class TrackingDataset(Dataset):
         self.num = samples_per_epoch if samples_per_epoch is not None and samples_per_epoch > 0 else self.num
         if repeat_times_per_epoch is not None and repeat_times_per_epoch > 0:
             self.num *= repeat_times_per_epoch
+        if is_main_process():
+            print('done.')
         self.generate_shuffled_picks()
         self.to_tensor = ToTensor()
         self.post_processor = post_processor
