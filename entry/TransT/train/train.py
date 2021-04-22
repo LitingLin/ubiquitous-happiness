@@ -2,25 +2,21 @@ import sys
 import os
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(root_path)
-default_config_path = os.path.join(root_path, 'config', 'transt')
+config_path = os.path.join(root_path, 'config', 'transt')
 
 import argparse
 from pathlib import Path
 import Utils.detr_misc as utils
 from training.transt.training_loop import run_training_loop
 from training.transt.builder import build_training_actor_and_dataloader
-
 from Utils.yaml_config import load_config
-
 from workarounds.all import apply_all_workarounds
+from Miscellaneous.torch_print_running_environment import print_running_environment
 
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Set transformer tracker parameters', add_help=False)
-    parser.add_argument('--network_config', type=str, default=os.path.join(default_config_path, 'config.yaml'), help='Path to the network config')
-    parser.add_argument('--train_config', type=str, default=os.path.join(default_config_path, 'train.yaml'), help='Path to the train config')
-    parser.add_argument('--train_dataset_config', type=str, default=os.path.join(default_config_path, 'dataset', 'train.yaml'), help='Path to the train dataset config')
-    parser.add_argument('--val_dataset_config', type=str, default=os.path.join(default_config_path, 'dataset', 'val.yaml'), help='Path to the val dataset config')
+    parser.add_argument('config_name', type=str, help='Config name')
     parser.add_argument('--output_dir', default='',
                         help='path where to save, empty for no saving')
     parser.add_argument('--device', default='cuda',
@@ -41,6 +37,7 @@ def get_args_parser():
 def main(args):
     utils.init_distributed_mode(args)
     print("git:\n  {}\n".format(utils.get_sha()))
+    print_running_environment(args)
 
     print(args)
 
@@ -48,10 +45,14 @@ def main(args):
     seed = args.seed + utils.get_rank()
     apply_all_workarounds(seed)
 
-    net_config = load_config(args.network_config)
-    train_config = load_config(args.train_config)
+    network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
+    train_config_path = os.path.join(config_path, args.config_name, 'train.yaml')
+    train_dataset_config_path = os.path.join(config_path, args.config_name, 'dataset', 'train.yaml')
+    val_dataset_config_path = os.path.join(config_path, args.config_name, 'dataset', 'val.yaml')
+    network_config = load_config(network_config_path)
+    train_config = load_config(train_config_path)
 
-    actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, net_config, train_config, args.train_dataset_config, args.val_dataset_config)
+    actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
     run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
 
 

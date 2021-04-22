@@ -1,0 +1,25 @@
+name: TransT
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  feature_size:
+    template: [15, 15]
+    search: [31, 31]
+  template_size: [128, 128] # 16 * 8
+  search_size: [256, 256] # 32 * 8
+
+backbone:
+  type: resnet50_atrous
+  position_embedding: sine
+  parameters:
+    output_layers: [3]
+
+transformer:
+  position_embedding: sine
+  hidden_dim: 256
+  dropout: 0.1
+  nheads: 8
+  dim_feedforward: 2048
+  featurefusion_layers: 4
+  activation: relu

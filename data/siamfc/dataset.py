@@ -3,7 +3,7 @@
 import numpy as np
 from torch.utils.data import Dataset
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
-import copy
+from Miscellaneous.distributed import is_main_process
 from data.operator.image.decoder import tf_decode_image
 from data.operator.image.batchify import tf_batchify
 from torchvision.transforms import ToTensor
@@ -40,7 +40,7 @@ class TrackingDataset(Dataset):
             self.rng_engine = np.random.default_rng(rng_seed)
 
         self.dataset_positioning = ConcateDatasetPositioning()
-        self.pick = []
+        self.pick_seed = []
         self.datasets = []
         start_index = 0
         self.num = 0
@@ -51,12 +51,17 @@ class TrackingDataset(Dataset):
             else:
                 num_use = len(dataset)
 
-            lists = list(range(start_index, len(dataset) + start_index))
-            pick = []
-            while len(pick) < num_use:
-                self.rng_engine.shuffle(lists)
-                pick += lists
-            self.pick.extend(pick[:num_use])
+            dataset_indices = np.arange(start_index, len(dataset) + start_index)
+            used = 0
+            picks = []
+            while used < num_use:
+                dataset_indices_ = dataset_indices.copy()
+                self.rng_engine.shuffle(dataset_indices_)
+                used += len(dataset_indices_)
+                picks.append(dataset_indices_)
+            picks = np.concatenate(picks)
+            picks = picks[: num_use]
+            self.pick_seed.append(picks)
 
             start_index += len(dataset)
 
@@ -75,6 +80,7 @@ class TrackingDataset(Dataset):
             else:
                 raise Exception('Unknown dataset type')
             self.num += num_use
+        self.pick_seed = np.concatenate(self.pick_seed)
 
         self.num = samples_per_epoch if samples_per_epoch is not None and samples_per_epoch > 0 else self.num
         if repeat_times_per_epoch is not None and repeat_times_per_epoch > 0:
@@ -83,19 +89,31 @@ class TrackingDataset(Dataset):
         self.to_tensor = ToTensor()
         self.post_processor = post_processor
         self.neg_ratio = neg_ratio
+        self.rng_seed = rng_seed
 
-    def generate_shuffled_picks(self):
-        pick = []
+    def set_epoch(self, epoch):
+        self.generate_shuffled_picks(epoch)
 
-        m = 0
-        while m < self.num:
-            p = copy.copy(self.pick)
-            self.rng_engine.shuffle(p)
-            pick += p
-            m = len(pick)
-        print("shuffle done!")
-        print("dataset length {}".format(self.num))
-        self.pick = np.array(pick[:self.num], dtype=np.uint32)
+    def generate_shuffled_picks(self, seed=None):
+        if is_main_process():
+            print('Beginning dataset shuffling', end=' ')
+        if seed is not None:
+            if self.rng_seed is not None:
+                seed += self.rng_seed
+            rng_engine = np.random.default_rng(seed)
+        else:
+            rng_engine = self.rng_engine
+        picks = []
+        picked = 0
+        while picked < self.num:
+            p = self.pick_seed.copy()
+            rng_engine.shuffle(p)
+            picks.append(p)
+            picked += len(self.pick_seed)
+        picks = np.concatenate(picks)
+        if is_main_process():
+            print('done.')
+        self.pick = picks[:self.num]
 
     def __len__(self):
         return self.num

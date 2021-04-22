@@ -4,6 +4,7 @@ from algorithms.tracker.transt.tracker import TransTTracker
 
 
 def build_transt_tracker(network_config, evaluation_config, weight_path, device):
+    device = torch.device(device)
     model = build_transt(network_config, False)
     model.load_state_dict(torch.load(weight_path, map_location='cpu')['model'])
 
