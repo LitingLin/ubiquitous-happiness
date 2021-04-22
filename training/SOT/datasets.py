@@ -31,12 +31,13 @@ def get_standard_training_datasets():
 
     mot_datasets = MultipleObjectTrackingDatasetFactory([ILSVRC_VID_Seed(), UAV_Benchmark_M_Seed(), YoutubeBB_Seed()]).construct(get_standard_trainning_dataset_filter())
 
+    from Dataset.DET.Seed.COCO import COCO_Seed
     from Dataset.DET.Seed.ILSVRC_DET import ILSVRC_DET_Seed
     from Dataset.DET.Seed.BDD100k_Images import BDD100k_Images_Seed
     from Dataset.DET.Seed.KITTI_Detection import KITTI_Detection_Seed
     from Dataset.DET.Seed.OpenImages import OpenImages_Seed
     from Dataset.DET.factory import DetectionDatasetFactory
-    det_datasets = DetectionDatasetFactory([ILSVRC_DET_Seed(), BDD100k_Images_Seed(), KITTI_Detection_Seed(), OpenImages_Seed()]).construct(get_standard_trainning_dataset_filter())
+    det_datasets = DetectionDatasetFactory([COCO_Seed(),ILSVRC_DET_Seed(), BDD100k_Images_Seed(), KITTI_Detection_Seed(), OpenImages_Seed()]).construct(get_standard_trainning_dataset_filter())
     return datasets, mot_datasets, det_datasets
 
 
