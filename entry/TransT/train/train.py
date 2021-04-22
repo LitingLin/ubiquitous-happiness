@@ -42,8 +42,8 @@ def main(args):
     print(args)
 
     # fix the seed for reproducibility
-    seed = args.seed + utils.get_rank()
-    apply_all_workarounds(seed)
+    # seed = args.seed + utils.get_rank()
+    # apply_all_workarounds(seed)
 
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     train_config_path = os.path.join(config_path, args.config_name, 'train.yaml')
