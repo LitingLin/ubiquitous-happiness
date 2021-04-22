@@ -17,6 +17,9 @@ class _DatasetFactory:
         self.specialized_dataset_enum = specialized_dataset_enum
         self.specialized_dataset_type = specialized_dataset_type
 
+    def get_dataset_name(self):
+        return f'{self.seed.name}-{self.seed.data_split}'
+
     def _try_load_from_cache(self, dataset_class, cache_extension, filters):
         cache_folder_path, cache_file_name = prepare_dataset_cache_path(dataset_class.__name__, self.seed.name, filters, self.seed.data_split)
         cache_file_path = os.path.join(cache_folder_path, cache_file_name + cache_extension)
@@ -114,7 +117,12 @@ class DatasetFactory:
                           for seed in expanded_seeds]
 
     def construct(self, filters=None, cache_base_format=False, dump_human_readable=False):
-        return [factory.construct(filters, cache_base_format, dump_human_readable) for factory in self.factories]
+        datasets = []
+        for factory in self.factories:
+            print(f'Constructing {factory.get_dataset_name()}')
+            datasets.append(factory.construct(filters, cache_base_format, dump_human_readable))
+            print(f'Constructed {factory.get_dataset_name()}')
+        return datasets
 
     def construct_base_interface(self, filters=None, make_cache=False, dump_human_readable=False):
         return [factory.construct_base_interface(filters, make_cache, dump_human_readable) for factory in self.factories]
