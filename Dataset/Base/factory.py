@@ -119,9 +119,9 @@ class DatasetFactory:
     def construct(self, filters=None, cache_base_format=False, dump_human_readable=False):
         datasets = []
         for factory in self.factories:
-            print(f'Constructing {factory.get_dataset_name()}')
+            print(f'Loading {factory.get_dataset_name()}...')
             datasets.append(factory.construct(filters, cache_base_format, dump_human_readable))
-            print(f'Constructed {factory.get_dataset_name()}')
+            print(f'{factory.get_dataset_name()} Loaded')
         return datasets
 
     def construct_base_interface(self, filters=None, make_cache=False, dump_human_readable=False):
