@@ -59,3 +59,7 @@ def visualize_tracking_results(tracker_names, result_paths, sequence_name, outpu
             if sequence.get_name() == sequence_name:
                 OPE_visualize_tracking_results(tracker_names, result_paths, sequence, output_video_file_path, run_time)
                 return
+
+
+if __name__ == '__main__':
+    datasets = get_standard_evaluation_datasets()

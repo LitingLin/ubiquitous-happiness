@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import shutil
 
 
 def get_bounding_box_converter():
@@ -13,8 +14,7 @@ def get_bounding_box_converter():
     return compile_bbox_transform(BoundingBoxFormat.XYXY, BoundingBoxFormat.XYWH, PixelCoordinateSystem.Aligned, PixelCoordinateSystem.Aligned, BoundingBoxCoordinateSystem.Spatial, BoundingBoxCoordinateSystem.Spatial, PixelDefinition.Point)
 
 
-def _convert_tracking_result_to_got10k_format(sequence, result_path, target_path, run_times=None):
-    assert run_times is None
+def _convert_tracking_result_to_got10k_format(sequence, result_path, target_path):
     from evaluation.SOT.protocol.impl.ope_run_evalution import get_sequence_result_path
     from evaluation.SOT.protocol.impl.ope_report import _load_predicted_bounding_boxes, _load_running_time
     sequence_result_path, _ = get_sequence_result_path(result_path, sequence)
@@ -30,14 +30,16 @@ def _convert_tracking_result_to_got10k_format(sequence, result_path, target_path
     np.savetxt(os.path.join(target_sequence_path, f'{sequence.get_name()}_time.txt'), times, fmt='%.8f')
 
 
-def convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, run_times=None):
+def convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, make_archive=False):
     target_dataset_path = os.path.join(target_path, dataset.get_name(), tracker_name)
     os.makedirs(target_dataset_path, exist_ok=True)
 
     for sequence in dataset:
-        _convert_tracking_result_to_got10k_format(sequence, result_path, target_dataset_path, run_times)
+        _convert_tracking_result_to_got10k_format(sequence, result_path, target_dataset_path)
+    if make_archive:
+        shutil.make_archive(os.path.join(target_path, f'{tracker_name}.zip'), 'zip', target_dataset_path)
 
 
-def convert_datasets_tracking_result_to_got10k_format(tracker_name, datasets, result_path, target_path, run_times=None):
+def convert_datasets_tracking_result_to_got10k_format(tracker_name, datasets, result_path, target_path, make_archive=False):
     for dataset in datasets:
-        convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, run_times)
+        convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, make_archive)
