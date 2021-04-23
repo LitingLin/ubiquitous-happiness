@@ -11,8 +11,8 @@ from evaluation.SOT.runner import run_standard_evaluation, run_standard_report_g
 
 
 if __name__ == '__main__':
-    from workarounds.all import apply_all_workarounds
-    apply_all_workarounds()
+    from workarounds.Tensorflow import silence_tensorflow
+    silence_tensorflow()
     import argparse
     parser = argparse.ArgumentParser(description='Run tracker on OTB GOT10k LaSOT.')
     parser.add_argument('config_name', type=str, help='Config name')
