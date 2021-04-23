@@ -24,7 +24,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
-    evaluation_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
+    evaluation_config_path = os.path.join(config_path, args.config_name, 'evaluation.yaml')
 
     print_running_environment(args)
 
