@@ -75,7 +75,7 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
                          'IsDepiction': image_anno.IsDepiction, 'IsInside': image_anno.IsInside})
 
     if data_split & DataSplit.Training:
-        _construct_sub_dataset(os.path.join(root_path, 'train'), os.path.join(root_path, 'train-annotations-bbox.csv'))
+        _construct_sub_dataset(os.path.join(root_path, 'train'), os.path.join(root_path, 'oidv6-train-annotations-bbox.csv'))
     if data_split & DataSplit.Validation:
         _construct_sub_dataset(os.path.join(root_path, 'validation'), os.path.join(root_path, 'validation-annotations-bbox.csv'))
     if data_split & DataSplit.Testing:

@@ -27,9 +27,9 @@ def run_standard_evaluation(tracker_name, tracker, output_path, generate_report=
     from evaluation.SOT.protocol.ope import run_one_pass_evaluation, run_OPE_evalutation_and_report_generation, generate_one_pass_evaluation_report, pack_OPE_result_and_report
     if generate_report:
         run_OPE_evalutation_and_report_generation(tracker_name, tracker, datasets, output_path, run_times)
-        pack_OPE_result_and_report(tracker_name, output_path)
     else:
         run_one_pass_evaluation(tracker_name, tracker, datasets, output_path, run_times)
+    pack_OPE_result_and_report(tracker_name, output_path)
 
 
 def run_standard_report_generation(tracker_name, output_path, run_times=None):
