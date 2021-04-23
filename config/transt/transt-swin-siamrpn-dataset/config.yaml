@@ -1,19 +1,20 @@
-name: TransT-SiamRPN-Dataset
+name: TransT-Swin-SiamRPN-Dataset
 data:
   area_factor:
     template: 2.0
     search: 4.0
   feature_size:
-    template: [15, 15]
-    search: [31, 31]
+    template: [16, 16]
+    search: [32, 32]
   template_size: [128, 128] # 16 * 8
   search_size: [256, 256] # 32 * 8
 
 backbone:
-  type: resnet50_atrous
+  type: swin_transformer
   position_embedding: sine
   parameters:
-    output_layers: [3]
+    name: swin_large_patch4_window12_384_in22k
+    output_layers: [1]
 
 transformer:
   position_embedding: sine
