@@ -10,7 +10,6 @@ import Utils.detr_misc as utils
 from training.transt.training_loop import run_training_loop
 from training.transt.builder import build_training_actor_and_dataloader
 from Utils.yaml_config import load_config
-from workarounds.all import apply_all_workarounds
 from workarounds.Tensorflow import silence_tensorflow
 from Miscellaneous.torch_print_running_environment import print_running_environment
 
@@ -45,7 +44,9 @@ def main(args):
     # fix the seed for reproducibility
     # seed = args.seed + utils.get_rank()
     # apply_all_workarounds(seed)
+    from workarounds.torchvision_tensorflow import fix_torchvision_tensorflow
     silence_tensorflow()
+    fix_torchvision_tensorflow()
 
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     train_config_path = os.path.join(config_path, args.config_name, 'train.yaml')
