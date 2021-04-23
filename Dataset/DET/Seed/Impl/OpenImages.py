@@ -21,7 +21,7 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
     class_mids = []
     class_names = []
 
-    for line in open(os.path.join(root_path, 'class-descriptions-boxable.csv'), 'rb', encoding='utf-8'):
+    for line in open(os.path.join(root_path, 'class-descriptions-boxable.csv'), 'r', encoding='utf-8'):
         line = line.strip()
         if len(line) == 0:
             continue
@@ -37,7 +37,7 @@ def construct_OpenImages(constructor: DetectionDatasetConstructor, seed):
 
         images = {}
 
-        with open(annotation_file_path, 'rb', encoding='utf-8') as fid:
+        with open(annotation_file_path, 'r', encoding='utf-8') as fid:
             csv_reader = csv.reader(fid)
             headings = next(csv_reader)
             Row = namedtuple('Row', headings)
