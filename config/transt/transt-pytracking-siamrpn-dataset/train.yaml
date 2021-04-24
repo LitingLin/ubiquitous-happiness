@@ -19,7 +19,7 @@ train:
   optimizer: AdamW
 
   data:
-    repeat_times_per_epoch: 2
+    samples_per_epoch: 38000
 
   loss:
     weight:
