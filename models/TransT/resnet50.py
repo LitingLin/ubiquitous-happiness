@@ -152,31 +152,29 @@ class ResNet(Backbone):
         stride = [1 + (dilation_factor < l) for l in (8, 4, 2)]
         self.layer1 = self._make_layer(block, inplanes, layers[0], dilation=max(dilation_factor//8, 1))
         self.layer2 = self._make_layer(block, inplanes*2, layers[1], stride=stride[0], dilation=max(dilation_factor//4, 1))
-        #self.layer3 = self._make_layer(block, inplanes*4, layers[2], stride=stride[1], dilation=max(dilation_factor//2, 1))
-        self.layer3 = self._make_layer(block, inplanes * 4, layers[2], stride=stride[1],
-                                       dilation=2)
-        #self.layer4 = self._make_layer(block, inplanes*8, layers[3], stride=stride[2], dilation=dilation_factor)
+        # self.layer3 = self._make_layer(block, inplanes*4, layers[2], stride=stride[1], dilation=max(dilation_factor//2, 1))
+        self.layer3 = self._make_layer(block, inplanes*4, layers[2], stride=1, dilation=2)
+        # self.layer4 = self._make_layer(block, inplanes*8, layers[3], stride=stride[2], dilation=dilation_factor)
 
-        out_feature_strides = {'conv1': 4, 'layer1': 4, 'layer2': 4*stride[0], 'layer3': 4*stride[0]*stride[1],
-                               'layer4': 4*stride[0]*stride[1]*stride[2]}
+        out_feature_strides = {'conv1': 4, 'layer1': 4, 'layer2': 4*stride[0], 'layer3': 4*stride[0]*stride[1]}
 
         # TODO better way?
         if isinstance(self.layer1[0], BasicBlock):
-            out_feature_channels = {'conv1': inplanes, 'layer1': inplanes, 'layer2': inplanes*2, 'layer3': inplanes*4,
-                               'layer4': inplanes*8}
+            out_feature_channels = {'conv1': inplanes, 'layer1': inplanes, 'layer2': inplanes*2, 'layer3': inplanes*4}
         elif isinstance(self.layer1[0], Bottleneck):
             base_num_channels = 4 * inplanes
             out_feature_channels = {'conv1': inplanes, 'layer1': base_num_channels, 'layer2': base_num_channels * 2,
-                                    'layer3': base_num_channels * 4, 'layer4': base_num_channels * 8}
+                                    'layer3': base_num_channels * 4}
         else:
             raise Exception('block not supported')
 
         self._out_feature_strides = out_feature_strides
         self._out_feature_channels = out_feature_channels
+        self.num_channels_output = [list(out_feature_channels.values())[-1]]
 
         # self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.avgpool = nn.AdaptiveAvgPool2d((1,1))
-        self.fc = nn.Linear(inplanes*8 * block.expansion, num_classes)
+        # self.avgpool = nn.AdaptiveAvgPool2d((1,1))
+        # self.fc = nn.Linear(inplanes*8 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -249,22 +247,22 @@ class ResNet(Backbone):
         x = self.layer3(x)
 
         if self._add_output_and_check('layer3', x, outputs, output_layers):
-            return outputs
+            return outputs['layer3']
 
-        x = self.layer4(x)
+        # x = self.layer4(x)
 
-        if self._add_output_and_check('layer4', x, outputs, output_layers):
-            return outputs
-
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-
-        if self._add_output_and_check('fc', x, outputs, output_layers):
-            return outputs
-
-        if len(output_layers) == 1 and output_layers[0] == 'default':
-            return x
+        # if self._add_output_and_check('layer4', x, outputs, output_layers):
+        #     return outputs
+        #
+        # x = self.avgpool(x)
+        # x = x.view(x.size(0), -1)
+        # x = self.fc(x)
+        #
+        # if self._add_output_and_check('fc', x, outputs, output_layers):
+        #     return outputs
+        #
+        # if len(output_layers) == 1 and output_layers[0] == 'default':
+        #     return x
 
         raise ValueError('output_layer is wrong.')
 
