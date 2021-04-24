@@ -318,7 +318,7 @@ def resnet50(output_layers=None, pretrained=False, **kwargs):
 
     model = ResNet(Bottleneck, [3, 4, 6, 3], output_layers, **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']), strict=False)
     return model
 
 def resnet101(output_layers=None, pretrained=False, **kwargs):
