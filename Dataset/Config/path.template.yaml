@@ -49,3 +49,6 @@ QingDao_PATH: ''
 BDD100k_PATH: ''
 ALOV300++_Frames_PATH: ''
 ALOV300++_Annotation_PATH: ''
+
+CrowdHuman_PATH: ''
+PathTrack_PATH: ''
