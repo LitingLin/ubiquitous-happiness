@@ -36,7 +36,7 @@ def get_args_parser():
 
 def main(args):
     utils.init_distributed_mode(args)
-    print("git:\n  {}\n".format(utils.get_sha()))
+    print(f"git:\n  {utils.get_sha()}\n")
     print_running_environment(args)
 
     print(args)

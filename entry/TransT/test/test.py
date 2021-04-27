@@ -27,7 +27,7 @@ if __name__ == '__main__':
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     evaluation_config_path = os.path.join(config_path, args.config_name, 'evaluation.yaml')
 
-    print("git:\n  {}\n".format(utils.get_sha()))
+    print(f"git:\n  {utils.get_sha()}\n")
     print_running_environment(args)
     print(args)
 
