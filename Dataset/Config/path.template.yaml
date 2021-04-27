@@ -52,3 +52,6 @@ ALOV300++_Annotation_PATH: ''
 
 CrowdHuman_PATH: ''
 PathTrack_PATH: ''
+SegTrack_PATH: ''
+SegTrackV2_PATH: ''
+Youtube_VIS_PATH: ''

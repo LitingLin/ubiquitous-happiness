@@ -1,4 +1,4 @@
-# http://cpl.cc.gatech.edu/projects/SegTrack/
+# https://web.engr.oregonstate.edu/~lif/SegTrack2/dataset.html
 from Dataset.Base.factory_seed import BaseSeed
 from Dataset.Type.data_split import DataSplit
 

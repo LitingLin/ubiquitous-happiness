@@ -8,6 +8,7 @@ from Miscellaneous.torch_print_running_environment import print_running_environm
 from Utils.yaml_config import load_config
 from algorithms.tracker.transt.builder import build_transt_tracker
 from evaluation.SOT.runner import run_standard_evaluation, run_standard_report_generation
+import Utils.detr_misc as utils
 
 
 if __name__ == '__main__':
@@ -26,7 +27,9 @@ if __name__ == '__main__':
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     evaluation_config_path = os.path.join(config_path, args.config_name, 'evaluation.yaml')
 
+    print("git:\n  {}\n".format(utils.get_sha()))
     print_running_environment(args)
+    print(args)
 
     network_config = load_config(network_config_path)
     evaluation_config = load_config(evaluation_config_path)
