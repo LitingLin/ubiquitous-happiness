@@ -40,6 +40,3 @@ DATASETS:
 
   ILSVRC_VID:
     NUM_USE: 90000
-
-
-

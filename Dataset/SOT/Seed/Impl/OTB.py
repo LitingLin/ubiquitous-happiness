@@ -346,9 +346,9 @@ def _get_sequence_info_list(split: str):
 def construct_OTB(constructor: SingleObjectTrackingDatasetConstructor, seed):
     assert seed.data_split == DataSplit.Full
     root_path = seed.root_path
-    otb_split = seed.otb_split
+    otb_version = seed.otb_version
 
-    sequence_info_list = _get_sequence_info_list(otb_split.name)
+    sequence_info_list = _get_sequence_info_list(otb_version.name)
 
     spacer = re.compile(r'[\s,]')
     constructor.set_total_number_of_sequences(len(sequence_info_list))

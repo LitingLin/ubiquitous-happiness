@@ -42,7 +42,7 @@ def getDataSplitFromConfig(split_strings: list):
     return split
 
 
-known_parameters = ['TYPE', 'SPLITS']
+known_parameters = ['TYPE', 'SPLITS', 'PARAMETERS', 'FILTERS']
 
 
 def forward_parameters(datasets, dataset_building_parameters):
@@ -54,23 +54,27 @@ def forward_parameters(datasets, dataset_building_parameters):
             manipulator.set_attribute(parameter_name, parameter_value)
 
 
+def parse_filters(config):
+    filters = []
+    for filter_key, filter_value in config.items():
+        if filter_key == 'DATA_CLEANING':
+            for filter_data_cleaning_key, filter_data_cleaning_value in filter_value.items():
+                module = importlib.import_module('Dataset.Filter.DataCleaning.{}'.format(filter_data_cleaning_key))
+                filter_class = getattr(module, 'DataCleaning_{}'.format(filter_data_cleaning_key))
+                filters.append(filter_class(**filter_data_cleaning_value))
+        else:
+            module = importlib.import_module('Dataset.Filter.{}'.format(filter_key))
+            filter_class = getattr(module, filter_key)
+            filters.append(filter_class(**filter_value))
+    return filters
+
+
 def build_datasets(config: dict):
     filters = []
     if 'FILTERS' in config:
         dataset_filter_names = config['FILTERS']
-        for filter_key, filter_value in dataset_filter_names.items():
-            if filter_key == 'DATA_CLEANING':
-                for filter_data_cleaning_key, filter_data_cleaning_value in filter_value.items():
-                    module = importlib.import_module('Dataset.Filter.DataCleaning.{}'.format(filter_data_cleaning_key))
-                    filter_class = getattr(module, 'DataCleaning_{}'.format(filter_data_cleaning_key))
-                    filters.append(filter_class(**filter_data_cleaning_value))
-            else:
-                module = importlib.import_module('Dataset.Filter.{}'.format(filter_key))
-                filter_class = getattr(module, filter_key)
-                filters.append(filter_class(**filter_value))
+        filters.extend(parse_filters(dataset_filter_names))
 
-    if len(filters) == 0:
-        filters = None
     datasets = []
 
     constructor_params = {}
@@ -104,13 +108,31 @@ def build_datasets(config: dict):
             factory_class = DetectionDatasetFactory
         else:
             raise Exception('Unsupported dataset type {}'.format(dataset_type))
+
         seed_class = getattr(module, '{}_Seed'.format(dataset_name))
-        seed = seed_class(root_path=path)
+
+        if 'PARAMETERS' in dataset_building_parameter:
+            seed_parameters = dataset_building_parameter['PARAMETERS']
+            seed = seed_class(root_path=path, **seed_parameters)
+        else:
+            seed = seed_class(root_path=path)
+
         seed.data_split = getDataSplitFromConfig(dataset_building_parameter['SPLITS'])
         factory = factory_class([seed])
-        dataset = factory.construct(filters, **constructor_params)
+
+        if 'FILTERS' in dataset_building_parameter:
+            dataset_filters = parse_filters(dataset_building_parameter['FILTERS'])
+            dataset_filters.extend(filters)
+        else:
+            dataset_filters = filters
+
+        if len(dataset_filters) == 0:
+            dataset_filters = None
+
+        dataset = factory.construct(dataset_filters, **constructor_params)
         forward_parameters(dataset, dataset_building_parameter)
         datasets.extend(dataset)
+
     return datasets
 
 

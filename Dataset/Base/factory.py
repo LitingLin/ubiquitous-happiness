@@ -1,7 +1,6 @@
 from Dataset.Base.CacheService.path import prepare_dataset_cache_path
 import os
 from Dataset.Type.incompatible_error import IncompatibleError
-from data.types.bounding_box_format import BoundingBoxFormat
 from Dataset.Type.data_split import DataSplit
 import copy
 

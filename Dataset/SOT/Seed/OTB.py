@@ -3,7 +3,7 @@ from Dataset.Type.data_split import DataSplit
 from enum import Enum, auto
 
 
-class OTB100Split(Enum):
+class OTBVersion(Enum):
     OTB100 = auto()
     OTB50 = auto()
     OTB2013 = auto()
@@ -11,13 +11,13 @@ class OTB100Split(Enum):
 
 
 class OTB_Seed(BaseSeed):
-    def __init__(self, root_path: str=None, split: OTB100Split=OTB100Split.OTB100):
+    def __init__(self, root_path: str=None, version: OTBVersion=OTBVersion.OTB100):
         if root_path is None:
             root_path = self.get_path_from_config('OTB_PATH')
 
-        self.otb_split = split
+        self.otb_version = version
 
-        super(OTB_Seed, self).__init__(split.name, root_path, DataSplit.Full, 3)
+        super(OTB_Seed, self).__init__(version.name, root_path, DataSplit.Full, 3)
 
     def construct(self, constructor):
         from .Impl.OTB import construct_OTB
