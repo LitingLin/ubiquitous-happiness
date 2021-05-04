@@ -1,4 +1,4 @@
-name: TransT-Swin-Base-384-O2
+name: TransT-Swin-Tiny-384-O2
 data:
   area_factor:
     template: 2.0
@@ -13,7 +13,7 @@ backbone:
   type: swin_transformer
   position_embedding: sine
   parameters:
-    name: swin_base_patch4_window12_384
+    name: swin_tiny_patch4_window7_224
     output_layers: [2]
 
 transformer:
