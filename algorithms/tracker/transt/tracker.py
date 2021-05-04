@@ -34,7 +34,6 @@ class TransTTracker(object):
         self.window = window.flatten()
         self.object_bbox = bbox
 
-
         from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_preprocessing_pipeline
 
         curation_scaling, curation_source_center_point, curation_target_center_point = \

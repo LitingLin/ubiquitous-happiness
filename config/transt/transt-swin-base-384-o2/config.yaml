@@ -1,0 +1,26 @@
+name: TransT-Swin
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  feature_size:
+    template: [12, 12]
+    search: [24, 24]
+  template_size: [192, 192] # 16 * 8
+  search_size: [384, 384] # 32 * 8
+
+backbone:
+  type: swin_transformer
+  position_embedding: sine
+  parameters:
+    name: swin_base_patch4_window12_384
+    output_layers: [2]
+
+transformer:
+  position_embedding: sine
+  hidden_dim: 256
+  dropout: 0.1
+  nheads: 8
+  dim_feedforward: 2048
+  featurefusion_layers: 4
+  activation: gelu

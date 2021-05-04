@@ -693,10 +693,13 @@ def build_swin_tiny_patch4_window7_224(load_pretrained=True, output_layers=(3,))
 def build_swin_base_patch4_window7_224(load_pretrained=True, output_layers=(3,)):
     return build_swint_backbone('swin_base_patch4_window7_224', load_pretrained, output_layers)
 
+def build_swin_base_patch4_window7_384(load_pretrained=True, output_layers=(3,)):
+    return build_swint_backbone('swin_base_patch4_window12_384', load_pretrained, output_layers)
 
 def build_large_patch4_window7_224_in22k(load_pretrained=True, output_layers=(3,)):
     return build_swint_backbone('swin_base_patch4_window7_224', load_pretrained, output_layers)
 
 if __name__ == '__main__':
-    model = build_large_patch4_window7_224_in22k(output_layers=(1,))
-    model(torch.zeros((1,3, 128, 128)))
+    model = build_swin_base_patch4_window7_384(output_layers=(2,))
+    a=model(torch.zeros((1,3, 384, 384)))
+    print(a[0].shape)
