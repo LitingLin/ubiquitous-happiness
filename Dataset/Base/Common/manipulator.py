@@ -30,6 +30,9 @@ class DatasetObjectManipulator:
         self.index_of_object = index_of_object
         self.parent_iterator = parent_iterator
 
+    def get_id(self):
+        return self.object_['id']
+
     def get_bounding_box(self):
         return get_bounding_box(self.object_)
 

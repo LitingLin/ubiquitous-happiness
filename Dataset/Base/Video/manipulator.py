@@ -63,6 +63,49 @@ class VideoDatasetFrameManipulatorReverseIterator:
         pass
 
 
+class VideoDatasetSequenceObjectManipulator:
+    def __init__(self, sequence: dict, index_of_object, parent_iterator=None):
+        self.object_ = sequence['objects'][index_of_object]
+        self.sequence = sequence
+        self.index_of_object = index_of_object
+        self.parent_iterator = parent_iterator
+
+    def get_id(self):
+        return self.object_['id']
+
+    def get_category_id(self):
+        return self.object_['category_id']
+
+    def has_category_id(self):
+        return 'category_id' in self.object_
+
+    def delete(self):
+        del self.sequence['objects'][self.index_of_object]
+        del self.object_
+        if self.parent_iterator is not None:
+            self.parent_iterator.deleted()
+
+
+class VideoDatasetSequenceObjectManipulatorIterator:
+    def __init__(self, sequence: dict):
+        self.sequence = sequence
+
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index >= len(self.sequence['objects']):
+            raise StopIteration
+
+        modifier = VideoDatasetSequenceObjectManipulator(self.sequence, self.index, self)
+        self.index += 1
+        return modifier
+
+    def deleted(self):
+        self.index -= 1
+
+
 class VideoDatasetSequenceManipulator:
     def __init__(self, dataset: dict, index_of_sequence: int, parent_iterator=None):
         self.sequence = dataset['sequences'][index_of_sequence]
@@ -75,6 +118,11 @@ class VideoDatasetSequenceManipulator:
 
     def __len__(self):
         return len(self.sequence['frames'])
+
+    def get_object_iterator(self):
+        if 'objects' not in self.sequence:
+            return ()
+        return VideoDatasetSequenceObjectManipulatorIterator(self.sequence)
 
     def __iter__(self):
         return VideoDatasetFrameManipulatorIterator(self.sequence)

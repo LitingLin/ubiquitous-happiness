@@ -88,6 +88,17 @@ class VideoDatasetTweakTool:
             if len(sequence) == 0:
                 sequence.delete()
 
+    def remove_zero_annotation_objects(self):
+        for sequence in self.manipulator:
+            sequence_object_ids = set()
+            for frame in sequence:
+                for object_ in frame:
+                    sequence_object_ids.add(object_.get_id())
+
+            for object_ in sequence.get_object_iterator():
+                if object_.get_id() not in sequence_object_ids:
+                    object_.delete()
+
     def remove_category_ids(self, category_ids: list):
         for sequence in self.manipulator:
             for image in sequence:

@@ -33,6 +33,8 @@ def apply_filters_on_video_dataset_(dataset: dict, filters: list):
             if filter_.remove_empty_objects:
                 dataset_tweak_tool.bounding_box_remove_empty_annotation_objects()
         elif isinstance(filter_, DataCleaning_Integrity):
+            if filter_.remove_zero_annotation_objects:
+                dataset_tweak_tool.remove_zero_annotation_objects()
             if filter_.remove_zero_annotation_video_head_tail:
                 dataset_tweak_tool.remove_empty_annotation_head_tail()
             if filter_.remove_invalid_image:
