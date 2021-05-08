@@ -22,6 +22,9 @@ def build_backbone(net_config: dict, load_pretrained=True):
     position_encoding = build_position_encoding(net_config)
     if 'parameters' in backbone_config:
         backbone_build_params = backbone_config['parameters']
+        if 'pretrained' in backbone_build_params:
+            load_pretrained = backbone_build_params['pretrained']
+            del backbone_build_params['pretrained']
     else:
         backbone_build_params = ()
     if backbone_config['type'] == 'alexnet':
