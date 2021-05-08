@@ -668,6 +668,14 @@ _cfg = {
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window7_224_22k.pth',
         params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
     ),
+
+    'swin_small_patch2_window7_224': dict(
+        params=dict(pretrain_img_size=224, patch_size=2, window_size=7, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
+    ),
+
+    'swin_tiny_patch2_window7_224': dict(
+        params=dict(pretrain_img_size=224, patch_size=2, window_size=7, embed_dim=96, depths=(2, 2, 6, 2), num_heads=(3, 6, 12, 24))
+    )
 }
 
 
@@ -699,7 +707,10 @@ def build_swin_base_patch4_window7_384(load_pretrained=True, output_layers=(3,))
 def build_large_patch4_window7_224_in22k(load_pretrained=True, output_layers=(3,)):
     return build_swint_backbone('swin_base_patch4_window7_224', load_pretrained, output_layers)
 
+def build_swin_small_patch2_window7_224(load_pretrained=False, output_layers=(3,)):
+    return build_swint_backbone('swin_small_patch2_window7_224', load_pretrained, output_layers)
+
 if __name__ == '__main__':
-    model = build_swin_tiny_patch4_window7_224(output_layers=(2,))
-    a=model(torch.zeros((1,3, 384, 384)))
+    model = build_swin_small_patch2_window7_224(output_layers=(2,))
+    a=model(torch.zeros((1,3, 256, 256)))
     print(a[0].shape)

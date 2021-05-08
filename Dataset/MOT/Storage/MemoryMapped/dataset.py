@@ -102,24 +102,12 @@ class MultipleObjectTrackingDatasetFrame_MemoryMapped:
     def get_all_attribute_name(self):
         return self.sequence_additional_attributes.get_all_attribute_name_tree_query(('frames', self.index_of_frame))
 
+    def has_object(self, id_: int):
+        return id_ in self.frame_object_id_vector
+
     def get_object_by_id(self, id_: int):
         index = np.where(self.frame_object_id_vector == id_)[0].item()
-        object_attribute = self.sequence_attributes['objects'][id_]
-
-        frame_object_bounding_box = None
-        frame_object_bounding_box_validity_flag = None
-
-        if self.frame_object_bounding_box_matrix is not None:
-            frame_object_bounding_box = self.frame_object_bounding_box_matrix[index, :]
-        if self.frame_object_bounding_box_validity_flag_vector is not None:
-            frame_object_bounding_box_validity_flag = self.frame_object_bounding_box_validity_flag_vector[index]
-
-        return MultipleObjectTrackingDatasetFrameObject_MemoryMapped(self.index_of_frame,
-                                                                     id_,
-                                                                     object_attribute,
-                                                                     frame_object_bounding_box,
-                                                                     frame_object_bounding_box_validity_flag,
-                                                                     self.sequence_additional_attributes)
+        return self[index]
 
     def __getitem__(self, index: int):
         object_id = self.frame_object_id_vector[index].item()

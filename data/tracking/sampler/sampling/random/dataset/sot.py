@@ -1,4 +1,4 @@
-from data.tracking.sampler.sampling._impl.random.dataset.without_replacement.sot import SingleObjectTrackingDatasetSampler
+from data.tracking.sampler.sampling._impl.random.dataset.sample_sequence_without_replacement_and_sample_subtrack_fully_randomly.sot import SingleObjectTrackingDatasetSampler
 from data.tracking.sampler.sampling._impl.random.track.random.sot import SingleObjectTrackingDatasetSequenceSampler
 
 
