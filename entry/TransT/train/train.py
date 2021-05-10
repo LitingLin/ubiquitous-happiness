@@ -35,15 +35,15 @@ def get_args_parser():
 
 
 def main(args):
+    # fix the seed for reproducibility
+    seed = args.seed + utils.get_rank()
+    apply_all_workarounds(seed)
+
     utils.init_distributed_mode(args)
     print(f"git:\n  {utils.get_sha()}\n")
     print_running_environment(args)
 
     print(args)
-
-    # fix the seed for reproducibility
-    seed = args.seed + utils.get_rank()
-    apply_all_workarounds(seed)
 
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     train_config_path = os.path.join(config_path, args.config_name, 'train.yaml')
