@@ -1,11 +1,10 @@
 import torch
 from .actor import TransTActor
 from data.siamfc.dataset import build_tracking_dataset
-from data.TransT.collate_fn import transt_collate_fn
 from data.TransT.builder import build_transt_data_processor
 from data.torch.data_loader import build_torch_train_val_dataloader
-from models.TransT.network import build_transt
-from models.TransT.criterion import build_transt_criterion
+from models.TransT.builder import build_transt
+from models.TransT.loss.builder import build_criterion
 
 
 def _setup_optimizer(model, train_config):
@@ -33,7 +32,7 @@ def build_transt_training_actor(args, net_config: dict, train_config: dict, epoc
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
-    criterion = build_transt_criterion(train_config)
+    criterion = build_criterion(train_config)
     optimizer, lr_scheduler = _setup_optimizer(model, train_config)
 
     model.to(device)
@@ -50,9 +49,8 @@ def build_transt_training_actor(args, net_config: dict, train_config: dict, epoc
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                       val_dataset_config_path: str):
-    processor = build_transt_data_processor(network_config, train_config)
-    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path,
-                                                        val_dataset_config_path, processor, processor)
+    processor, collate_fn = build_transt_data_processor(network_config, train_config)
+    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, processor, processor)
 
     epoch_changed_event_signal_slots = []
 
@@ -62,7 +60,7 @@ def _build_dataloader(args, network_config: dict, train_config: dict, train_data
                                                                           args.num_workers, args.num_workers,
                                                                           args.device, args.distributed,
                                                                           epoch_changed_event_signal_slots,
-                                                                          collate_fn=transt_collate_fn)
+                                                                          collate_fn=collate_fn)
 
     return data_loader_train, data_loader_val, epoch_changed_event_signal_slots
 

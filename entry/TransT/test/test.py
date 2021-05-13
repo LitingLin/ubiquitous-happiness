@@ -4,11 +4,11 @@ root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 sys.path.append(root_path)
 config_path = os.path.join(root_path, 'config', 'transt')
 
-from Miscellaneous.torch_print_running_environment import print_running_environment
-from Utils.yaml_config import load_config
+from Miscellaneous.torch.print_running_environment import print_running_environment
+from Miscellaneous.yaml_ops import yaml_load
+from Miscellaneous.git_state import get_git_sha
 from algorithms.tracker.transt.builder import build_transt_tracker
 from evaluation.SOT.runner import run_standard_evaluation, run_standard_report_generation
-import Utils.detr_misc as utils
 
 
 if __name__ == '__main__':
@@ -27,12 +27,12 @@ if __name__ == '__main__':
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     evaluation_config_path = os.path.join(config_path, args.config_name, 'evaluation.yaml')
 
-    print(f"git:\n  {utils.get_sha()}\n")
+    print(f"git:\n  {get_git_sha()}\n")
     print_running_environment(args)
     print(args)
 
-    network_config = load_config(network_config_path)
-    evaluation_config = load_config(evaluation_config_path)
+    network_config = yaml_load(network_config_path)
+    evaluation_config = yaml_load(evaluation_config_path)
     if args.gen_report_only:
         run_standard_report_generation(network_config['name'], args.output_path)
     else:

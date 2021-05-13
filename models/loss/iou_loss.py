@@ -3,11 +3,17 @@ import math
 import torch
 import torch.nn as nn
 
+from data.operator.bbox.spatial.vectorized.torch.iou2d_calculator import bbox_overlaps
+from .util.weighted_loss import weighted_loss
 
+
+@weighted_loss
 def iou_loss(pred, target, linear=False, eps=1e-6):
     """IoU loss.
+
     Computing the IoU loss between a set of predicted bboxes and target bboxes.
     The loss is calculated as negative log of IoU.
+
     Args:
         pred (torch.Tensor): Predicted bboxes of format (x1, y1, x2, y2),
             shape (n, 4).
@@ -15,6 +21,7 @@ def iou_loss(pred, target, linear=False, eps=1e-6):
         linear (bool, optional): If True, use linear scale of loss instead of
             log scale. Default: False.
         eps (float): Eps to avoid log(0).
+
     Return:
         torch.Tensor: Loss tensor.
     """
@@ -26,11 +33,14 @@ def iou_loss(pred, target, linear=False, eps=1e-6):
     return loss
 
 
+@weighted_loss
 def bounded_iou_loss(pred, target, beta=0.2, eps=1e-3):
     """BIoULoss.
+
     This is an implementation of paper
     `Improving Object Localization with Fitness NMS and Bounded IoU Loss.
     <https://arxiv.org/abs/1711.00164>`_.
+
     Args:
         pred (torch.Tensor): Predicted bboxes.
         target (torch.Tensor): Target bboxes.
@@ -68,14 +78,17 @@ def bounded_iou_loss(pred, target, beta=0.2, eps=1e-3):
     return loss
 
 
+@weighted_loss
 def giou_loss(pred, target, eps=1e-7):
     r"""`Generalized Intersection over Union: A Metric and A Loss for Bounding
     Box Regression <https://arxiv.org/abs/1902.09630>`_.
+
     Args:
         pred (torch.Tensor): Predicted bboxes of format (x1, y1, x2, y2),
             shape (n, 4).
         target (torch.Tensor): Corresponding gt bboxes, shape (n, 4).
         eps (float): Eps to avoid log(0).
+
     Return:
         Tensor: Loss tensor.
     """
@@ -84,10 +97,13 @@ def giou_loss(pred, target, eps=1e-7):
     return loss
 
 
+@weighted_loss
 def diou_loss(pred, target, eps=1e-7):
     r"""`Implementation of Distance-IoU Loss: Faster and Better
     Learning for Bounding Box Regression, https://arxiv.org/abs/1911.08287`_.
+
     Code is modified from https://github.com/Zzh-tju/DIoU.
+
     Args:
         pred (Tensor): Predicted bboxes of format (x1, y1, x2, y2),
             shape (n, 4).
@@ -135,11 +151,14 @@ def diou_loss(pred, target, eps=1e-7):
     return loss
 
 
+@weighted_loss
 def ciou_loss(pred, target, eps=1e-7):
     r"""`Implementation of paper `Enhancing Geometric Factors into
     Model Learning and Inference for Object Detection and Instance
     Segmentation <https://arxiv.org/abs/2005.03572>`_.
+
     Code is modified from https://github.com/Zzh-tju/CIoU.
+
     Args:
         pred (Tensor): Predicted bboxes of format (x1, y1, x2, y2),
             shape (n, 4).
@@ -193,10 +212,11 @@ def ciou_loss(pred, target, eps=1e-7):
     return loss
 
 
-@LOSSES.register_module()
 class IoULoss(nn.Module):
     """IoULoss.
+
     Computing the IoU loss between a set of predicted bboxes and target bboxes.
+
     Args:
         linear (bool): If True, use linear scale of loss instead of log scale.
             Default: False.
@@ -224,6 +244,7 @@ class IoULoss(nn.Module):
                 reduction_override=None,
                 **kwargs):
         """Forward function.
+
         Args:
             pred (torch.Tensor): The prediction.
             target (torch.Tensor): The learning target of the prediction.
@@ -261,7 +282,6 @@ class IoULoss(nn.Module):
         return loss
 
 
-@LOSSES.register_module()
 class BoundedIoULoss(nn.Module):
 
     def __init__(self, beta=0.2, eps=1e-3, reduction='mean', loss_weight=1.0):
@@ -297,7 +317,6 @@ class BoundedIoULoss(nn.Module):
         return loss
 
 
-@LOSSES.register_module()
 class GIoULoss(nn.Module):
 
     def __init__(self, eps=1e-6, reduction='mean', loss_weight=1.0):
@@ -337,7 +356,6 @@ class GIoULoss(nn.Module):
         return loss
 
 
-@LOSSES.register_module()
 class DIoULoss(nn.Module):
 
     def __init__(self, eps=1e-6, reduction='mean', loss_weight=1.0):
@@ -377,7 +395,6 @@ class DIoULoss(nn.Module):
         return loss
 
 
-@LOSSES.register_module()
 class CIoULoss(nn.Module):
 
     def __init__(self, eps=1e-6, reduction='mean', loss_weight=1.0):

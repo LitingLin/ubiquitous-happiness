@@ -6,12 +6,13 @@ config_path = os.path.join(root_path, 'config', 'transt')
 
 import argparse
 from pathlib import Path
-import Utils.detr_misc as utils
 from training.transt.training_loop import run_training_loop
 from training.transt.builder import build_training_actor_and_dataloader
-from Utils.yaml_config import load_config
 from workarounds.all import apply_all_workarounds
-from Miscellaneous.torch_print_running_environment import print_running_environment
+from Miscellaneous.torch.print_running_environment import print_running_environment
+from Miscellaneous.yaml_ops import yaml_load
+from Miscellaneous.git_state import get_git_sha
+from Miscellaneous.torch.distributed import get_rank, init_distributed_mode
 
 
 def get_args_parser():
@@ -36,11 +37,11 @@ def get_args_parser():
 
 def main(args):
     # fix the seed for reproducibility
-    seed = args.seed + utils.get_rank()
+    seed = args.seed + get_rank()
     apply_all_workarounds(seed)
 
-    utils.init_distributed_mode(args)
-    print(f"git:\n  {utils.get_sha()}\n")
+    init_distributed_mode(args)
+    print(f"git:\n  {get_git_sha()}\n")
     print_running_environment(args)
 
     print(args)
@@ -49,8 +50,8 @@ def main(args):
     train_config_path = os.path.join(config_path, args.config_name, 'train.yaml')
     train_dataset_config_path = os.path.join(config_path, args.config_name, 'dataset', 'train.yaml')
     val_dataset_config_path = os.path.join(config_path, args.config_name, 'dataset', 'val.yaml')
-    network_config = load_config(network_config_path)
-    train_config = load_config(train_config_path)
+    network_config = yaml_load(network_config_path)
+    train_config = yaml_load(train_config_path)
 
     actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
     run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
