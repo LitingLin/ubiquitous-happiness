@@ -1,5 +1,5 @@
 import torch
-from models.TransT.network import build_transt
+from models.TransT.builder import build_transt
 from algorithms.tracker.transt.tracker import TransTTracker
 
 
