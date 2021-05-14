@@ -30,17 +30,10 @@ from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
 from data.operator.bbox.spatial.center import bbox_get_center_point
 from data.operator.bbox.spatial.utility.aligned.image import get_image_center_point
 from data.operator.image_and_bbox.align_corner.scale_and_translate import tf_scale_and_translate_numpy
-from data.operator.image.mean import tf_get_image_mean
+from data.operator.image.tf.mean import tf_get_image_mean
 from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
 import math
-import numpy as np
-from data.operator.image.imagenet_normalize import image_torch_tensor_imagenet_normalize
-from data.operator.image.rgb_to_gray import tf_image_rgb_to_gray_keep_channels
-from torchvision.transforms.functional import adjust_brightness
-from data.operator.image.numpy_pytorch_interop import image_numpy_to_torch_HWC_to_CHW
-from data.operator.image.batchify import unbatchify
-from data.operator.image.normalize import torch_image_normalize
-from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary, bounding_box_is_intersect_with_image
+from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
 
 
 def get_rand():
@@ -117,17 +110,17 @@ if __name__ == '__main__':
     dataset = datasets[0]
     image_path = dataset[0][0].get_image_path()
     bounding_box = dataset[0][0].get_bounding_box()
-    from data.operator.image.decoder import tf_decode_image
+    from data.operator.image.tf.decoder import tf_decode_image
     image = tf_decode_image(image_path)
 
-    from data.operator.image.batchify import tf_batchify
+    from data.operator.image.tf.batchify import tf_batchify
     image = tf_batchify(image)
 
     output_image, output_bbox = jittered_center_crop(image, bounding_box, 4, (256, 256), 0.25, 3)
-    from data.operator.image.batchify import unbatchify
+    from data.operator.image.tf.batchify import unbatchify
     output_image = unbatchify(output_image)
 
-    from data.operator.image.dtype import image_round_to_uint8
+    from data.operator.image.tf.dtype import image_round_to_uint8
     output_image = image_round_to_uint8(output_image)
 
     from Viewer.qt5_viewer import Qt5Viewer
@@ -147,7 +140,7 @@ if __name__ == '__main__':
 
     output_image, output_bbox = o_imp_(image, bounding_box, 4, 256, 0.25, 3)
 
-    from data.operator.image.dtype import image_round_to_uint8
+    from data.operator.image.tf.dtype import image_round_to_uint8
     output_image = image_round_to_uint8(output_image)
 
     painter = viewer.newCanvas()
@@ -165,7 +158,7 @@ if __name__ == '__main__':
     output_image, output_bbox = jittered_center_crop(image, bounding_box, 2, (128, 128), 0, 0)
     output_image = unbatchify(output_image)
 
-    from data.operator.image.dtype import image_round_to_uint8
+    from data.operator.image.tf.dtype import image_round_to_uint8
     output_image = image_round_to_uint8(output_image)
 
     painter = viewer.newCanvas()
@@ -182,7 +175,7 @@ if __name__ == '__main__':
 
     output_image, output_bbox = o_imp_(image, bounding_box, 2, 128, 0, 0)
 
-    from data.operator.image.dtype import image_round_to_uint8
+    from data.operator.image.tf.dtype import image_round_to_uint8
     output_image = image_round_to_uint8(output_image)
 
     painter = viewer.newCanvas()

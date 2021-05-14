@@ -197,7 +197,7 @@ class SimpleViewer:
         self.window = window
 
     def addImage(self):
-        from data.operator.image.decoder import tf_decode_image
+        from data.operator.image.tf.decoder import tf_decode_image
         from Viewer.canvas.align_corner.simple_painter import SimplePainter
         image_viewer_widget = construct_simple_image_viewer_on_qt_layout(self.main_layout)
         image = tf_decode_image("K:\\dataset\\coco\\images\\train2014\\COCO_train2014_000000000009.jpg")

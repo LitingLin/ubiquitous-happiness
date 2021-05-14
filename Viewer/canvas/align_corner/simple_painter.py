@@ -8,7 +8,7 @@ from PyQt5.QtCore import QRectF, Qt
 import numpy as np
 from data.operator.image_and_bbox.align_corner.torch_scale_and_translate import torch_scale_and_translate_align_corners
 import torch
-from data.operator.image.dtype import torch_image_round_to_uint8
+from data.operator.image.tf.dtype import torch_image_round_to_uint8
 
 
 def _do_render(background_image: tf.Tensor, rendering_contexts, target_size, scale=(1., 1.), translation_source_center=(0, 0), translation_target_center=(0, 0), with_qpixmap=True):

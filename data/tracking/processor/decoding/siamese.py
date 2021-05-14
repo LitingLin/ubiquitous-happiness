@@ -1,4 +1,4 @@
-from data.operator.image.decoder import tf_decode_image
+from data.operator.image.tf.decoder import tf_decode_image
 
 
 def tf_siamese_pair_data_preprocessing(data, is_positive):

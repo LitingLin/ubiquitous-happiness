@@ -1,6 +1,7 @@
-from data.TransT.pipeline import transt_training_preprocessing_pipeline, build_transform
+from data.TransT.pipeline import transt_data_processing_train_pipeline, build_transform, transt_data_pre_processing_train_pipeline
 from data.TransT.label.transt import label_generation
 import numpy as np
+from torchvision.transforms import Grayscale
 
 
 class TransTProcessor:
@@ -22,20 +23,19 @@ class TransTProcessor:
         self.gray_scale_probability = gray_scale_probability
         self.search_feat_size = search_feat_size
         self.transform = build_transform(color_jitter)
+        self.gray_scale_transformer = Grayscale(3)
 
     def __call__(self, z_image, z_bbox, x_image, x_bbox, _):
-        do_gray_scale_transform = np.random.random() < self.gray_scale_probability
-        z_image, z_bbox = transt_training_preprocessing_pipeline(z_image, z_bbox, self.template_area_factor,
+        z_image, x_image = transt_data_pre_processing_train_pipeline(z_image, x_image, self.gray_scale_transformer, self.gray_scale_probability, np.random)
+        z_image, z_bbox = transt_data_processing_train_pipeline(z_image, z_bbox, self.template_area_factor,
                                                                  self.template_size,
                                                                  self.template_scale_jitter_factor,
                                                                  self.template_translation_jitter_factor,
-                                                                 do_gray_scale_transform,
                                                                  self.transform)
-        x_image, x_bbox = transt_training_preprocessing_pipeline(x_image, x_bbox, self.search_area_factor,
+        x_image, x_bbox = transt_data_processing_train_pipeline(x_image, x_bbox, self.search_area_factor,
                                                                  self.search_size,
                                                                  self.search_scale_jitter_factor,
                                                                  self.search_translation_jitter_factor,
-                                                                 do_gray_scale_transform,
                                                                  self.transform)
         target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label_generation(x_bbox,
                                                                                                                 self.search_feat_size,

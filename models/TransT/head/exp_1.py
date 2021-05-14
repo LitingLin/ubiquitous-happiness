@@ -4,9 +4,9 @@ from torch import nn
 from models.modules.mlp import MLP
 
 
-def _sigmoid(x):
-    y = torch.clamp(x.sigmoid_(), min=1e-4, max=1-1e-4)
-    return y
+#def _sigmoid(x):
+#    y = torch.clamp(x.sigmoid_(), min=1e-4, max=1-1e-4)
+#    return y
 
 
 class EXP1Head_WithRegBranch(nn.Module):
@@ -19,14 +19,14 @@ class EXP1Head_WithRegBranch(nn.Module):
         assert input_.shape[0] == 1
         input_ = input_[0]
 
-        class_branch = self.classification(input_)
-        regression_branch = self.regression(input_)
+        class_branch = self.classification(input_).sigmoid()
+        regression_branch = self.regression(input_).sigmoid()
         class_branch = class_branch.transpose(1, 2)
         class_score = class_branch[:, 0, :]
-        bounding_box = regression_branch[:, :, 0: 4].sigmoid()
-        quality_assessment = regression_branch[:, :, 4].sigmoid()
+        bounding_box = regression_branch[:, :, 0: 4]
+        quality_assessment = regression_branch[:, :, 4]
 
-        return _sigmoid(class_score), bounding_box, quality_assessment
+        return class_score, bounding_box, quality_assessment
 
 
 class EXP1Head_WithClassBranch(nn.Module):
@@ -39,11 +39,11 @@ class EXP1Head_WithClassBranch(nn.Module):
         assert input_.shape[0] == 1
         input_ = input_[0]
 
-        class_branch = self.classification(input_)
-        regression_branch = self.regression(input_)
+        class_branch = self.classification(input_).sigmoid()
+        regression_branch = self.regression(input_).sigmoid()
         class_branch = class_branch.transpose(1, 2)
         class_score = class_branch[:, 0, :]
-        bounding_box = regression_branch.sigmoid()
-        quality_assessment = class_branch[:, 1, :].sigmoid()
+        bounding_box = regression_branch
+        quality_assessment = class_branch[:, 1, :]
 
-        return _sigmoid(class_score), bounding_box, quality_assessment
+        return class_score, bounding_box, quality_assessment

@@ -1,14 +1,13 @@
 import os
-from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped, SingleObjectTrackingDatasetSequence_MemoryMapped
+from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDatasetSequence_MemoryMapped
 from Dataset.Base.Common.constructor import DatasetProcessBar
 import shutil
-from data.operator.image.decoder import tf_decode_image
+from data.operator.image.tf.decoder import tf_decode_image
 import time
 import pickle
 import numpy as np
-from typing import List, Optional
 from Miscellaneous.simple_prefetcher import SimplePrefetcher
-from data.operator.image.batchify import tf_batchify
+from data.operator.image.tf.batchify import tf_batchify
 
 
 def get_sequence_result_path(result_path, sequence, run_time=None):

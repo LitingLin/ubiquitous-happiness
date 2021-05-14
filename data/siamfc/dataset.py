@@ -4,14 +4,13 @@ import numpy as np
 from torch.utils.data import Dataset
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
 from Miscellaneous.torch.distributed import is_main_process
-from data.operator.image.decoder import tf_decode_image
-from data.operator.image.batchify import tf_batchify
 from torchvision.transforms import ToTensor
+import torchvision.io
 from .sampler import SOTDatasetSiamFCSampler, DetectionDatasetSiamFCSampler, MOTDatasetSiamFCSampler
 
 
 def _decode_image(path):
-    return tf_batchify(tf_decode_image(path))
+    return torchvision.io.read_image(path, torchvision.io.image.ImageReadMode.RGB)
 
 
 class ConcateDatasetPositioning:

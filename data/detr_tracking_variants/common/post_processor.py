@@ -1,5 +1,5 @@
 from data.operator.image.numpy_pytorch_interop import image_numpy_to_torch
-from data.operator.image.imagenet_normalize import image_torch_tensor_imagenet_normalize
+from data.operator.image.pytorch.imagenet_normalize import image_torch_tensor_imagenet_normalize
 from data.operator.bbox.aligned.xywh2cxcywh_normalize import bbox_xywh2cxcywh_normalize_
 from data.operator.bbox.numpy_pytorch_interop import bbox_numpy_to_torch
 import torch

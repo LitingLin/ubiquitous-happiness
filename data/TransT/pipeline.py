@@ -2,14 +2,12 @@ import torch
 from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
 from data.operator.bbox.spatial.center import bbox_get_center_point
 from data.operator.bbox.spatial.utility.aligned.image import get_image_center_point
-from data.operator.image_and_bbox.align_corner.scale_and_translate import tf_scale_and_translate_numpy
-from data.operator.image.mean import tf_get_image_mean
 from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
+from data.operator.image_and_bbox.align_corner.vectorized.pytorch.scale_and_translate import torch_scale_and_translate_align_corners
+from data.operator.image.pytorch.mean import get_image_mean_chw, get_image_mean
 import math
-from data.operator.image.rgb_to_gray import tf_image_rgb_to_gray_keep_channels
-from data.operator.image.batchify import unbatchify, torch_batchify
-from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary, \
-    bounding_box_is_intersect_with_image
+from data.operator.bbox.spatial.vectorized.torch.utility.aligned.image import bbox_restrict_in_image_boundary_
+from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision import transforms
 
@@ -36,7 +34,8 @@ def get_scaling_and_translation_parameters(bbox, area_factor, output_size):
 
     source_center = bbox_get_center_point(bbox)
     target_center = get_image_center_point(output_size)
-    scaling = scaling.tolist()
+    source_center = torch.tensor(source_center)
+    target_center = torch.tensor(target_center)
     return scaling, source_center, target_center
 
 
@@ -48,16 +47,15 @@ def jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_f
 
         source_center = bbox_get_center_point(bbox)
         target_center = get_image_center_point(output_size)
-        target_center = (torch.tensor(target_center) - translate).tolist()
-        scaling = scaling.tolist()
+        target_center = (torch.tensor(target_center) - translate)
 
         output_bbox = bbox_scale_and_translate(bbox, scaling, source_center, target_center)
 
         if bounding_box_is_intersect_with_image(output_bbox, output_size):
             break
-
-    output_image = tf_scale_and_translate_numpy(image, output_size, scaling, source_center, target_center,
-                                                tf_get_image_mean(image).numpy())
+    source_center = torch.tensor(source_center)
+    output_bbox = torch.tensor(output_bbox)
+    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, scaling, source_center, target_center, get_image_mean_chw(image))
     return output_image, output_bbox
 
 
@@ -71,7 +69,6 @@ def build_transform(color_jitter=0.4):
         # if it's a scalar, duplicate for brightness, contrast, and saturation, no hue
         color_jitter = (float(color_jitter),) * 3
     transform_list = [
-        transforms.ToTensor(),
         transforms.ColorJitter(*color_jitter),
         transforms.Normalize(
             mean=torch.tensor(IMAGENET_DEFAULT_MEAN),
@@ -81,47 +78,52 @@ def build_transform(color_jitter=0.4):
 
 
 def build_evaluation_transform():
-    transform_list = [
-        transforms.ToTensor(),
-        transforms.Normalize(
+    return transforms.Normalize(
             mean=torch.tensor(IMAGENET_DEFAULT_MEAN),
             std=torch.tensor(IMAGENET_DEFAULT_STD))
-    ]
-    return transforms.Compose(transform_list)
 
 
-def transt_preprocessing_pipeline(image, bbox, output_size, curation_scaling, curation_source_center_point, curation_target_center_point, image_mean=None, transform=None):
+def transt_data_processing_evaluation_pipeline(image, bbox, output_size, curation_scaling, curation_source_center_point, curation_target_center_point, image_mean=None, transform=None):
     output_bbox = bbox_scale_and_translate(bbox, curation_scaling, curation_source_center_point, curation_target_center_point)
+    output_bbox = torch.tensor(output_bbox)
 
     if image_mean is None:
-        image_mean = tf_get_image_mean(image).numpy()
-    output_image = tf_scale_and_translate_numpy(image, output_size, curation_scaling, curation_source_center_point, curation_target_center_point,
-                                                image_mean)
-
-    output_image = unbatchify(output_image)
+        image_mean = get_image_mean(image)
+    curation_scaling = curation_scaling.to(image.device, non_blocking=True)
+    curation_source_center_point = curation_source_center_point.to(image.device, non_blocking=True)
+    curation_target_center_point = curation_target_center_point.to(image.device, non_blocking=True)
+    output_image = torch_scale_and_translate_align_corners(image, output_size, curation_scaling, curation_source_center_point, curation_target_center_point, image_mean)
 
     if transform is not None:
-        output_image /= 255.0
         output_image = transform(output_image)
-
-    output_image = torch_batchify(output_image)
 
     return output_image, output_bbox, image_mean
 
 
-def transt_training_preprocessing_pipeline(image, bbox, area_factor, output_size, scaling_jitter_factor,
-                                           translation_jitter_factor, gray_scale=False, transform=None):
-    if gray_scale:
-        image = tf_image_rgb_to_gray_keep_channels(image)
-
+def transt_data_processing_train_pipeline(image, bbox, area_factor, output_size, scaling_jitter_factor,
+                                           translation_jitter_factor, transform=None):
     image, bbox = jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_factor,
                                        translation_jitter_factor)
-    bbox = bounding_box_fit_in_image_boundary(bbox, output_size)
-
-    image = unbatchify(image)
+    bbox_restrict_in_image_boundary_(bbox, output_size)
 
     if transform is not None:
-        image /= 255.0
         image = transform(image)
 
     return image, bbox
+
+
+def _transt_data_pre_processing_train_pipeline(image, gray_scale_transformer):
+    if gray_scale_transformer is not None:
+        image = gray_scale_transformer(image)
+    return image.float() / 255.
+
+
+def transt_data_pre_processing_train_pipeline(z_image, x_image, gray_scale_transformer, gray_scale_probability, rng_engine):
+    if rng_engine.random() > gray_scale_probability:
+        gray_scale_transformer = None
+    if id(x_image) != id(z_image):
+        z_image = _transt_data_pre_processing_train_pipeline(z_image, gray_scale_transformer)
+        x_image = _transt_data_pre_processing_train_pipeline(x_image, gray_scale_transformer)
+    else:
+        x_image = z_image = _transt_data_pre_processing_train_pipeline(z_image, gray_scale_transformer)
+    return z_image, x_image

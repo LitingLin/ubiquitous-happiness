@@ -34,13 +34,13 @@ class TransTTracker(object):
         self.window = window.flatten()
         self.object_bbox = bbox
 
-        from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_preprocessing_pipeline
+        from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_data_processing_evaluation_pipeline
 
         curation_scaling, curation_source_center_point, curation_target_center_point = \
             get_scaling_and_translation_parameters(self.object_bbox, self.template_area_factor, self.template_size)
 
         curated_template_image, _, self.image_mean = \
-            transt_preprocessing_pipeline(image, self.object_bbox, self.template_size,
+            transt_data_processing_evaluation_pipeline(image, self.object_bbox, self.template_size,
                                           curation_scaling, curation_source_center_point, curation_target_center_point,
                                           None, self.image_transform)
         curated_template_image = curated_template_image.to(self.device)

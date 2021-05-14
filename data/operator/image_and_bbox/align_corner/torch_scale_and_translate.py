@@ -1,11 +1,25 @@
 import torch
 import torch.nn.functional
 from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
-from data.operator.bbox.validity import is_bbox_valid
-from data.operator.bbox.intersection import bbox_compute_intersection
+from data.operator.bbox.validity import bbox_is_valid
+from data.operator.bbox.intersection import bbox_get_intersection
 
 
 def torch_scale_and_translate_align_corners_nchw(img: torch.Tensor, output_size, scale, input_center=(0, 0), output_center=(0, 0), background_color=(0, 0, 0), mode='bilinear'):
+    """
+    Args:
+        img (torch.Tensor): (n, c, h, w)
+        output_size (torch.Tensor): (n, 2)
+        scale (torch.Tensor): (n, 2)
+        input_center (torch.Tensor): (n, 2)
+        output_center (torch.Tensor): (n, 2)
+        background_color (torch.Tensor | None): (n, 3)
+        mode (str): interpolate algorithm
+    Returns:
+        (torch.Tensor, torch.Tensor): tuple containing:
+            output_img(torch.Tensor)
+            output_bbox (torch.Tensor)
+    """
     n, c, h, w = img.shape
     dtype = img.dtype
     if not isinstance(background_color, torch.Tensor):
@@ -25,8 +39,8 @@ def torch_scale_and_translate_align_corners_nchw(img: torch.Tensor, output_size,
     output_bbox = bbox_scale_and_translate((0, 0, w - 1, h - 1), scale, input_center, output_center)
     output_bbox = tuple(round(v) for v in output_bbox)
 
-    in_range_bbox = bbox_compute_intersection(output_bbox, (0, 0, output_size[0] - 1, output_size[1] - 1))
-    if not is_bbox_valid(in_range_bbox):
+    in_range_bbox = bbox_get_intersection(output_bbox, (0, 0, output_size[0] - 1, output_size[1] - 1))
+    if not bbox_is_valid(in_range_bbox):
         return output_img, output_bbox
 
     input_bbox = bbox_scale_and_translate(in_range_bbox, (1 / scale[0], 1 / scale[1]), output_center, input_center)
