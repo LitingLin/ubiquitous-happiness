@@ -70,7 +70,7 @@ class TransTTracker(object):
         best_idx = np.argmax(pscore)
         bbox = pred_bbox[:, best_idx]
 
-        from data.TransT.label_generation import get_bounding_box_from_label
+        from data.TransT.label.transt import get_bounding_box_from_label
         bbox = get_bounding_box_from_label(bbox, self.search_size)
 
         from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
