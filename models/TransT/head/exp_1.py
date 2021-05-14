@@ -24,7 +24,7 @@ class EXP1Head_WithRegBranch(nn.Module):
         class_branch = class_branch.transpose(1, 2)
         class_score = class_branch[:, 0, :]
         bounding_box = regression_branch[:, :, 0: 4].sigmoid()
-        quality_assessment = regression_branch[:, :, 4]
+        quality_assessment = regression_branch[:, :, 4].sigmoid()
 
         return _sigmoid(class_score), bounding_box, quality_assessment
 
@@ -44,6 +44,6 @@ class EXP1Head_WithClassBranch(nn.Module):
         class_branch = class_branch.transpose(1, 2)
         class_score = class_branch[:, 0, :]
         bounding_box = regression_branch.sigmoid()
-        quality_assessment = class_branch[:, 1, :]
+        quality_assessment = class_branch[:, 1, :].sigmoid()
 
         return _sigmoid(class_score), bounding_box, quality_assessment

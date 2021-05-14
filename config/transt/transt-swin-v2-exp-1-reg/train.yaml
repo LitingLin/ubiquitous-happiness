@@ -38,6 +38,7 @@ train:
           weight: 1
       quality_assessment:
         IoU_aware:
+          type: CIoU
           weight: 1.75
 
 val:
