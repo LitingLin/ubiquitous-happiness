@@ -44,7 +44,7 @@ class TransTTracker(object):
                                           curation_scaling, curation_source_center_point, curation_target_center_point,
                                           None, self.image_transform)
         curated_template_image = curated_template_image.to(self.device)
-        curated_template_image = curated_template_image.unsqueeze()
+        curated_template_image = curated_template_image.unsqueeze(0)
         # initialize template feature
         self.z = self.net.template(curated_template_image)
 
@@ -59,7 +59,7 @@ class TransTTracker(object):
                                           self.image_mean, self.image_transform)
 
         curated_search_image = curated_search_image.to(self.device)
-        curated_search_image = curated_search_image.unsqueeze()
+        curated_search_image = curated_search_image.unsqueeze(0)
         # track
         predicted_classes, predicted_boxes = self.net.track(self.z, curated_search_image)
         score = self._convert_score(predicted_classes)
@@ -105,7 +105,7 @@ class TransTTracker(object):
             return bbox
 
     def _update_target_bbox_state(self, bbox, image):
-        n, h, w, c = image.shape
+        c, h, w = image.shape
         from data.operator.bbox.spatial.xyxy2cxcywh import bbox_xyxy2cxcywh
         from data.operator.bbox.spatial.cxcywh2xyxy import bbox_cxcywh2xyxy
         from data.operator.bbox.spatial.utility.aligned.image import bounding_box_fit_in_image_boundary, \
