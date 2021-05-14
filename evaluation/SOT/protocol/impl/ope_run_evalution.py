@@ -2,12 +2,11 @@ import os
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDatasetSequence_MemoryMapped
 from Dataset.Base.Common.constructor import DatasetProcessBar
 import shutil
-from data.operator.image.tf.decoder import tf_decode_image
 import time
 import pickle
 import numpy as np
 from Miscellaneous.simple_prefetcher import SimplePrefetcher
-from data.operator.image.tf.batchify import tf_batchify
+import torchvision.io
 
 
 def get_sequence_result_path(result_path, sequence, run_time=None):
@@ -40,7 +39,7 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
 
         def __getitem__(self, index: int):
             frame = self.sequence[index]
-            return tf_batchify(tf_decode_image(frame.get_image_path())), frame.get_bounding_box()
+            return torchvision.io.read_image(frame.get_image_path(), torchvision.io.image.ImageReadMode.RGB), frame.get_bounding_box()
 
         def __len__(self):
             return len(self.sequence)

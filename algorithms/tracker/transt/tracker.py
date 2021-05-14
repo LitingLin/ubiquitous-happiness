@@ -44,20 +44,22 @@ class TransTTracker(object):
                                           curation_scaling, curation_source_center_point, curation_target_center_point,
                                           None, self.image_transform)
         curated_template_image = curated_template_image.to(self.device)
+        curated_template_image = curated_template_image.unsqueeze()
         # initialize template feature
         self.z = self.net.template(curated_template_image)
 
     def track(self, image):
-        from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_preprocessing_pipeline
+        from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_data_processing_evaluation_pipeline
         curation_scaling, curation_source_center_point, curation_target_center_point = \
             get_scaling_and_translation_parameters(self.object_bbox, self.search_area_factor, self.search_size)
 
         curated_search_image, curated_search_image_object_bbox, _ = \
-            transt_preprocessing_pipeline(image, self.object_bbox, self.search_size,
+            transt_data_processing_evaluation_pipeline(image, self.object_bbox, self.search_size,
                                           curation_scaling, curation_source_center_point, curation_target_center_point,
                                           self.image_mean, self.image_transform)
 
         curated_search_image = curated_search_image.to(self.device)
+        curated_search_image = curated_search_image.unsqueeze()
         # track
         predicted_classes, predicted_boxes = self.net.track(self.z, curated_search_image)
         score = self._convert_score(predicted_classes)
