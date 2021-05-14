@@ -37,7 +37,7 @@ class TransTProcessor:
                                                                  self.search_scale_jitter_factor,
                                                                  self.search_translation_jitter_factor,
                                                                  self.transform)
-        target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label_generation(x_bbox,
+        target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label_generation(x_bbox.tolist(),
                                                                                                                 self.search_feat_size,
                                                                                                                 self.search_size)
         return z_image, x_image, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix
