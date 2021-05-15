@@ -31,11 +31,13 @@ class TransTTracking(nn.Module):
 
         return outputs_class[-1], outputs_coord[-1]
 
+    @torch.no_grad()
     def template(self, z):
         z_feat, z_feat_pos = self.backbone(z)
         z_feat = self.input_proj(z_feat)
         return z_feat, z_feat_pos
 
+    @torch.no_grad()
     def track(self, z_feats, x):
         z_feat, z_feat_pos = z_feats
         x_feat, x_feat_pos = self.backbone(x)

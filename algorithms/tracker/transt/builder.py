@@ -11,8 +11,18 @@ def build_transt_tracker(network_config, evaluation_config, weight_path, device)
         bbox_size_limit_in_feat_space = False
     else:
         bbox_size_limit_in_feat_space = evaluation_config['tracking']['bbox_size_limit_in_feat_space']
-    return TransTTracker(model, device,
-                         evaluation_config['tracking']['window_penalty'], evaluation_config['tracking']['min_wh'],
+
+    if 'version' not in network_config or network_config['transformer']['head']['type'] == 'detr':
+        from .post_processor.transt import TransTTrackingPostProcessing
+        post_processor = TransTTrackingPostProcessing(network_config['data']['feature_size']['search'], evaluation_config['tracking']['window_penalty'], device)
+    elif network_config['transformer']['head']['type'] == 'exp-1':
+        from .post_processor.exp_1 import TransTExp1TrackingPostProcessing
+        post_processor = TransTExp1TrackingPostProcessing(evaluation_config['tracking']['window_penalty'] > 0, evaluation_config['tracking']['with_quality_assessment'], network_config['data']['feature_size']['search'], device, evaluation_config['tracking']['window_penalty'])
+    else:
+        raise RuntimeError(f"Unknown value {network_config['transformer']['head']['type']}")
+
+    return TransTTracker(model, device, post_processor,
+                         evaluation_config['tracking']['min_wh'],
                          network_config['data']['template_size'], network_config['data']['search_size'],
                          network_config['data']['feature_size']['search'],
                          network_config['data']['area_factor']['template'],

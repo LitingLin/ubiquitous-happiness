@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('config_name', type=str, help='Config name')
     parser.add_argument('weight_path', type=str, help='Path to network weight')
     parser.add_argument('output_path', type=str, help="Path to save results.")
+    parser.add_argument('--evaluation-config-path', type=str, help='Path to evaluation config path.')
     parser.add_argument('--device', type=str, default='cuda:0', help="Pytorch device string.")
     parser.add_argument('--run-ope-evaluation-only', action='store_true', help="Run OPE evaluation only")
     parser.add_argument('--gen-report-only', action='store_true', help="Run report generation only")
@@ -26,6 +27,9 @@ if __name__ == '__main__':
 
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
     evaluation_config_path = os.path.join(config_path, args.config_name, 'evaluation.yaml')
+
+    if args.evaluation_config_path is not None:
+        evaluation_config_path = args.evaluation_config_path
 
     print(f"git:\n  {get_git_sha()}\n")
     print_running_environment(args)

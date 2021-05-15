@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 
 
@@ -23,11 +24,13 @@ class TransTTracking(nn.Module):
         hs = self.transformer(z_feat, x_feat, z_feat_pos, x_feat_pos)
         return self.head(hs)
 
+    @torch.no_grad()
     def template(self, z):
         z_feat, z_feat_pos = self.backbone(z)
         z_feat = self.input_proj(z_feat)
         return z_feat, z_feat_pos
 
+    @torch.no_grad()
     def track(self, z_feats, x):
         z_feat, z_feat_pos = z_feats
         x_feat, x_feat_pos = self.backbone(x)

@@ -1,14 +1,10 @@
-import numpy as np
-import torch.nn.functional as F
-
-
 class TransTTracker(object):
-    def __init__(self, model, device, window_penalty, min_wh, template_size, search_size, search_feat_size, template_area_factor, search_area_factor, bbox_size_limit_in_feat_space):
+    def __init__(self, model, device, post_processor, min_wh, template_size, search_size, search_feat_size, template_area_factor, search_area_factor, bbox_size_limit_in_feat_space):
         model = model.to(device)
         model.eval()
         self.net = model
         self.device = device
-        self.window_penalty = window_penalty
+        self.post_processor = post_processor
         self.min_wh = min_wh
         self.template_size = template_size
         self.search_size = search_size
@@ -19,19 +15,7 @@ class TransTTracker(object):
         self.image_transform = build_evaluation_transform()
         self.bbox_size_limit_in_feat_space = bbox_size_limit_in_feat_space
 
-    def _convert_score(self, score):
-        score = score.permute(2, 1, 0).contiguous().view(2, -1).permute(1, 0)
-        score = F.softmax(score, dim=1).data[:, 0].cpu().numpy()
-        return score
-
-    def _convert_bbox(self, delta):
-        delta = delta.permute(2, 1, 0).contiguous().view(4, -1)
-        delta = delta.data.cpu().numpy()
-        return delta
-
     def initialize(self, image, bbox):
-        window = np.outer(np.hanning(self.search_feat_size[1]), np.hanning(self.search_feat_size[0]))
-        self.window = window.flatten()
         self.object_bbox = bbox
 
         from data.TransT.pipeline import get_scaling_and_translation_parameters, transt_data_processing_evaluation_pipeline
@@ -61,16 +45,7 @@ class TransTTracker(object):
         curated_search_image = curated_search_image.to(self.device)
         curated_search_image = curated_search_image.unsqueeze(0)
         # track
-        predicted_classes, predicted_boxes = self.net.track(self.z, curated_search_image)
-        score = self._convert_score(predicted_classes)
-        pred_bbox = self._convert_bbox(predicted_boxes)
-
-        # window penalty
-        pscore = score * (1 - self.window_penalty) + \
-                 self.window * self.window_penalty
-
-        best_idx = np.argmax(pscore)
-        bbox = pred_bbox[:, best_idx]
+        bbox = self.post_processor(self.net.track(self.z, curated_search_image))
 
         from data.TransT.label.transt import get_bounding_box_from_label
         bbox = get_bounding_box_from_label(bbox, self.search_size)
