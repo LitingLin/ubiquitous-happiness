@@ -31,13 +31,16 @@ def _convert_tracking_result_to_got10k_format(sequence, result_path, target_path
 
 
 def convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, make_archive=False):
-    target_dataset_path = os.path.join(target_path, dataset.get_name(), tracker_name)
-    os.makedirs(target_dataset_path, exist_ok=True)
+    target_dataset_path = os.path.join(target_path, dataset.get_name())
+    target_tracker_path = os.path.join(target_dataset_path, tracker_name)
+    os.makedirs(target_tracker_path, exist_ok=True)
 
     for sequence in dataset:
-        _convert_tracking_result_to_got10k_format(sequence, result_path, target_dataset_path)
+        _convert_tracking_result_to_got10k_format(sequence, result_path, target_tracker_path)
     if make_archive:
-        shutil.make_archive(os.path.join(target_path, f'{tracker_name}.zip'), 'zip', target_dataset_path)
+        archive_base_path = os.path.join(target_path, tracker_name)
+        shutil.make_archive(archive_base_path, 'zip', target_dataset_path)
+        os.rename(archive_base_path + '.zip', target_tracker_path + '.zip')
 
 
 def convert_datasets_tracking_result_to_got10k_format(tracker_name, datasets, result_path, target_path, make_archive=False):

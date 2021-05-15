@@ -2,6 +2,7 @@ from Dataset.Base.Engine.memory_mapped import ListMemoryMapped
 from Dataset.Type.incompatible_error import IncompatibleError
 from Dataset.Base.Common.Operator.filters import filter_list_deserialize
 from Dataset.Base.Common.dataset_context_dao import DatasetContextDAO
+from Dataset.Type.data_split import DataSplit
 
 
 class LazyAttributesLoader:
@@ -101,6 +102,9 @@ class MemoryMappedDataset:
 
     def get_category_name_by_id(self, id_: int):
         return self.dataset_attributes['category_id_name_map'][id_]
+
+    def get_data_split(self):
+        return DataSplit[self.dataset_attributes['split']]
 
     def get_version(self):
         return self.dataset_attributes['version'][1]

@@ -488,29 +488,7 @@ _category_names = ['JetLev-Flyer',
                    'zebra-tailed lizard']
 
 
-def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
-    root_path = seed.root_path
-    data_type = seed.data_split
-
-    folders = []
-
-    if data_type & DataSplit.Training:
-        folders.append('train')
-    if data_type & DataSplit.Validation:
-        folders.append('val')
-
-    constructor.set_category_id_name_map({k: v for k, v in enumerate(_category_names)})
-    category_name_id_map = {v: k for k, v in enumerate(_category_names)}
-
-    sequence_list = []
-    for folder in folders:
-        for sequence_name in open(os.path.join(root_path, folder, 'list.txt'), 'r'):
-            sequence_name = sequence_name.strip()
-            current_sequence_path = os.path.join(root_path, folder, sequence_name)
-            sequence_list.append((sequence_name, current_sequence_path))
-
-    constructor.set_total_number_of_sequences(len(sequence_list))
-
+def _construct_GOT10k_public_data(constructor: SingleObjectTrackingDatasetConstructor, sequence_list, category_name_id_map):
     for sequence_name, sequence_path in sequence_list:
         images = os.listdir(sequence_path)
         images = [image for image in images if image.endswith('.jpg')]
@@ -546,3 +524,52 @@ def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
                     frame_constructor.set_object_attribute('absence', absence.item())
                     frame_constructor.set_object_attribute('cover', cover.item())
                     frame_constructor.set_object_attribute('cut_by_image', cut_by_image.item())
+
+
+def _construct_GOT10k_non_public_data(constructor: SingleObjectTrackingDatasetConstructor, sequence_list):
+    for sequence_name, sequence_path in sequence_list:
+        images = os.listdir(sequence_path)
+        images = [image for image in images if image.endswith('.jpg')]
+        images.sort()
+
+        bounding_box = load_numpy_array_from_txt(os.path.join(sequence_path, 'groundtruth.txt'), delimiter=',')
+        bounding_box = try_get_int_array(bounding_box)
+
+        assert bounding_box.ndim == 1 and bounding_box.shape[0] == 4
+
+        with constructor.new_sequence() as sequence_constructor:
+            sequence_constructor.set_name(sequence_name)
+            for index_of_image, image in enumerate(images):
+                with sequence_constructor.new_frame() as frame_constructor:
+                    frame_constructor.set_path(os.path.join(sequence_path, image))
+                    if index_of_image == 0:
+                        frame_constructor.set_bounding_box(bounding_box.tolist())
+
+
+def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
+    root_path = seed.root_path
+    data_split = seed.data_split
+
+    if data_split == DataSplit.Training:
+        folder = 'train'
+    elif data_split == DataSplit.Validation:
+        folder = 'val'
+    elif data_split == DataSplit.Testing:
+        folder = 'test'
+    else:
+        raise RuntimeError(f'Unsupported dataset split {data_split}')
+
+    constructor.set_category_id_name_map({k: v for k, v in enumerate(_category_names)})
+
+    sequence_list = []
+    for sequence_name in open(os.path.join(root_path, folder, 'list.txt'), 'r'):
+        sequence_name = sequence_name.strip()
+        current_sequence_path = os.path.join(root_path, folder, sequence_name)
+        sequence_list.append((sequence_name, current_sequence_path))
+
+    constructor.set_total_number_of_sequences(len(sequence_list))
+
+    if data_split in (DataSplit.Training, DataSplit.Validation):
+        _construct_GOT10k_public_data(constructor, sequence_list, {v: k for k, v in enumerate(_category_names)})
+    else:
+        _construct_GOT10k_non_public_data(constructor, sequence_list)

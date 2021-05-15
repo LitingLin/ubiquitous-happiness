@@ -1,3 +1,5 @@
+import os.path
+
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
 from typing import List, Optional
 
@@ -30,6 +32,21 @@ def run_one_pass_evaluation(tracker_name, tracker, datasets: List[SingleObjectTr
 
     for dataset in datasets:
         run_one_pass_evaluation_on_dataset(dataset, tracker, result_path, run_times)
+
+
+def run_one_pass_evaluation_on_non_public_datasets_and_pack_for_submission(tracker_name, tracker, datasets: List[SingleObjectTrackingDataset_MemoryMapped], output_path: str):
+    from Dataset.Type.data_split import DataSplit
+    from evaluation.SOT.protocol.impl.ope_run_evalution import prepare_result_path, run_one_pass_evaluation_on_dataset
+    result_path = prepare_result_path(output_path, datasets, tracker_name)
+
+    for dataset in datasets:
+        run_one_pass_evaluation_on_dataset(dataset, tracker, result_path)
+        if dataset.get_name() == 'GOT-10k' and dataset.get_data_split() == DataSplit.Testing:
+            from evaluation.SOT.protocol.utils.as_got10k_format import convert_dataset_tracking_result_to_got10k_format
+            target_path = os.path.join(output_path, 'submit')
+            convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, True)
+        else:
+            print('Warn: Unsupported non-public dataset, packing disabled.')
 
 
 def generate_one_pass_evaluation_report(tracker_name, datasets: List[SingleObjectTrackingDataset_MemoryMapped],
