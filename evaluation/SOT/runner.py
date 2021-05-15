@@ -17,7 +17,6 @@ def get_standard_evaluation_datasets():
     from Dataset.SOT.Seed.LaSOT import LaSOT_Seed
     from Dataset.SOT.Seed.LaSOT_Extension import LaSOT_Extension_Seed
     from Dataset.SOT.Seed.GOT10k import GOT10k_Seed
-    from Dataset.SOT.Seed.TrackingNet import TrackingNet_Seed
     from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
     from Dataset.Type.data_split import DataSplit
     return SingleObjectTrackingDatasetFactory([OTB_Seed(), GOT10k_Seed(data_split=DataSplit.Validation), LaSOT_Seed(data_split=DataSplit.Validation), LaSOT_Extension_Seed()]).construct(get_standard_evaluation_dataset_filter())
