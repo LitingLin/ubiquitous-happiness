@@ -41,10 +41,13 @@ def run_one_pass_evaluation_on_non_public_datasets_and_pack_for_submission(track
 
     for dataset in datasets:
         run_one_pass_evaluation_on_dataset(dataset, tracker, result_path)
+        target_path = os.path.join(output_path, 'submit')
         if dataset.get_name() == 'GOT-10k' and dataset.get_data_split() == DataSplit.Testing:
             from evaluation.SOT.protocol.utils.as_got10k_format import convert_dataset_tracking_result_to_got10k_format
-            target_path = os.path.join(output_path, 'submit')
             convert_dataset_tracking_result_to_got10k_format(tracker_name, dataset, result_path, target_path, True)
+        elif dataset.get_name() == 'TrackingNet' and dataset.get_data_split() == DataSplit.Testing:
+            from evaluation.SOT.protocol.utils.as_trackingnet_format import convert_dataset_tracking_result_to_trackingnet_format
+            convert_dataset_tracking_result_to_trackingnet_format(tracker_name, dataset, result_path, target_path, True)
         else:
             print('Warn: Unsupported non-public dataset, packing disabled.')
 

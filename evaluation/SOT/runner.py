@@ -38,7 +38,7 @@ def get_standard_non_public_evaluation_datasets():
     from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
     from Dataset.Type.data_split import DataSplit
     return SingleObjectTrackingDatasetFactory(
-        [GOT10k_Seed(data_split=DataSplit.Testing)]).construct(get_standard_non_public_evaluation_dataset_filter())
+        [GOT10k_Seed(data_split=DataSplit.Testing), TrackingNet_Seed(data_split=DataSplit.Testing)]).construct(get_standard_non_public_evaluation_dataset_filter())
 
 
 def run_standard_evaluation(tracker_name, tracker, output_path, generate_report=True, run_times=None):

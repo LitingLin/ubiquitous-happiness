@@ -1,0 +1,43 @@
+import os
+import numpy as np
+import shutil
+
+
+def get_bounding_box_converter():
+    from data.operator.bbox.transform.compile import compile_bbox_transform
+
+    from data.types.bounding_box_format import BoundingBoxFormat
+    from data.types.bounding_box_coordinate_system import BoundingBoxCoordinateSystem
+    from data.types.pixel_coordinate_system import PixelCoordinateSystem
+    from data.types.pixel_definition import PixelDefinition
+
+    return compile_bbox_transform(BoundingBoxFormat.XYXY, BoundingBoxFormat.XYWH, PixelCoordinateSystem.Aligned, PixelCoordinateSystem.Aligned, BoundingBoxCoordinateSystem.Spatial, BoundingBoxCoordinateSystem.Spatial, PixelDefinition.Point)
+
+
+def _convert_tracking_result_to_trackingnet_format(sequence, result_path, target_path):
+    from evaluation.SOT.protocol.impl.ope_run_evalution import get_sequence_result_path
+    from evaluation.SOT.protocol.impl.ope_report import _load_predicted_bounding_boxes, _load_running_time
+    sequence_result_path, _ = get_sequence_result_path(result_path, sequence)
+    bounding_boxes = _load_predicted_bounding_boxes(sequence_result_path)
+    bounding_box_converter = get_bounding_box_converter()
+    bounding_boxes = np.array([bounding_box_converter(bounding_box.tolist()) for bounding_box in bounding_boxes])
+
+    np.savetxt(os.path.join(target_path, f'{sequence.get_name()}.txt'), bounding_boxes, fmt='%.2f', delimiter=',')
+
+
+def convert_dataset_tracking_result_to_trackingnet_format(tracker_name, dataset, result_path, target_path, make_archive=False):
+    target_dataset_path = os.path.join(target_path, dataset.get_name())
+    target_tracker_path = os.path.join(target_dataset_path, tracker_name)
+    os.makedirs(target_tracker_path, exist_ok=True)
+
+    for sequence in dataset:
+        _convert_tracking_result_to_trackingnet_format(sequence, result_path, target_tracker_path)
+    if make_archive:
+        archive_base_path = os.path.join(target_path, tracker_name)
+        shutil.make_archive(archive_base_path, 'zip', target_tracker_path)
+        os.rename(archive_base_path + '.zip', target_tracker_path + '.zip')
+
+
+def convert_datasets_tracking_result_to_trackingnet_format(tracker_name, datasets, result_path, target_path, make_archive=False):
+    for dataset in datasets:
+        convert_dataset_tracking_result_to_trackingnet_format(tracker_name, dataset, result_path, target_path, make_archive)

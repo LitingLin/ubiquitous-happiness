@@ -62,11 +62,20 @@ def construct_TrackingNet(constructor: SingleObjectTrackingDatasetConstructor, s
             bounding_boxes = np.loadtxt(sequence_bounding_box_annotation_file_path, dtype=np.float, delimiter=',')
             images = os.listdir(sequence_image_path)
             images = [image for image in images if image.endswith('.jpg')]
-            assert len(images) == len(bounding_boxes)
+            if bounding_boxes.ndim == 2:
+                is_testing_sequence = False
+                assert len(images) == len(bounding_boxes)
+            else:
+                is_testing_sequence = True
+                assert bounding_boxes.ndim == 1 and bounding_boxes.shape[0] == 4
 
             for i in range(len(images)):
                 image_file_name = '{}.jpg'.format(i)
                 image_file_path = os.path.join(sequence_image_path, image_file_name)
                 with sequence_constructor.new_frame() as frame_constructor:
                     frame_constructor.set_path(image_file_path)
-                    frame_constructor.set_bounding_box(bounding_boxes[i].tolist())
+                    if is_testing_sequence:
+                        if i == 0:
+                            frame_constructor.set_bounding_box(bounding_boxes.tolist())
+                    else:
+                        frame_constructor.set_bounding_box(bounding_boxes[i].tolist())
