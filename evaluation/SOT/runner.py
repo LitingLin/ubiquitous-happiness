@@ -20,7 +20,7 @@ def get_standard_evaluation_datasets():
     from Dataset.SOT.Seed.TrackingNet import TrackingNet_Seed
     from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
     from Dataset.Type.data_split import DataSplit
-    return SingleObjectTrackingDatasetFactory([OTB_Seed(), GOT10k_Seed(data_split=DataSplit.Validation), LaSOT_Seed(data_split=DataSplit.Validation), LaSOT_Extension_Seed(), TrackingNet_Seed(data_split=DataSplit.Testing)]).construct(get_standard_evaluation_dataset_filter())
+    return SingleObjectTrackingDatasetFactory([OTB_Seed(), TrackingNet_Seed(data_split=DataSplit.Testing), GOT10k_Seed(data_split=DataSplit.Validation), LaSOT_Seed(data_split=DataSplit.Validation), LaSOT_Extension_Seed()]).construct(get_standard_evaluation_dataset_filter())
 
 
 def run_standard_evaluation(tracker_name, tracker, output_path, generate_report=True, run_times=None):
