@@ -9,14 +9,17 @@ from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcyw
 
 
 class TransTCriterion(nn.Module):
-    def __init__(self, weight_dict, eos_coef):
+    def __init__(self, weight_dict, eos_coef, reg_smooth_l1=False):
         super().__init__()
         self.weight_dict = weight_dict
         empty_weight = torch.ones((2))
         empty_weight[-1] = eos_coef
         self.register_buffer('empty_weight', empty_weight)
         self.giou_loss = GIoULoss(reduction='sum')
-        self.bbox_loss = nn.L1Loss(reduction='sum')
+        if reg_smooth_l1:
+            self.bbox_loss = nn.SmoothL1Loss(reduction='sum')
+        else:
+            self.bbox_loss = nn.L1Loss(reduction='sum')
         self.ce_loss = nn.CrossEntropyLoss(self.empty_weight, reduction='mean')
 
     def _do_statistic(self, stats: dict):
@@ -54,4 +57,7 @@ class TransTCriterion(nn.Module):
 def build_transt_criterion(train_config: dict):
     loss_parameters = train_config['train']['loss']['parameters']
     weight_dict = {'loss_ce': loss_parameters['weight']['cross_entropy'], 'loss_bbox': loss_parameters['weight']['bbox'], 'loss_giou': loss_parameters['weight']['giou']}
-    return TransTCriterion(weight_dict, loss_parameters['eos_coef'])
+    reg_smooth_l1 = False
+    if 'bbox_smooth_l1' in loss_parameters and loss_parameters['bbox_smooth_l1']:
+        reg_smooth_l1 = True
+    return TransTCriterion(weight_dict, loss_parameters['eos_coef'], reg_smooth_l1)
