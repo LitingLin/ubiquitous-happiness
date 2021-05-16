@@ -10,12 +10,12 @@ from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcyw
 
 
 class TransTExp1Criterion(nn.Module):
-    def __init__(self, weight_dict, cls_smooth_l1=True):
+    def __init__(self, weight_dict, reg_smooth_l1=True):
         super().__init__()
         self.weight_dict = weight_dict
         self.cls_loss = GaussianFocalLoss(reduction='mean')
         self.iou_loss = CIoUAndIoUAwareLoss(reduction='sum')
-        if cls_smooth_l1:
+        if reg_smooth_l1:
             self.bbox_loss = nn.SmoothL1Loss(reduction='sum')
         else:
             self.bbox_loss = nn.L1Loss(reduction='sum')
@@ -62,10 +62,10 @@ def build_transt_criterion(train_config: dict):
     weight_dict = {'loss_cls': loss_parameters['target_classification']['gaussian_focal_loss']['weight'],
                    'loss_iou': loss_parameters['bounding_box_regression']['IoU']['weight'],
                    'loss_iou_aware': loss_parameters['quality_assessment']['IoU_aware']['weight']}
-    cls_smooth_l1 = 'smooth_l1' in loss_parameters['bounding_box_regression']
-    if cls_smooth_l1:
+    reg_smooth_l1 = 'smooth_l1' in loss_parameters['bounding_box_regression']
+    if reg_smooth_l1:
         weight_dict['loss_bbox'] = loss_parameters['bounding_box_regression']['smooth_l1']['weight']
     else:
         weight_dict['loss_bbox'] = loss_parameters['bounding_box_regression']['l1']['weight']
 
-    return TransTExp1Criterion(weight_dict)
+    return TransTExp1Criterion(weight_dict, reg_smooth_l1)
