@@ -22,21 +22,4 @@ CONFIG:
 DATASETS:
   GOT10k:
     SPLITS:
-      - train
-    NUM_USE: 181986
-
-  LaSOT:
-    SPLITS:
-      - train
-    NUM_USE: 181986
-
-  YoutubeBB:
-
-  COCO:
-    NUM_USE: 90000
-
-  ILSVRC_DET:
-    NUM_USE: 90000
-
-  ILSVRC_VID:
-    NUM_USE: 90000
+      - val

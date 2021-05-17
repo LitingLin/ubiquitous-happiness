@@ -26,11 +26,10 @@ train:
   loss:
     type: transt
     parameters:
-      bbox_smooth_l1: true
       weight:
         cross_entropy: 8.334
-        bbox: 7
-        giou: 2
+        bbox: 5
+        ciou: 2
       eos_coef: 0.0625
 
 val:
