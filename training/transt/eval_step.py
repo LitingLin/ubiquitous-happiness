@@ -1,12 +1,12 @@
 import torch
-import Utils.detr_misc as utils
+from Miscellaneous.torch.metric_logger import MetricLogger
 
 
 @torch.no_grad()
 def evaluate(actor, data_loader):
     actor.eval()
 
-    metric_logger = utils.MetricLogger(delimiter="  ")
+    metric_logger = MetricLogger(delimiter="  ")
     header = 'Test:'
 
     for samples, targets in metric_logger.log_every(data_loader, 10, header):

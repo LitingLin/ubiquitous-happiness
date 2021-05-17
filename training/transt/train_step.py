@@ -1,11 +1,12 @@
-import Utils.detr_misc as utils
+from Miscellaneous.torch.metric_logger import MetricLogger
+from Miscellaneous.torch.smoothed_value import SmoothedValue
 from typing import Iterable
 
 
 def train_one_epoch(actor, data_loader: Iterable, epoch: int, max_norm: float = 0):
     actor.train()
-    metric_logger = utils.MetricLogger(delimiter="  ")
-    metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
+    metric_logger = MetricLogger(delimiter="  ")
+    metric_logger.add_meter('lr', SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
     print_freq = 10
 

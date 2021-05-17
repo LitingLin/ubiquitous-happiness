@@ -1,8 +1,8 @@
 import time
-import torch
 from .train_step import train_one_epoch
 from .eval_step import evaluate
-import Utils.detr_misc as utils
+from Miscellaneous.torch.distributed import is_main_process
+from Miscellaneous.torch.dump_checkpoint import dump_checkpoint
 import os
 import json
 import datetime
@@ -17,13 +17,8 @@ def run_training_loop(args, train_config, actor, data_loader_train, data_loader_
         train_stats = train_one_epoch(actor, data_loader_train, epoch,
                                       train_config['train']['clip_max_norm'])
         actor.new_epoch()
-        if output_dir:
-            checkpoint_paths = [os.path.join(output_dir, 'checkpoint.pth')]
-            # extra checkpoint before LR drop and every 100 epochs
-            if (epoch + 1) % train_config['train']['lr_drop'] == 0 or (epoch + 1) % 100 == 0:
-                checkpoint_paths.append(os.path.join(output_dir, f'checkpoint{epoch:04}.pth'))
-            for checkpoint_path in checkpoint_paths:
-                utils.save_on_master(actor.state_dict(), checkpoint_path)
+        if output_dir and is_main_process():
+            dump_checkpoint(epoch, output_dir, actor.state_dict(), 10, train_config['train']['checkpoint_interval'])
 
         test_stats = evaluate(actor, data_loader_val)
 
@@ -32,7 +27,7 @@ def run_training_loop(args, train_config, actor, data_loader_train, data_loader_
                      'epoch': epoch,
                      'n_parameters': actor.n_parameters()}
 
-        if args.output_dir and utils.is_main_process():
+        if args.output_dir and is_main_process():
             with open(os.path.join(output_dir, "log.txt"), "a") as f:
                 f.write(json.dumps(log_stats) + "\n")
 
