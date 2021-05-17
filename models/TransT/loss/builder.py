@@ -21,7 +21,7 @@ def build_criterion(train_config: dict):
     from .builders.iou_loss import build_iou_loss
     iou_loss, iou_loss_weight = build_iou_loss(loss_parameters)
 
-    loss_weight = cls_loss_weight + bbox_loss_weight + iou_loss_weight
+    loss_weight = {**cls_loss_weight, **bbox_loss_weight, **iou_loss_weight}
 
-    from .new import TransTCriterion
+    from .transt import TransTCriterion
     return TransTCriterion(loss_weight, cls_loss, bbox_loss, iou_loss)
