@@ -25,21 +25,7 @@ train:
     samples_per_epoch: 38000
 
   loss:
-    type: exp-1
-    parameters:
-      target_classification:
-        gaussian_focal_loss:
-          weight: 9
-      bounding_box_regression:
-        smooth_l1:
-          weight: 10
-        IoU:
-          type: CIoU
-          weight: 1
-      quality_assessment:
-        IoU_aware:
-          type: CIoU
-          weight: 1.75
+    use_template: exp-1
 
 val:
   batch_size: 16

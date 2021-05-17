@@ -24,14 +24,17 @@ train:
     samples_per_epoch: 38000
 
   loss:
-    type: transt
-    parameters:
-      bbox_smooth_l1: true
-      weight:
-        cross_entropy: 8.334
-        bbox: 7
-        giou: 2
-      eos_coef: 0.0625
+    classification:
+      cross_entropy_loss:
+        num_classes: 1
+        background_class_weight: 0.0625
+        weight: 8.334
+    bounding_box_regression:
+      IoU_loss:
+        type: GIoU
+        weight: 2
+      smooth_L1_loss:
+        weight: 5
 
 val:
   batch_size: 16

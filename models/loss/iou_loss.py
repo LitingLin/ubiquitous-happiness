@@ -1,10 +1,8 @@
-import math
-
 import torch
 import torch.nn as nn
 
 from data.operator.bbox.spatial.vectorized.torch.iou2d_calculator import bbox_overlaps
-from .util.weighted_loss import weighted_loss
+from .utility.weighted_loss import weighted_loss
 
 
 @weighted_loss
@@ -112,41 +110,8 @@ def diou_loss(pred, target, eps=1e-7):
     Return:
         Tensor: Loss tensor.
     """
-    # overlap
-    lt = torch.max(pred[:, :2], target[:, :2])
-    rb = torch.min(pred[:, 2:], target[:, 2:])
-    wh = (rb - lt).clamp(min=0)
-    overlap = wh[:, 0] * wh[:, 1]
-
-    # union
-    ap = (pred[:, 2] - pred[:, 0]) * (pred[:, 3] - pred[:, 1])
-    ag = (target[:, 2] - target[:, 0]) * (target[:, 3] - target[:, 1])
-    union = ap + ag - overlap + eps
-
-    # IoU
-    ious = overlap / union
-
-    # enclose area
-    enclose_x1y1 = torch.min(pred[:, :2], target[:, :2])
-    enclose_x2y2 = torch.max(pred[:, 2:], target[:, 2:])
-    enclose_wh = (enclose_x2y2 - enclose_x1y1).clamp(min=0)
-
-    cw = enclose_wh[:, 0]
-    ch = enclose_wh[:, 1]
-
-    c2 = cw**2 + ch**2 + eps
-
-    b1_x1, b1_y1 = pred[:, 0], pred[:, 1]
-    b1_x2, b1_y2 = pred[:, 2], pred[:, 3]
-    b2_x1, b2_y1 = target[:, 0], target[:, 1]
-    b2_x2, b2_y2 = target[:, 2], target[:, 3]
-
-    left = ((b2_x1 + b2_x2) - (b1_x1 + b1_x2))**2 / 4
-    right = ((b2_y1 + b2_y2) - (b1_y1 + b1_y2))**2 / 4
-    rho2 = left + right
-
-    # DIoU
-    dious = ious - rho2 / c2
+    from models.operator.iou.diou import diou
+    dious = diou(pred, target, eps)
     loss = 1 - dious
     return loss
 
@@ -167,47 +132,8 @@ def ciou_loss(pred, target, eps=1e-7):
     Return:
         Tensor: Loss tensor.
     """
-    # overlap
-    lt = torch.max(pred[:, :2], target[:, :2])
-    rb = torch.min(pred[:, 2:], target[:, 2:])
-    wh = (rb - lt).clamp(min=0)
-    overlap = wh[:, 0] * wh[:, 1]
-
-    # union
-    ap = (pred[:, 2] - pred[:, 0]) * (pred[:, 3] - pred[:, 1])
-    ag = (target[:, 2] - target[:, 0]) * (target[:, 3] - target[:, 1])
-    union = ap + ag - overlap + eps
-
-    # IoU
-    ious = overlap / union
-
-    # enclose area
-    enclose_x1y1 = torch.min(pred[:, :2], target[:, :2])
-    enclose_x2y2 = torch.max(pred[:, 2:], target[:, 2:])
-    enclose_wh = (enclose_x2y2 - enclose_x1y1).clamp(min=0)
-
-    cw = enclose_wh[:, 0]
-    ch = enclose_wh[:, 1]
-
-    c2 = cw**2 + ch**2 + eps
-
-    b1_x1, b1_y1 = pred[:, 0], pred[:, 1]
-    b1_x2, b1_y2 = pred[:, 2], pred[:, 3]
-    b2_x1, b2_y1 = target[:, 0], target[:, 1]
-    b2_x2, b2_y2 = target[:, 2], target[:, 3]
-
-    w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
-    w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
-
-    left = ((b2_x1 + b2_x2) - (b1_x1 + b1_x2))**2 / 4
-    right = ((b2_y1 + b2_y2) - (b1_y1 + b1_y2))**2 / 4
-    rho2 = left + right
-
-    factor = 4 / math.pi**2
-    v = factor * torch.pow(torch.atan(w2 / h2) - torch.atan(w1 / h1), 2)
-
-    # CIoU
-    cious = ious - (rho2 / c2 + v**2 / (1 - ious + v))
+    from models.operator.iou.ciou import ciou
+    cious = ciou(pred, target, eps)
     loss = 1 - cious
     return loss
 
@@ -283,7 +209,6 @@ class IoULoss(nn.Module):
 
 
 class BoundedIoULoss(nn.Module):
-
     def __init__(self, beta=0.2, eps=1e-3, reduction='mean', loss_weight=1.0):
         super(BoundedIoULoss, self).__init__()
         self.beta = beta
@@ -318,7 +243,6 @@ class BoundedIoULoss(nn.Module):
 
 
 class GIoULoss(nn.Module):
-
     def __init__(self, eps=1e-6, reduction='mean', loss_weight=1.0):
         super(GIoULoss, self).__init__()
         self.eps = eps
@@ -357,7 +281,6 @@ class GIoULoss(nn.Module):
 
 
 class DIoULoss(nn.Module):
-
     def __init__(self, eps=1e-6, reduction='mean', loss_weight=1.0):
         super(DIoULoss, self).__init__()
         self.eps = eps
@@ -396,7 +319,6 @@ class DIoULoss(nn.Module):
 
 
 class CIoULoss(nn.Module):
-
     def __init__(self, eps=1e-6, reduction='mean', loss_weight=1.0):
         super(CIoULoss, self).__init__()
         self.eps = eps

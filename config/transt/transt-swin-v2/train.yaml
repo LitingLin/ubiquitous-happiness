@@ -24,13 +24,7 @@ train:
     repeat_times_per_epoch: 2
 
   loss:
-    type: transt
-    parameters:
-      weight:
-        cross_entropy: 8.334
-        bbox: 5
-        giou: 2
-      eos_coef: 0.0625
+    use_template: transt
 
 val:
   batch_size: 16

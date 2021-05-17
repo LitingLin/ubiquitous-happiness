@@ -1,0 +1,14 @@
+parameters:
+  classification:
+    gaussian_focal_loss:
+      weight: 9
+  bounding_box_regression:
+    smooth_l1:
+      weight: 10
+    IoU:
+      type: CIoU
+      weight: 1
+  quality_assessment:
+    IoU_aware:
+      type: CIoU
+      weight: 1.75

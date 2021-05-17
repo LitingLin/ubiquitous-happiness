@@ -4,11 +4,6 @@ from torch import nn
 from models.modules.mlp import MLP
 
 
-#def _sigmoid(x):
-#    y = torch.clamp(x.sigmoid_(), min=1e-4, max=1-1e-4)
-#    return y
-
-
 class EXP1Head_WithRegBranch(nn.Module):
     def __init__(self, transformer_hidden_dim):
         super().__init__()

@@ -1,5 +1,5 @@
 from torch import nn
-from .util.weighted_loss import weighted_loss
+from .utility.weighted_loss import weighted_loss
 
 
 @weighted_loss
