@@ -5,17 +5,17 @@ data:
     template: 2.0
     search: 4.0
   feature_size:
-    template: [16, 16]
-    search: [32, 32]
-  template_size: [128, 128] # 16 * 8
-  search_size: [256, 256] # 32 * 8
+    template: [12, 12]
+    search: [24, 24]
+  template_size: [192, 192] # 16 * 8
+  search_size: [384, 384] # 32 * 8
 
 backbone:
   type: swin_transformer
   position_embedding: sine
   parameters:
-    name: swin_large_patch4_window12_384_in22k
-    output_layers: [1]
+    name: swin_base_patch4_window12_384
+    output_layers: [2]
 
 transformer:
   position_embedding: sine
@@ -24,8 +24,8 @@ transformer:
   nheads: 8
   dim_feedforward: 2048
   featurefusion_layers: 4
-  activation: relu
+  activation: gelu
 
   head:
     type: exp-1
-    quality_assessment_with: class
+    quality_assessment_with: regression

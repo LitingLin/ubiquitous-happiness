@@ -20,6 +20,8 @@ class TransTCriterion(nn.Module):
             self.iou_loss = iou_loss['iou']
             if 'iou_aware' in iou_loss:
                 self.iou_aware_loss = iou_loss['iou_aware']
+            else:
+                self.iou_aware_loss = None
 
     def _do_statistic(self, stats: dict):
         loss_dict_reduced = reduce_dict(stats)

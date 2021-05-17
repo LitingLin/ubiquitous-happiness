@@ -14,7 +14,7 @@ data:
 train:
   lr: 1.e-4
   lr_backbone: 1.e-5
-  batch_size: 16
+  batch_size: 4
   weight_decay: 1.e-4
   epochs: 1000
   lr_drop: 500
@@ -27,17 +27,17 @@ train:
   loss:
     classification:
       gaussian_focal_loss:
-        weight: 9
+        weight: 500
     bounding_box_regression:
       smooth_L1_loss:
-        beta: 2
+        beta: 0.25
         weight: 10
       IoU_loss:
         type: CIoU
         weight: 1
 
 val:
-  batch_size: 16
+  batch_size: 4
 
   data:
     repeat_times_per_epoch: 1
