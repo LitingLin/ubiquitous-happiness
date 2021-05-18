@@ -6,7 +6,14 @@ from algorithms.tracker.transt.tracker import TransTTracker
 def build_transt_tracker(network_config, evaluation_config, weight_path, device):
     device = torch.device(device)
     model = build_transt(network_config, False)
-    model.load_state_dict(torch.load(weight_path, map_location='cpu')['model'])
+    state_dict = torch.load(weight_path, map_location='cpu')['model']
+    for key in list(state_dict.keys()):
+        key: str = key
+        if key.startswith('head.class_embed'):
+            state_dict[key.replace('head.class_embed', 'head.classification')] = state_dict.pop(key)
+        if key.startswith('head.class_embed'):
+            state_dict[key.replace('head.bbox_embed', 'head.regression')] = state_dict.pop(key)
+    model.load_state_dict(state_dict)
     if 'bbox_size_limit_in_feat_space' not in evaluation_config['tracking']:
         bbox_size_limit_in_feat_space = False
     else:
