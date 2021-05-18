@@ -13,7 +13,7 @@ class TransTTrackingPostProcessing:
     def __call__(self, network_output):
         class_score_map, bounding_box_regression_map = network_output
         class_score_map = class_score_map.squeeze(0)
-        class_score_map = F.softmax(class_score_map, dim=1)[:, 0]
+        class_score_map = F.softmax(class_score_map, dim=0)[0, :]
 
         # window penalty
         pscore = class_score_map * (1 - self.window_penalty) + \
