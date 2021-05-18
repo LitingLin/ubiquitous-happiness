@@ -11,7 +11,7 @@ def build_transt_tracker(network_config, evaluation_config, weight_path, device)
         key: str = key
         if key.startswith('head.class_embed'):
             state_dict[key.replace('head.class_embed', 'head.classification')] = state_dict.pop(key)
-        if key.startswith('head.class_embed'):
+        elif key.startswith('head.bbox_embed'):
             state_dict[key.replace('head.bbox_embed', 'head.regression')] = state_dict.pop(key)
     model.load_state_dict(state_dict)
     if 'bbox_size_limit_in_feat_space' not in evaluation_config['tracking']:
