@@ -5,10 +5,8 @@ root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 sys.path.append(root_path)
 config_path = os.path.join(root_path, 'config', 'transt')
 
-import vot.tracker.trax
+
 def vot_entry(arg_string):
-    import os
-    print(os.environ['PATH'])
     from algorithms.tracker.transt.build_from_args import build_from_arg_string
     tracker = build_from_arg_string(arg_string)
     from evaluation.SOT.protocol.vot.tracker_runner_rectangle import run_tracker
@@ -37,7 +35,7 @@ if __name__ == '__main__':
     from Miscellaneous.git_state import get_git_sha
     from evaluation.SOT.protocol.vot.prepare_workspace import prepare_vot_workspace
     from evaluation.SOT.protocol.vot.stack import VOTStack
-    from evaluation.SOT.protocol.vot.vot_launcher import launch_vot_evaluation
+    from evaluation.SOT.protocol.vot.vot_launcher import launch_vot_evaluation, launch_vot_analysis
 
     import subprocess
 
@@ -57,3 +55,4 @@ if __name__ == '__main__':
                           f"from entry.TransT.test.test_vot import vot_entry; vot_entry('{parameter_string}')",
                           VOTStack[args.vot_stack])
     launch_vot_evaluation(args.output_path, network_config['name'])
+    launch_vot_analysis(args.output_path, network_config['name'])
