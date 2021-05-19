@@ -16,10 +16,10 @@ def launch_vot_evaluation(workspace_path: str, name: str):
         os.chdir(old_wd)
 
 
-def launch_vot_analysis(workspace_path: str, name: str):
+def launch_vot_analysis(workspace_path: str):
     old_sys_argv = sys.argv
     old_wd = os.getcwd()
-    evaluation_args = ['analysis', name]
+    evaluation_args = ['analysis']
     sys.argv = [old_sys_argv[0]] + evaluation_args
     os.chdir(workspace_path)
     try:

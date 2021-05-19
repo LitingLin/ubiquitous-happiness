@@ -55,4 +55,4 @@ if __name__ == '__main__':
                           f"from entry.TransT.test.test_vot import vot_entry; vot_entry('{parameter_string}')",
                           VOTStack[args.vot_stack])
     launch_vot_evaluation(args.output_path, network_config['name'])
-    launch_vot_analysis(args.output_path, network_config['name'])
+    launch_vot_analysis(args.output_path)
