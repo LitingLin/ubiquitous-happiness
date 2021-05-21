@@ -18,7 +18,7 @@ def run_training_loop(args, train_config, actor, data_loader_train, data_loader_
                                       train_config['train']['clip_max_norm'])
         actor.new_epoch()
         if output_dir and is_main_process():
-            dump_checkpoint(epoch, output_dir, actor.state_dict(), 10, train_config['train']['checkpoint_interval'])
+            dump_checkpoint(epoch, output_dir, actor.state_dict(), 10, args.checkpoint_interval)
 
         test_stats = evaluate(actor, data_loader_val)
 
