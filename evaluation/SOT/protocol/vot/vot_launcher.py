@@ -27,3 +27,7 @@ def launch_vot_analysis(workspace_path: str):
     finally:
         sys.argv = old_sys_argv
         os.chdir(old_wd)
+
+
+if __name__ == '__main__':
+    launch_vot_analysis(sys.argv[1])
