@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('output_path', type=str, help='VOT workspace')
     parser.add_argument('--evaluation-config-path', type=str, help='Path to evaluation config path.')
     parser.add_argument('--device', type=str, default='cuda:0', help="Pytorch device string.")
+    parser.add_argument('--pack', type=bool, help='Pack the VOT evaluation results')
     args = parser.parse_args()
 
     network_config_path = os.path.join(config_path, args.config_name, 'config.yaml')
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     from Miscellaneous.git_state import get_git_sha
     from evaluation.SOT.protocol.vot.prepare_workspace import prepare_vot_workspace
     from evaluation.SOT.protocol.vot.stack import VOTStack
-    from evaluation.SOT.protocol.vot.vot_launcher import launch_vot_evaluation, launch_vot_analysis
+    from evaluation.SOT.protocol.vot.vot_launcher import launch_vot_evaluation, launch_vot_analysis, launch_vot_pack
 
     import subprocess
 
@@ -51,8 +52,17 @@ if __name__ == '__main__':
     parameter_string = subprocess.list2cmdline(vot_command).translate(str.maketrans({"'": r"\\'",
                                                                                      "\"": r'\\"',
                                                                                      "\\": r"\\\\"}))
+    print('preparing VOT workspace...', end=' ')
     prepare_vot_workspace(args.output_path, network_config['name'],
                           f"from entry.TransT.test.test_vot import vot_entry; vot_entry('{parameter_string}')",
                           VOTStack[args.vot_stack])
+    print('done')
+
+    print('Running VOT evaluation')
     launch_vot_evaluation(args.output_path, network_config['name'])
+
+    print('Running VOT analysis')
     launch_vot_analysis(args.output_path)
+
+    print('Running VOT packing up')
+    launch_vot_pack(args.output_path, network_config['name'])
