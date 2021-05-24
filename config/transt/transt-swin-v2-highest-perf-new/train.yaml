@@ -33,11 +33,11 @@ train:
         beta: 0.25
         weight: 10
       IoU_loss:
-        type: GIoU
+        type: CIoU
         weight: 1
     quality_assessment:
       IoU_aware_loss:
-        type: GIoU
+        type: CIoU
         weight: 1.75
 
 val:

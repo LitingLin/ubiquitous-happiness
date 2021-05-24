@@ -30,7 +30,6 @@ train:
         weight: 500
     bounding_box_regression:
       smooth_L1_loss:
-        beta: 0.25
         weight: 10
       IoU_loss:
         type: GIoU
