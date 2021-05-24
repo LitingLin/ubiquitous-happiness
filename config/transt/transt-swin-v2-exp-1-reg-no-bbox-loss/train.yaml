@@ -37,7 +37,6 @@ train:
         type: CIoU
         weight: 1.75
 
-
 val:
   batch_size: 16
 
