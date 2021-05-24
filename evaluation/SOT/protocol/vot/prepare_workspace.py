@@ -10,6 +10,8 @@ def prepare_vot_workspace(workspace_path: str, tracker_name: str, tracker_launch
         dataset_path = get_path_from_config('VOT2020_PATH')
     elif version == VOTStack.vot2021:
         dataset_path = get_path_from_config('VOT2021_PATH')
+    elif version == VOTStack.votlt2020 or version == VOTStack.votlt2021:
+        dataset_path = get_path_from_config('VOTLT2019_PATH')
     else:
         raise RuntimeError(f"Unsupported VOT version {version}")
 
