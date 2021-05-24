@@ -48,7 +48,8 @@ class TransTCriterion(nn.Module):
 
         src_boxes = predicted_bounding_box[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
 
-        losses['loss_bbox'] = self.bbox_loss(src_boxes, target_bounding_box_label_matrix) / num_boxes_pos
+        if self.bbox_loss is not None:
+            losses['loss_bbox'] = self.bbox_loss(src_boxes, target_bounding_box_label_matrix) / num_boxes_pos
         if self.iou_and_iou_aware_combined_loss is not None:
             predicted_ious = predicted[2]
             src_ious = predicted_ious[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
