@@ -11,6 +11,9 @@ def launch_vot_evaluation(workspace_path: str, name: str):
     os.chdir(workspace_path)
     try:
         main()
+    except SystemExit as e:
+        if e.code != 0:
+            raise e
     finally:
         sys.argv = old_sys_argv
         os.chdir(old_wd)
@@ -24,6 +27,9 @@ def launch_vot_analysis(workspace_path: str):
     os.chdir(workspace_path)
     try:
         main()
+    except SystemExit as e:
+        if e.code != 0:
+            raise e
     finally:
         sys.argv = old_sys_argv
         os.chdir(old_wd)
@@ -37,6 +43,9 @@ def launch_vot_pack(workspace_path: str, name: str):
     os.chdir(workspace_path)
     try:
         main()
+    except SystemExit as e:
+        if e.code != 0:
+            raise e
     finally:
         sys.argv = old_sys_argv
         os.chdir(old_wd)
