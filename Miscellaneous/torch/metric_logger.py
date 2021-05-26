@@ -54,7 +54,7 @@ class MetricLogger(object):
                 header,
                 '[{0' + space_fmt + '}/{1}]',
                 'eta: {eta}',
-                '{localtime}'
+                '{localtime}',
                 '{meters}',
                 'time: {time}',
                 'data: {data}',
@@ -65,7 +65,7 @@ class MetricLogger(object):
                 header,
                 '[{0' + space_fmt + '}/{1}]',
                 'eta: {eta}',
-                '{localtime}'
+                '{localtime}',
                 '{meters}',
                 'time: {time}',
                 'data: {data}'
