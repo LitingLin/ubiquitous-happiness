@@ -54,3 +54,12 @@ def label_generation(bbox, search_feat_size, search_region_size):
     target_bounding_box_label_matrix = generate_target_bounding_box_label_matrix(bbox, search_region_size, target_feat_map_indices)
 
     return target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix
+
+
+class TransTLabelGenerator:
+    def __init__(self, search_feat_size, search_region_size):
+        self.search_feat_size = search_feat_size
+        self.search_region_size = search_region_size
+
+    def __call__(self, bbox):
+        return label_generation(bbox, self.search_feat_size, self.search_region_size)

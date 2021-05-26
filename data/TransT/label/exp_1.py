@@ -24,3 +24,13 @@ def label_generation(bbox, search_feat_size, search_region_size, gaussian_target
     target_bounding_box_label_matrix = generate_target_bounding_box_label_matrix(bbox, search_region_size, target_feat_map_indices)
 
     return target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix
+
+
+class Exp1LabelGenerator:
+    def __init__(self, search_feat_size, search_region_size, gaussian_target_label_min_overlap):
+        self.search_feat_size = search_feat_size
+        self.search_region_size = search_region_size
+        self.gaussian_target_label_min_overlap = gaussian_target_label_min_overlap
+
+    def __call__(self, bbox):
+        return label_generation(bbox, self.search_feat_size, self.search_region_size, self.gaussian_target_label_min_overlap)
