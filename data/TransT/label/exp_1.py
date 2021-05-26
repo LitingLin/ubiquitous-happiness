@@ -26,11 +26,18 @@ def label_generation(bbox, search_feat_size, search_region_size, gaussian_target
     return target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix
 
 
+def negative_label_generation(search_feat_size):
+    return None, torch.zeros((search_feat_size[0] * search_feat_size[1],), dtype=torch.float), None
+
+
 class Exp1LabelGenerator:
     def __init__(self, search_feat_size, search_region_size, gaussian_target_label_min_overlap):
         self.search_feat_size = search_feat_size
         self.search_region_size = search_region_size
         self.gaussian_target_label_min_overlap = gaussian_target_label_min_overlap
 
-    def __call__(self, bbox):
-        return label_generation(bbox, self.search_feat_size, self.search_region_size, self.gaussian_target_label_min_overlap)
+    def __call__(self, bbox, is_positive):
+        if is_positive:
+            return label_generation(bbox, self.search_feat_size, self.search_region_size, self.gaussian_target_label_min_overlap)
+        else:
+            return negative_label_generation(self.search_feat_size)

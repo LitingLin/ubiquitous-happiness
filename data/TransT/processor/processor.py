@@ -24,7 +24,7 @@ class TransTProcessor:
         self.gray_scale_transformer = Grayscale(3)
         self.label_generator = label_generator
 
-    def __call__(self, z_image, z_bbox, x_image, x_bbox, _):
+    def __call__(self, z_image, z_bbox, x_image, x_bbox, is_positive):
         z_image, x_image = transt_data_pre_processing_train_pipeline(z_image, x_image, self.gray_scale_transformer,
                                                                      self.gray_scale_probability, np.random)
         z_image, z_bbox = transt_data_processing_train_pipeline(z_image, z_bbox, self.template_area_factor,
@@ -37,5 +37,5 @@ class TransTProcessor:
                                                                 self.search_scale_jitter_factor,
                                                                 self.search_translation_jitter_factor,
                                                                 self.transform)
-        target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = self.label_generator(x_bbox.tolist())
+        target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = self.label_generator(x_bbox.tolist(), is_positive)
         return z_image, x_image, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix

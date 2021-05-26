@@ -41,34 +41,50 @@ class TransTCriterion(nn.Module):
         num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label
         if is_dist_available_and_initialized():
             torch.distributed.all_reduce(num_boxes_pos)
-        num_boxes_pos = torch.clamp(num_boxes_pos / get_world_size(), min=1).item()
+
+        num_boxes_pos = (num_boxes_pos / get_world_size()).item()
 
         losses = {}
         losses['loss_cls'] = self.cls_loss(predicted_class, target_class_label_vector)
 
-        src_boxes = predicted_bounding_box[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
+        if target_feat_map_indices_batch_id_vector is not None:
+            src_boxes = predicted_bounding_box[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
 
-        if self.bbox_loss is not None:
-            losses['loss_bbox'] = self.bbox_loss(src_boxes, target_bounding_box_label_matrix) / num_boxes_pos
-        if self.iou_and_iou_aware_combined_loss is not None:
-            predicted_ious = predicted[2]
-            src_ious = predicted_ious[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
-            loss_iou, loss_iou_aware = self.iou_and_iou_aware_combined_loss(box_cxcywh_to_xyxy(src_boxes),
-                                                     box_cxcywh_to_xyxy(target_bounding_box_label_matrix), src_ious)
-            losses['loss_iou'] = loss_iou / num_boxes_pos
-            losses['loss_iou_aware'] = loss_iou_aware / num_boxes_pos
-        else:
-            xyxy_src_boxes = box_cxcywh_to_xyxy(src_boxes)
-            xyxy_box_labels = box_cxcywh_to_xyxy(target_bounding_box_label_matrix)
-            losses['loss_iou'] = self.iou_loss(xyxy_src_boxes, xyxy_box_labels) / num_boxes_pos
-            if self.iou_aware_loss is not None:
+            if self.bbox_loss is not None:
+                losses['loss_bbox'] = self.bbox_loss(src_boxes, target_bounding_box_label_matrix) / num_boxes_pos
+            if self.iou_and_iou_aware_combined_loss is not None:
                 predicted_ious = predicted[2]
                 src_ious = predicted_ious[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
-                losses['loss_iou_aware'] = self.iou_aware_loss(xyxy_src_boxes, xyxy_box_labels, src_ious) / num_boxes_pos
+                loss_iou, loss_iou_aware = self.iou_and_iou_aware_combined_loss(box_cxcywh_to_xyxy(src_boxes),
+                                                         box_cxcywh_to_xyxy(target_bounding_box_label_matrix), src_ious)
+                losses['loss_iou'] = loss_iou / num_boxes_pos
+                losses['loss_iou_aware'] = loss_iou_aware / num_boxes_pos
+            else:
+                xyxy_src_boxes = box_cxcywh_to_xyxy(src_boxes)
+                xyxy_box_labels = box_cxcywh_to_xyxy(target_bounding_box_label_matrix)
+                if self.iou_loss is not None:
+                    losses['loss_iou'] = self.iou_loss(xyxy_src_boxes, xyxy_box_labels) / num_boxes_pos
+                if self.iou_aware_loss is not None:
+                    predicted_ious = predicted[2]
+                    src_ious = predicted_ious[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
+                    losses['loss_iou_aware'] = self.iou_aware_loss(xyxy_src_boxes, xyxy_box_labels, src_ious) / num_boxes_pos
+        else:
+            zero = torch.tensor(0, dtype=target_class_label_vector.dtype, device=target_class_label_vector.device)
+            if self.bbox_loss is not None:
+                losses['loss_bbox'] = zero
+
+            if self.iou_and_iou_aware_combined_loss is not None:
+                losses['loss_iou'] = zero
+                losses['loss_iou_aware'] = zero
+            else:
+                if self.iou_loss is not None:
+                    losses['loss_iou'] = zero
+                if self.iou_aware_loss is not None:
+                    losses['loss_iou_aware'] = zero
 
         return losses
 
     def forward(self, predicted, label):
         loss_dict = self._criterion(predicted, label)
-        losses = sum(loss_dict[k] * self.weight_dict[k] for k in loss_dict.keys() if k in self.weight_dict)
+        losses = sum(loss_dict[k] * self.weight_dict[k] for k in loss_dict.keys())
         return (losses, *self._do_statistic(loss_dict))

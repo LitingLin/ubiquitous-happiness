@@ -6,13 +6,17 @@ def batch_collate_target_feat_map_indices(target_feat_map_indices_list):
     batch_target_feat_map_indices = []
     num_boxes_pos = 0
     for index, target_feat_map_indices in enumerate(target_feat_map_indices_list):
+        if target_feat_map_indices is None:
+            continue
         batch_ids.extend([index for _ in range(len(target_feat_map_indices))])
         batch_target_feat_map_indices.append(target_feat_map_indices)
         num_boxes_pos += len(target_feat_map_indices)
 
     num_boxes_pos = torch.as_tensor([num_boxes_pos], dtype=torch.float)
-
-    return torch.tensor(batch_ids, dtype=torch.long), torch.cat(batch_target_feat_map_indices), num_boxes_pos
+    if len(batch_ids) != 0:
+        return torch.tensor(batch_ids, dtype=torch.long), torch.cat(batch_target_feat_map_indices), num_boxes_pos
+    else:
+        return None, None, num_boxes_pos
 
 
 def transt_collate_fn(data):
@@ -26,7 +30,8 @@ def transt_collate_fn(data):
         x_image_list.append(x_image)
         target_feat_map_indices_list.append(target_feat_map_indices)
         target_class_label_vector_list.append(target_class_label_vector)
-        target_bounding_box_label_matrix_list.append(target_bounding_box_label_matrix)
+        if target_bounding_box_label_matrix is not None:
+            target_bounding_box_label_matrix_list.append(target_bounding_box_label_matrix)
     z_image_batch = torch.stack(z_image_list)
     x_image_batch = torch.stack(x_image_list)
 
