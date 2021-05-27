@@ -31,6 +31,14 @@ class EXP1Head_WithClassBranch(nn.Module):
         self.regression = MLP(transformer_hidden_dim, transformer_hidden_dim, 4, 3)
 
     def forward(self, input_):
+        '''
+
+        Args:
+            input_ (torch.Tensor): (S, N, L, C)
+
+        Returns:
+
+        '''
         assert input_.shape[0] == 1
         input_ = input_[0]
 

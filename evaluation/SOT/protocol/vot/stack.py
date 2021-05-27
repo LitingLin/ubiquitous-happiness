@@ -6,4 +6,3 @@ class VOTStack(Enum):
     vot2021 = auto()
     votlt2020 = auto()
     votlt2021 = auto()
-
