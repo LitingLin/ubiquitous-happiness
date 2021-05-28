@@ -1,4 +1,4 @@
-from data.tracking.sampler.sampling.dataset_samplers._sampling.random_without_replacement import Sampling_RandomSamplingWithoutReplacement
+from data.tracking.sampler.sampling.dataset_samplers._sampling_algos.stateful.random_without_replacement import Sampling_RandomSamplingWithoutReplacement
 from data.tracking.sampler.sampling.dataset_samplers.dataset.iterator._template import DatasetSamplerTemplate
 
 

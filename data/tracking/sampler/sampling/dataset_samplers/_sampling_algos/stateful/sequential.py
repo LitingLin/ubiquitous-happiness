@@ -1,15 +1,20 @@
-class Sampling_SequentialIndexing:
+class SamplingAlgo_SequentialSampling:
     def __init__(self, length):
         assert length > 0
         self.position = 0
         self.length_ = length
 
     @staticmethod
-    def restore_from_state(state):
+    def create_from_state(state):
         position, length = state
-        sampler = Sampling_SequentialIndexing(length)
+        sampler = SamplingAlgo_SequentialSampling(length)
         sampler.position = position
         return sampler
+
+    def restore_from_state(self, state):
+        position, length = state
+        self.position = position
+        assert self.length_ == length
 
     def get_state(self):
         return self.position, self.length_

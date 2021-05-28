@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Sampling_RandomSamplingWithoutReplacement:
+class SamplingAlgo_RandomSamplingWithoutReplacement:
     def __init__(self, length, seed):
         self.position = 0
         self.rng_seed = seed
@@ -13,11 +13,18 @@ class Sampling_RandomSamplingWithoutReplacement:
         rng_engine.shuffle(self.indices)
 
     @staticmethod
-    def restore_from_state(state):
+    def create_from_state(state):
         position, length, seed = state
-        sampler = Sampling_RandomSamplingWithoutReplacement(length, seed)
+        sampler = SamplingAlgo_RandomSamplingWithoutReplacement(length, seed)
         sampler.position = position
         return sampler
+
+    def restore_from_state(self, state):
+        position, length, seed = state
+        assert len(self.indices) == length
+        self.position = position
+        self.rng_seed = seed
+        self._shuffle(length)
 
     def get_state(self):
         return self.position, len(self.indices), self.rng_seed

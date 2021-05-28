@@ -1,4 +1,4 @@
-from data.tracking.sampler.sampling.dataset_samplers._sampling.sequential import Sampling_SequentialIndexing
+from data.tracking.sampler.sampling.dataset_samplers._sampling_algos.stateful.sequential import Sampling_SequentialIndexing
 from data.tracking.sampler.sampling.dataset_samplers.dataset.iterator._template import DatasetSamplerTemplate
 
 
