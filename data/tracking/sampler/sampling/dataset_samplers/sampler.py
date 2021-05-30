@@ -1,3 +1,19 @@
+import numpy as np
+
+
+class TrackingDataset_SiamFCSampler:
+    def __init__(self, datasets, negative_ratio, rng_engine=np.random):
+        self.datasets = {}
+        for dataset in datasets:
+            pass
+
+    def set_worker(self):
+
+    def move_next(self):
+        pass
+
+    def current(self):
+        pass
 
 
 

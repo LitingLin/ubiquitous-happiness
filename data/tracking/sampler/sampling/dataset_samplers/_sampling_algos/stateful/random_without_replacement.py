@@ -3,44 +3,36 @@ import numpy as np
 
 class SamplingAlgo_RandomSamplingWithoutReplacement:
     def __init__(self, length, seed):
-        self.position = 0
+        self.position = -1
         self.rng_seed = seed
         self._shuffle(length)
+
+    def __setstate__(self, state):
+        position, length, seed = state
+        self.position = position
+        self.rng_seed = seed
+        self._shuffle(length)
+
+    def __getstate__(self):
+        return self.position, len(self.indices), self.rng_seed
 
     def _shuffle(self, length):
         rng_engine = np.random.default_rng(self.rng_seed)
         self.indices = np.arange(length)
         rng_engine.shuffle(self.indices)
 
-    @staticmethod
-    def create_from_state(state):
-        position, length, seed = state
-        sampler = SamplingAlgo_RandomSamplingWithoutReplacement(length, seed)
-        sampler.position = position
-        return sampler
-
-    def restore_from_state(self, state):
-        position, length, seed = state
-        assert len(self.indices) == length
-        self.position = position
-        self.rng_seed = seed
-        self._shuffle(length)
-
-    def get_state(self):
-        return self.position, len(self.indices), self.rng_seed
-
     def move_next(self):
-        if self.position + 1 >= len(self.indices):
-            return False
         self.position += 1
-        return True
+        return self.position < len(self.indices)
 
     def current(self):
+        if not 0 <= self.position < len(self.indices):
+            raise IndexError
         return self.position
 
     def reset(self):
         self.rng_seed += 1
-        self.position = 0
+        self.position = -1
         self._shuffle(len(self.indices))
 
     def length(self):
