@@ -37,15 +37,15 @@ def sampling_multiple_indices_with_range_and_mask(length, mask: np.ndarray=None,
     return indices
 
 
-def sampling(length, rng_engine=np.random):
+def sampling(length, rng_engine):
     return rng_engine.randint(length)
 
 
-def sampling_with_probability(probability_array, rng_engine=np.random):
+def sampling_with_probability(probability_array, rng_engine):
     return rng_engine.choice(np.arange(0, len(probability_array)), p=probability_array)
 
 
-def sampling_with_mask(mask, rng_engine=np.random):
+def sampling_with_mask(mask, rng_engine):
     indices = np.arange(0, len(mask))
     indices = indices[mask]
     return rng_engine.choice(indices)
