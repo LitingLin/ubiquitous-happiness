@@ -7,15 +7,50 @@ class TrackingDataset_SiamFCSampler:
         for dataset in datasets:
             pass
 
-    def set_worker(self):
-
     def move_next(self):
         pass
 
-    def current(self):
+    def get(self):
         pass
 
 
+class SliceWrapper:
+    def __init__(self, data_iterator, world_size, num_workers, drop_last=True):
+        if world_size > 1:
+            assert drop_last
+        self.world_size = world_size
+        self.num_workers = num_workers
+        self.drop_last = drop_last
+        self.rank_id = 0
+        self.worker_id = 0
+        self.data_iterator = data_iterator
+        self.position = -1
+
+    def set_rank_id(self, rank_id: int):
+        self.rank_id = rank_id
+
+    def set_worker_id(self, worker_id: int):
+        self.worker_id = worker_id
+
+    def __iter__(self):
+        pass
+
+    def __next__(self):
+        while True:
+            self.data_iterator.move_next()
+            self.position += 1
+            slice_length = self.num_workers * self.world_size
+            slice_index = self.worker_id + self.rank_id * self.world_size
+            if self.position % slice_length == slice_index:
+                return self.data_iterator.get()
+
+    def collate_fn(self, data: list):
+        pass
+
+
+class BatchWrapper:
+    def __init__(self, batch_size):
+        pass
 
 
 class DatasetSampler:
