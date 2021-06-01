@@ -30,26 +30,45 @@ class ResourceSchedulerGuard:
         self.scheduler.release(self.context)
 
 
+def _default_scheduling_constraint(allocation_state_list):
+    return tuple(index for index in range(len(allocation_state_list)) if not allocation_state_list[index])
+
+
+def _default_scheduling_preference(available_resources_indices, resources_used_times_counter_list):
+    count = ulonglong_max
+    index_of_resource_acquired = None
+    for index in available_resources_indices:
+        if resources_used_times_counter_list[index] < count:
+            index_of_resource_acquired = index
+            count = resources_used_times_counter_list[index]
+    return index_of_resource_acquired
+
+
 class ResourceScheduler_MultiProcessingAwareness:
-    def __init__(self, number_of_resources):
+    def __init__(self, number_of_resources, scheduling_constraint_fn=None, scheduling_preference_fn=_default_scheduling_preference):
         self.number_of_resources = number_of_resources
         self.lock = multiprocessing.Lock()
         self.counter = multiprocessing.sharedctypes.RawArray(ctypes.c_ulonglong, number_of_resources)
         self.allocation = multiprocessing.sharedctypes.RawArray(ctypes.c_bool, number_of_resources)
+        self.scheduling_constraint_fn = scheduling_constraint_fn
+        self.scheduling_preference_fn = scheduling_preference_fn
+
+    def set_scheduling_constraint_function(self, constraint_fn):
+        self.scheduling_constraint_fn = constraint_fn
 
     def _try_acquire_unsafe(self):
-        available_resources_indices = [index for index in range(self.number_of_resources) if not self.allocation[index]]
+        available_resources_indices = tuple(index for index in range(self.number_of_resources) if not self.allocation[index])
         if len(available_resources_indices) == 0:
             return False, None, None
+        if self.scheduling_constraint_fn is not None:
+            available_resources_indices = self.scheduling_constraint_fn(available_resources_indices, self.counter)
+            if len(available_resources_indices) == 0:
+                return False, None, None
 
-        count = ulonglong_max
-        index_of_resource_acquired = None
-        for index in available_resources_indices:
-            if self.counter[index] < count:
-                index_of_resource_acquired = index
-                count = self.counter[index]
+        index_of_resource_acquired = self.scheduling_preference_fn(available_resources_indices, self.counter)
+
         self.allocation[index_of_resource_acquired] = True
-        return True, index_of_resource_acquired, count
+        return True, index_of_resource_acquired, self.counter[index_of_resource_acquired]
 
     def acquire(self, retry_interval=0.01, timeout=0):
         if timeout != 0:

@@ -11,7 +11,7 @@ class SharedMemory_ObjectStorage:
         self.shared_memory = multiprocessing.sharedctypes.RawArray(ctypes.c_char, number_of_objects * (bucket_size + 8))
         self.lock = multiprocessing.Lock()
 
-    def save(self, object_, index):
+    def save(self, index, object_):
         serialized_object = pickle.dumps(object_)
         serialized_object_size = len(serialized_object)
         assert serialized_object_size <= self.bucket_size, 'object too large for the bucket size'
@@ -27,6 +27,12 @@ class SharedMemory_ObjectStorage:
 
         with self.lock:
             serialized_object_size = int.from_bytes(self.shared_memory[offset: offset + 8], byteorder='little', signed=False)
-            serialized_object = bytearray(self.shared_memory[offset + 8: offset + 8 + serialized_object_size])
+            serialized_object = bytes(self.shared_memory[offset + 8: offset + 8 + serialized_object_size])
 
         return pickle.loads(serialized_object)
+
+    def get_state(self):
+        return bytes(self.shared_memory)
+
+    def load_state(self, state):
+        self.shared_memory[:] = state
