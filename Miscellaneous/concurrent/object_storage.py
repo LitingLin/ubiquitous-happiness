@@ -2,6 +2,9 @@ import ctypes
 import multiprocessing
 import multiprocessing.sharedctypes
 import pickle
+from Miscellaneous.Numpy.from_ctypes import make_nd_array
+from Miscellaneous.Numpy.to_ctypes import memmove_to_ctypes
+import numpy as np
 
 
 class SharedMemory_ObjectStorage:
@@ -32,7 +35,7 @@ class SharedMemory_ObjectStorage:
         return pickle.loads(serialized_object)
 
     def get_state(self):
-        return bytes(self.shared_memory)
+        return make_nd_array(ctypes.addressof(self.shared_memory), (self.number_of_objects, self.bucket_size + 8), np.byte)
 
-    def load_state(self, state):
-        self.shared_memory[:] = state
+    def load_state(self, state: np.ndarray):
+        memmove_to_ctypes(state, self.shared_memory)

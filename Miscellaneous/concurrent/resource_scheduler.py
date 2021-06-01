@@ -25,6 +25,7 @@ class ResourceSchedulerGuard:
 
     def __enter__(self):
         self.context = self.scheduler.acquire()
+        return self.context
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.scheduler.release(self.context)
