@@ -31,7 +31,6 @@ class IterableDatasetOrchestratorWorkerIterator:
         self.worker_scheduler_constraint = _WorkerSchedulerConstraint()
         self.orchestrator.batch_scheduler.set_scheduling_constraint_function(self.worker_scheduler_constraint)
         self.dataset_length = len(self.orchestrator.iterable_dataset)
-        self.position = 0
         self.world_batch_size = self.orchestrator.batch_size * self.orchestrator.world_size
         self.world_batch_offset = self.orchestrator.rank_id * self.orchestrator.batch_size
         self.local_rng = np.random.Generator(np.random.PCG64())
@@ -42,9 +41,8 @@ class IterableDatasetOrchestratorWorkerIterator:
             if position >= self.dataset_length:
                 raise StopIteration
 
-            while self.position < position:
-                self.orchestrator.iterable_dataset.move_next(self.orchestrator.global_rng)
-                self.position += 1
+            self.orchestrator.iterable_dataset.forward_to(position, self.orchestrator.global_rng)
+
             batch_element_rng_state = self.orchestrator.batch_rng_storage.load(task_context.get_index())
             self.local_rng.__setstate__(batch_element_rng_state)
             data = self.orchestrator.iterable_dataset.get(self.local_rng)
@@ -62,14 +60,10 @@ class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
         self.iterable_dataset = randomness_control_awareness_iterable_dataset
         self.batch_size = batch_size
 
-        # self.worker_id = 0
-        # self.number_of_workers = 1
-
         self.rank_id = rank_id
         self.world_size = world_size
         self._initialize_batch_rng_storage(seed)
         self.drop_last = drop_last
-        self.position = 0
 
     def _get_length(self):
         return len(self.iterable_dataset) // (self.batch_size * self.world_size)
@@ -78,19 +72,11 @@ class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
         for index, child_seed in enumerate(seed.spawn(self.batch_size)):
             new_rng = np.random.Generator(np.random.PCG64(child_seed))
             self.batch_rng_storage.save(index, new_rng.__getstate__())
-    #
-    # def setup_worker_info(self, worker_id, number_of_workers):
-    #     self.worker_id = worker_id
-    #     self.number_of_workers = number_of_workers
 
     def synchronize(self, target_epoch):
         epoch_length = self._get_length() * self.batch_size * self.world_size
         target_position = target_epoch * epoch_length
-
-        assert self.position <= target_position
-        while target_position < self.position:
-            self.iterable_dataset.move_next(self.global_rng)
-            self.position += 1
+        self.iterable_dataset.forward_to(target_position, self.global_rng)
 
     def get_state(self):
         batch_rng_storage_state = self.batch_rng_storage.get_state()
@@ -101,14 +87,15 @@ class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
         else:
             assert self.world_size == 1
 
-        return self.global_rng.__getstate__(), batch_rng_storage_state, self.position,
+        return self.global_rng.__getstate__(), batch_rng_storage_state, self.iterable_dataset.get_state()
 
     def load_state(self, state):
-        global_rng_state, batch_rng_storage_state = state
+        global_rng_state, batch_rng_storage_state, iterable_dataset_state = state
         assert batch_rng_storage_state.shape[0] == self.world_size * self.batch_size
 
         self.global_rng.__setstate__(global_rng_state)
         self.batch_rng_storage.load_state(batch_rng_storage_state[self.rank_id * self.batch_size: (self.rank_id + 1) * self.batch_size, :])
+        self.iterable_dataset.load_state(iterable_dataset_state)
 
     def __iter__(self):
         return IterableDatasetOrchestratorWorkerIterator(self)

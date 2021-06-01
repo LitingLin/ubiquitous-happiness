@@ -4,7 +4,7 @@ from data.operator.bbox.spatial.np.xyxy2cxcywh import box_xyxy2cxcywh
 from data.operator.bbox.spatial.np.cxcywh2xyxy import box_cxcywh2xyxy
 
 
-def generate_dummy_bbox_xyxy(image_size, rng_engine=np.random, reference_bbox: np.ndarray=None):
+def generate_dummy_bbox_xyxy(image_size, rng_engine: np.random.Generator, reference_bbox: np.ndarray=None):
     dummy_bbox = np.zeros(4, dtype=np.float_)
     if reference_bbox is not None:
         reference_bbox = box_xyxy2cxcywh(reference_bbox)

@@ -2,7 +2,7 @@ import numpy as np
 
 
 class SamplingAlgo_RandomSamplingWithoutReplacement:
-    def __init__(self, length, seed):
+    def __init__(self, length, seed: int):
         self.position = -1
         self.rng_seed = seed
         self._shuffle(length)
@@ -17,7 +17,7 @@ class SamplingAlgo_RandomSamplingWithoutReplacement:
         return self.position, len(self.indices), self.rng_seed
 
     def _shuffle(self, length):
-        rng_engine = np.random.default_rng(self.rng_seed)
+        rng_engine = np.random.Generator(np.random.PCG64(self.rng_seed))
         self.indices = np.arange(length)
         rng_engine.shuffle(self.indices)
 
@@ -31,8 +31,8 @@ class SamplingAlgo_RandomSamplingWithoutReplacement:
         return self.position
 
     def reset(self):
-        self.rng_seed += 1
         self.position = -1
+        self.rng_seed += 1
         self._shuffle(len(self.indices))
 
     def length(self):

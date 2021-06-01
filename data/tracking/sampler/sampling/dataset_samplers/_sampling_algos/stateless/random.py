@@ -2,7 +2,7 @@ import numpy as np
 
 
 # may return None when allow_insufficiency=False
-def sampling_multiple_indices_with_range_and_mask(length, mask: np.ndarray=None, number_of_objects=1, sampling_range_size=None, allow_duplication=True, allow_insufficiency=True, sort=False, rng_engine=np.random):
+def sampling_multiple_indices_with_range_and_mask(length, mask: np.ndarray=None, number_of_objects=1, sampling_range_size=None, allow_duplication=True, allow_insufficiency=True, sort=False, rng_engine: np.random.Generator=np.random.default_rng()):
     assert number_of_objects > 0
     if mask is not None:
         assert length == len(mask)
@@ -37,16 +37,15 @@ def sampling_multiple_indices_with_range_and_mask(length, mask: np.ndarray=None,
     return indices
 
 
-def sampling(length, rng_engine):
-    return rng_engine.randint(length)
+def sampling(length, rng_engine: np.random.Generator):
+    return rng_engine.integers(0, length)
 
 
-def sampling_with_probability(probability_array, rng_engine):
+def sampling_with_probability(probability_array, rng_engine: np.random.Generator):
     return rng_engine.choice(np.arange(0, len(probability_array)), p=probability_array)
 
 
-def sampling_with_mask(mask, rng_engine):
+def sampling_with_mask(mask, rng_engine: np.random.Generator):
     indices = np.arange(0, len(mask))
     indices = indices[mask]
     return rng_engine.choice(indices)
-
