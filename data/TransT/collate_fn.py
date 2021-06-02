@@ -37,5 +37,8 @@ def transt_collate_fn(data):
 
     target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, num_boxes_pos = batch_collate_target_feat_map_indices(target_feat_map_indices_list)
     target_class_label_vector_batch = torch.stack(target_class_label_vector_list)
-    target_bounding_box_label_matrix_batch = torch.cat(target_bounding_box_label_matrix_list, dim=0)
+    if len(target_bounding_box_label_matrix_list) != 0:
+        target_bounding_box_label_matrix_batch = torch.cat(target_bounding_box_label_matrix_list, dim=0)
+    else:
+        target_bounding_box_label_matrix_batch = None
     return (z_image_batch, x_image_batch), (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, target_class_label_vector_batch, target_bounding_box_label_matrix_batch)
