@@ -181,7 +181,6 @@ def _customized_dataset_parameter_handler(datasets, parameters):
     return datasets_parameters
 
 
-
 def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rng_seed):
     raw_datasets, dataset_parameters = build_dataset_from_config_distributed_awareness(dataset_config_path, _customized_dataset_parameter_handler)
     # default values
