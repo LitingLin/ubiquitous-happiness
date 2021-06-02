@@ -1,5 +1,5 @@
 import torch
-from .actor import TransTActor
+from .runner import TransTRunner
 from data.siamfc.dataset import build_tracking_dataset
 from data.TransT.builder import build_transt_data_processor
 from data.torch.data_loader import build_torch_train_val_dataloader
@@ -44,7 +44,7 @@ def build_transt_training_actor(args, net_config: dict, train_config: dict, epoc
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
 
-    return TransTActor(model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots)
+    return TransTRunner(model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots)
 
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,

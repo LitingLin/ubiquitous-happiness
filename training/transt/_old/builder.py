@@ -40,9 +40,9 @@ def build_transt_training_actor(args, net_config: dict, train_config: dict, epoc
 
     if args.distributed:
         if 'cuda' in args.device:
-            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+            model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
         else:
-            model = torch.nn.parallel.DistributedDataParallel(model)
+            model = torch.nn.parallel.DistributedDataParallel(model, find_unused_parameters=True)
 
     return TransTActor(model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots)
 

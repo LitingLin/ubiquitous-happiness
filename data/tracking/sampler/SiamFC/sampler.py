@@ -31,8 +31,6 @@ class SOTTrackingSiameseIterableDatasetSampler:
         self.epoch_iterations = epoch_iterations
         self.datasets_sampler = _build_datasets_sampler(datasets, np.random.Generator(np.random.PCG64(seed)))
 
-        if datasets_sampling_weight is not None:
-            datasets_sampling_weight = datasets_sampling_weight / np.sum(datasets_sampling_weight)
         self.datasets_sampling_weight = datasets_sampling_weight
         self.negative_sample_ratio = negative_sample_ratio
         self.data_processor = data_processor

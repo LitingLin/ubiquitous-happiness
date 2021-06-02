@@ -3,7 +3,7 @@ import sys
 import math
 
 
-class TransTActor:
+class TransTRunner:
     def __init__(self, model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots=None):
         self.model = model
         self.criterion = criterion
