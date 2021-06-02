@@ -1,119 +1,149 @@
-from enum import Enum, auto
 import numpy as np
-from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapped
-from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
+from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped
+from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapped
 
-from data.tracking.sampler.getter.standard.sot import single_object_tracking_dataset_standard_data_getter
-from data.tracking.sampler.getter.standard.det import detection_dataset_standard_data_getter
-from data.tracking.sampler.getter.standard.mot import multiple_object_tracking_dataset_standard_data_getter
-from data.tracking.sampler.sampling.random.dataset.sot import SOTDatasetRandomSampler
-from data.tracking.sampler.sampling.random.dataset.det import DETDatasetRandomSampler
-from data.tracking.sampler.sampling.random.dataset.mot import MOTDatasetRandomSampler
-from data.tracking.sampler.sampling._impl.random.datasets.sampler import DatasetsRandomSampler
-from decimal import Decimal
+from data.tracking.sampler._sampler.sequence.SiamFC.DET import \
+    do_sampling_in_detection_dataset_image, get_one_random_sample_in_detection_dataset_image
+from data.tracking.sampler._sampler.sequence.SiamFC.SOT import \
+    do_sampling_in_single_object_tracking_dataset_sequence, \
+    do_negative_sampling_in_single_object_tracking_dataset_sequence, \
+    get_one_random_sample_in_single_object_tracking_dataset_sequence
+from data.tracking.sampler._sampler.sequence.SiamFC.MOT import \
+    do_sampling_in_multiple_object_tracking_dataset_sequence, \
+    do_negative_sampling_in_multiple_object_tracking_dataset_sequence, \
+    get_one_random_sample_in_multiple_object_tracking_dataset_sequence
 
 
-class DatasetWeightingStrategy(Enum):
-    absolute = auto()
-    relative = auto()
+def _build_datasets_sampler(datasets, rng_engine: np.random.Generator):
+    from data.tracking.sampler._sampling_algos.stateful.random_without_replacement import SamplingAlgo_RandomSamplingWithoutReplacement
+    from data.tracking.sampler._sampling_algos.stateful.infinite_loop_wrapper import Sampling_InfinteLoopWrapper
+
+    dataset_samplers = []
+    for dataset in datasets:
+        dataset_samplers.append(Sampling_InfinteLoopWrapper(SamplingAlgo_RandomSamplingWithoutReplacement(len(dataset), rng_engine.integers(-1000, 1000))))
+    return dataset_samplers
 
 
-class TrackingDatasetSiameseRandomSampler:
-    def __init__(self, datasets, sample_post_processor,
-                 dataset_sampling_weights, dataset_sampling_frame_ranges,
-                 weighting_strategy=DatasetWeightingStrategy.relative,
-                 image_dataset_weight=None, video_dataset_weight=None,
-                 number_of_sampling_objects=1,
-                 positive_sampling_allow_invalid_bounding_box=True, positive_sampling_allow_duplication=False, positive_sampling_allow_insufficiency=True, positive_sampling_sort_result=False,
-                 negative_sampling_ratio=0,
-                 rng_engine=np.random):
-        dataset_sampling_weights = [Decimal(weight) for weight in dataset_sampling_weights]
-        total_length = 0
-        for index_of_dataset, dataset in enumerate(datasets):
-            assert isinstance(dataset, (DetectionDataset_MemoryMapped, SingleObjectTrackingDataset_MemoryMapped,
-                               MultipleObjectTrackingDataset_MemoryMapped))
+class SOTTrackingSiameseIterableDatasetSampler:
+    def __init__(self, datasets, epoch_iterations, negative_sample_ratio, datasets_sampling_parameters=None, datasets_sampling_weight=None, data_processor=None, seed: int=0):
+        self.datasets = datasets
+        self.epoch_iterations = epoch_iterations
+        self.datasets_sampler = _build_datasets_sampler(datasets, np.random.Generator(np.random.PCG64(seed)))
 
-            if weighting_strategy == DatasetWeightingStrategy.relative:
-                dataset_sampling_weights[index_of_dataset] = dataset_sampling_weights[index_of_dataset] * len(dataset)
-            if isinstance(dataset, DetectionDataset_MemoryMapped):
-                if image_dataset_weight is not None:
-                    dataset_sampling_weights[index_of_dataset] = dataset_sampling_weights[index_of_dataset] * image_dataset_weight
-            elif isinstance(dataset, (SingleObjectTrackingDataset_MemoryMapped, MultipleObjectTrackingDataset_MemoryMapped)):
-                if video_dataset_weight is not None:
-                    dataset_sampling_weights[index_of_dataset] = dataset_sampling_weights[index_of_dataset] * video_dataset_weight
+        if datasets_sampling_weight is not None:
+            datasets_sampling_weight = datasets_sampling_weight / np.sum(datasets_sampling_weight)
+        self.datasets_sampling_weight = datasets_sampling_weight
+        self.negative_sample_ratio = negative_sample_ratio
+        self.data_processor = data_processor
+        self.datasets_sampling_parameters = datasets_sampling_parameters
 
-            total_length += len(dataset)
+        self.position = -1
 
-        weight_sum = sum(dataset_sampling_weights)
-        dataset_sampling_weights = [weight / weight_sum for weight in dataset_sampling_weights]
-        dataset_sampling_weights = [float(weight) for weight in dataset_sampling_weights]
-        dataset_sampling_weights = np.array(dataset_sampling_weights)
-
-        self.datasets_sampler = DatasetsRandomSampler(dataset_sampling_weights, rng_engine)
-
-        positive_samplers = []
-        for index_of_dataset, dataset in enumerate(datasets):
-            if isinstance(dataset, DetectionDataset_MemoryMapped):
-                positive_samplers.append(DETDatasetRandomSampler(dataset, detection_dataset_standard_data_getter, rng_engine, positive_sampling_allow_invalid_bounding_box))
-            elif isinstance(dataset, SingleObjectTrackingDataset_MemoryMapped):
-                positive_samplers.append(
-                    SOTDatasetRandomSampler(dataset, single_object_tracking_dataset_standard_data_getter, rng_engine,
-                                            number_of_sampling_objects, dataset_sampling_frame_ranges[index_of_dataset],
-                                            positive_sampling_allow_invalid_bounding_box, positive_sampling_allow_duplication, positive_sampling_allow_insufficiency, positive_sampling_sort_result))
-            elif isinstance(dataset, MultipleObjectTrackingDataset_MemoryMapped):
-                positive_samplers.append(
-                    MOTDatasetRandomSampler(dataset, multiple_object_tracking_dataset_standard_data_getter, rng_engine,
-                                            number_of_sampling_objects, dataset_sampling_frame_ranges[index_of_dataset],
-                                            positive_sampling_allow_invalid_bounding_box, positive_sampling_allow_duplication, positive_sampling_allow_insufficiency, positive_sampling_sort_result))
-        self.positive_samplers = positive_samplers
-
-        assert 0 <= negative_sampling_ratio <= 1
-
-        self.negative_sampling_ratio = negative_sampling_ratio
-        if negative_sampling_ratio > 0:
-            negative_samplers = []
-            for dataset in datasets:
-                if isinstance(dataset, DetectionDataset_MemoryMapped):
-                    positive_samplers.append(
-                        DETDatasetRandomSampler(dataset, detection_dataset_standard_data_getter, rng_engine, True))
-                elif isinstance(dataset, SingleObjectTrackingDataset_MemoryMapped):
-                    positive_samplers.append(
-                        SOTDatasetRandomSampler(dataset, single_object_tracking_dataset_standard_data_getter,
-                                                rng_engine, 1, 1, True))
-                elif isinstance(dataset, MultipleObjectTrackingDataset_MemoryMapped):
-                    positive_samplers.append(
-                        MOTDatasetRandomSampler(dataset, multiple_object_tracking_dataset_standard_data_getter,
-                                                rng_engine, 1, 1, True))
-            self.negative_samplers = negative_samplers
-        self.number_of_sampling_objects = number_of_sampling_objects
-        self.length = total_length
-        self.rng_engine = rng_engine
-        self.sample_post_processor = sample_post_processor
-
-    def _get_next_positive_sample(self):
-        index_of_dataset = self.datasets_sampler.get_next_dataset_index()
-        return self.positive_samplers[index_of_dataset].get_next()
-
-    def _get_next_negative_sample(self):
-        data = []
-        for index_of_object in range(self.number_of_sampling_objects):
-            dataset_index = self.datasets_sampler.get_next_dataset_index()
-            data.extend(self.negative_samplers[dataset_index].get_next())
-        return data
-
-    def get_next(self):
-        if self.negative_sampling_ratio == 0:
-            return self.sample_post_processor(self._get_next_positive_sample(), True)
-        else:
-            is_positive = self.rng_engine.rand() > self.negative_sampling_ratio
-            if is_positive:
-                return self.sample_post_processor(self._get_next_positive_sample(), True)
-            else:
-                return self.sample_post_processor(self._get_next_negative_sample(), False)
-
-    def get_total_length(self):
-        return self.length
+        self.current_index_of_dataset = None
+        self.current_index_of_sequence = None
+        self.current_is_sampling_positive_sample = None
 
     def __len__(self):
-        return self.length
+        return self.epoch_iterations
+
+    def get_position(self):
+        return self.position
+
+    def move_next(self, rng_engine: np.random.Generator):
+        index_of_dataset = rng_engine.choice(np.arange(0, len(self.datasets)), p=self.datasets_sampling_weight)
+        if self.negative_sample_ratio == 0:
+            is_negative = False
+        else:
+            is_negative = rng_engine.random() < self.negative_sample_ratio
+
+        dataset_sampler = self.datasets_sampler[index_of_dataset]
+        dataset_sampler.move_next()
+        index_of_sequence = dataset_sampler.get()
+
+        self.current_index_of_dataset = index_of_dataset
+        self.current_is_sampling_positive_sample = not is_negative
+        self.current_index_of_sequence = index_of_sequence
+
+        self.position += 1
+
+    def forward_to(self, position: int, rng_engine: np.random.Generator):
+        assert position >= self.position
+        while self.position < position:
+            self.move_next(rng_engine)
+
+    def _pick_random_object_as_negative_sample(self, rng_engine: np.random.Generator):
+        index_of_dataset = rng_engine.integers(0, len(self.datasets))
+        dataset = self.datasets[index_of_dataset]
+        index_of_sequence = rng_engine.integers(0, len(dataset))
+        sequence = dataset[index_of_sequence]
+        if isinstance(dataset, DetectionDataset_MemoryMapped):
+            data = get_one_random_sample_in_detection_dataset_image(sequence, rng_engine)
+        elif isinstance(dataset, SingleObjectTrackingDataset_MemoryMapped):
+            data = get_one_random_sample_in_single_object_tracking_dataset_sequence(sequence, rng_engine)
+        elif isinstance(dataset, MultipleObjectTrackingDataset_MemoryMapped):
+            data = get_one_random_sample_in_multiple_object_tracking_dataset_sequence(sequence, rng_engine)
+        else:
+            raise NotImplementedError
+        return data
+
+    def do_sampling(self, rng_engine: np.random.Generator):
+        dataset = self.datasets[self.current_index_of_dataset]
+        sequence = dataset[self.current_index_of_sequence]
+
+        frame_range = 100
+        if self.datasets_sampling_parameters is not None:
+            sampling_parameter = self.datasets_sampling_parameters[self.current_index_of_dataset]
+            if 'frame_range' in sampling_parameter:
+                frame_range = sampling_parameter['frame_range']
+        if isinstance(dataset, (SingleObjectTrackingDataset_MemoryMapped, MultipleObjectTrackingDataset_MemoryMapped)):
+            if sequence.has_fps():
+                fps = sequence.get_fps()
+                frame_range = int(round(fps / 30 * frame_range))
+
+        if self.current_is_sampling_positive_sample:
+            if isinstance(dataset, DetectionDataset_MemoryMapped):
+                z_image, z_bbox = do_sampling_in_detection_dataset_image(sequence, rng_engine)
+                data = (z_image, z_bbox, z_image, z_bbox, True)
+            elif isinstance(dataset, (SingleObjectTrackingDataset_MemoryMapped, MultipleObjectTrackingDataset_MemoryMapped)):
+                if isinstance(dataset, SingleObjectTrackingDataset_MemoryMapped):
+                    sampled_data, is_positive = do_sampling_in_single_object_tracking_dataset_sequence(sequence, frame_range, rng_engine)
+                else:
+                    sampled_data, is_positive = do_sampling_in_multiple_object_tracking_dataset_sequence(sequence, frame_range, rng_engine)
+                if is_positive == 0:
+                    data = (sampled_data[0][0], sampled_data[0][1], sampled_data[0][0], sampled_data[0][1], True)
+                else:
+                    data = (sampled_data[0][0], sampled_data[0][1], sampled_data[1][0], sampled_data[1][1], is_positive == 1)
+            else:
+                raise NotImplementedError
+        else:
+            if isinstance(dataset, DetectionDataset_MemoryMapped):
+                z_image, z_bbox = do_sampling_in_detection_dataset_image(sequence, rng_engine)
+                x_image, x_bbox = self._pick_random_object_as_negative_sample(rng_engine)
+                data = (z_image, z_bbox, x_image, x_bbox, False)
+            elif isinstance(dataset, (SingleObjectTrackingDataset_MemoryMapped, MultipleObjectTrackingDataset_MemoryMapped)):
+                if isinstance(dataset, SingleObjectTrackingDataset_MemoryMapped):
+                    sampled_data = do_negative_sampling_in_single_object_tracking_dataset_sequence(sequence, frame_range, rng_engine)
+                else:
+                    sampled_data = do_negative_sampling_in_multiple_object_tracking_dataset_sequence(sequence, frame_range, rng_engine)
+                if len(sampled_data) == 1:
+                    x_image, x_bbox = self._pick_random_object_as_negative_sample(rng_engine)
+                    data = (sampled_data[0][0], sampled_data[0][1], x_image, x_bbox, False)
+                else:
+                    data = (sampled_data[0][0], sampled_data[0][1], sampled_data[1][0], sampled_data[1][1], False)
+            else:
+                raise NotImplementedError
+        if self.data_processor is not None:
+            data = self.data_processor(data)
+        return data
+
+    def get_state(self):
+        dataset_samplers_state = []
+        for sampler in self.datasets_sampler:
+            dataset_samplers_state.append(sampler.sampling_algo.__getstate__())
+        return self.position, self.current_index_of_dataset, self.current_index_of_sequence, self.current_is_sampling_positive_sample, dataset_samplers_state
+
+    def load_state(self, state):
+        self.position, self.current_index_of_dataset, self.current_index_of_sequence, self.current_is_sampling_positive_sample, dataset_samplers_state = state
+        for index, dataset_sampler_state in enumerate(dataset_samplers_state):
+            self.datasets_sampler[index].sampling_algo.__setstate__(dataset_sampler_state)

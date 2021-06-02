@@ -1,4 +1,5 @@
 # Copyright (c) SenseTime. All Rights Reserved.
+import copy
 
 import numpy as np
 from torch.utils.data import Dataset
@@ -31,7 +32,7 @@ class ConcateDatasetPositioning:
 
 
 class TrackingDataset(Dataset):
-    def __init__(self, datasets: list, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor=None, rng_seed: int=None):
+    def __init__(self, datasets: list, datasets_parameter, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor=None, rng_seed: int=None):
         super(TrackingDataset, self).__init__()
 
         self.rng_engine = np.random
@@ -45,10 +46,10 @@ class TrackingDataset(Dataset):
         self.num = 0
         if is_main_process():
             print('Building dataset indices...', end=' ')
-        for dataset in datasets:
+        for dataset, dataset_parameter in zip(datasets, datasets_parameter):
             self.dataset_positioning.register(len(dataset))
-            if dataset.has_attribute('NUM_USE'):
-                num_use = dataset.get_attribute('NUM_USE')
+            if 'NUM_USE' in dataset_parameter:
+                num_use = dataset_parameter['NUM_USE']
             else:
                 num_use = len(dataset)
 
@@ -66,8 +67,8 @@ class TrackingDataset(Dataset):
 
             start_index += len(dataset)
 
-            if dataset.has_attribute('FRAME_RANGE'):
-                frame_range = dataset.get_attribute('FRAME_RANGE')
+            if 'FRAME_RANGE' in dataset_parameter:
+                frame_range = dataset_parameter['FRAME_RANGE']
             else:
                 frame_range = 100
 
@@ -165,8 +166,24 @@ class TrackingDataset(Dataset):
         return self.post_processor(z_image, z_bbox, x_image, x_bbox, is_positive)
 
 
+def _customized_dataset_parameter_handler(datasets, parameters):
+    number_of_datasets = len(datasets)
+    datasets_parameters = [copy.deepcopy(parameters) for _ in range(number_of_datasets)]
+
+    datasets_weight = np.array([len(dataset) for dataset in datasets], dtype=np.float_)
+    datasets_weight = datasets_weight / datasets_weight.sum()
+
+    if 'NUM_USE' in parameters:
+        num_use = parameters['NUM_USE']
+        for index in range(number_of_datasets):
+            datasets_parameters[index]['NUM_USE'] = int((num_use * datasets_weight[index]).round())
+
+    return datasets_parameters
+
+
+
 def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rng_seed):
-    raw_datasets = build_dataset_from_config_distributed_awareness(dataset_config_path)
+    raw_datasets, dataset_parameters = build_dataset_from_config_distributed_awareness(dataset_config_path, _customized_dataset_parameter_handler)
     # default values
     samples_per_epoch = None
     repeat_times_per_epoch = None
@@ -180,7 +197,7 @@ def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rn
         if 'neg_ratio' in data_config:
             neg_ratio = data_config['neg_ratio']
 
-    dataset = TrackingDataset(raw_datasets, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor, rng_seed)
+    dataset = TrackingDataset(raw_datasets, dataset_parameters, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor, rng_seed)
     return dataset
 
 

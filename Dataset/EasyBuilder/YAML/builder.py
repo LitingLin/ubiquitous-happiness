@@ -42,16 +42,11 @@ def getDataSplitFromConfig(split_strings: list):
     return split
 
 
-known_parameters = ['TYPE', 'SPLITS', 'PARAMETERS', 'FILTERS']
+known_parameters = ('TYPE', 'SPLITS', 'PARAMETERS', 'FILTERS')
 
 
-def forward_parameters(datasets, dataset_building_parameters):
-    for dataset in datasets:
-        manipulator = dataset.get_adhoc_manipulator()
-        for parameter_name, parameter_value in dataset_building_parameters.items():
-            if parameter_name in known_parameters:
-                continue
-            manipulator.set_attribute(parameter_name, parameter_value)
+def get_unknown_parameters(dataset_building_parameters: dict):
+    return {key: value for key, value in dataset_building_parameters.items() if key not in known_parameters}
 
 
 def parse_filters(config):
@@ -69,7 +64,12 @@ def parse_filters(config):
     return filters
 
 
-def build_datasets(config: dict):
+def _default_unknown_parameter_handler(datasets, parameters):
+    import copy
+    return tuple(copy.deepcopy(parameters) for _ in range(len(datasets)))
+
+
+def build_datasets(config: dict, unknown_parameter_handler=_default_unknown_parameter_handler):
     filters = []
     if 'FILTERS' in config:
         dataset_filter_names = config['FILTERS']
@@ -88,6 +88,8 @@ def build_datasets(config: dict):
             constructor_params['dump_human_readable'] = config['dump_human_readable']
         if 'cache_meta_data' in config:
             constructor_params['cache_meta_data'] = config['cache_meta_data']
+
+    extra_parameters = []
 
     for dataset_name, dataset_building_parameter in config['DATASETS'].items():
         dataset_type = dataset_building_parameter['TYPE']
@@ -130,13 +132,14 @@ def build_datasets(config: dict):
             dataset_filters = None
 
         dataset = factory.construct(dataset_filters, **constructor_params)
-        forward_parameters(dataset, dataset_building_parameter)
+
+        extra_parameters.extend(unknown_parameter_handler(dataset, get_unknown_parameters(dataset_building_parameter)))
         datasets.extend(dataset)
 
-    return datasets
+    return datasets, extra_parameters
 
 
-def build_datasets_from_yaml(config_path: str):
+def build_datasets_from_yaml(config_path: str, unknown_parameter_handler=_default_unknown_parameter_handler):
     with open(os.path.join(os.path.dirname(__file__), 'dataset_def.yaml'), 'rb') as fid:
         default = yaml.safe_load(fid)
     default = default['DATASET_DEFINITIONS']
@@ -144,4 +147,4 @@ def build_datasets_from_yaml(config_path: str):
         config = yaml.safe_load(fid)
     dataset_config = merge_config(default, config['DATASETS'])
     config['DATASETS'] = dataset_config
-    return build_datasets(config)
+    return build_datasets(config, unknown_parameter_handler)

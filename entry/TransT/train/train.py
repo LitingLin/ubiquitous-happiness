@@ -6,8 +6,8 @@ config_path = os.path.join(root_path, 'config', 'transt')
 
 import argparse
 from pathlib import Path
-from training.transt.training_loop import run_training_loop
-from training.transt.builder import build_training_actor_and_dataloader
+from training.transt._old.training_loop import run_training_loop
+from training.transt._old.builder import build_training_actor_and_dataloader
 from workarounds.all import apply_all_workarounds
 from Miscellaneous.torch.print_running_environment import print_running_environment
 from Miscellaneous.yaml_ops import yaml_load

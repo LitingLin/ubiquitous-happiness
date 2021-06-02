@@ -28,8 +28,10 @@ class TransTTracking(nn.Module):
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
+        outputs_class = outputs_class[-1]
+        outputs_class = outputs_class.transpose(1, 2)
 
-        return outputs_class[-1], outputs_coord[-1]
+        return outputs_class, outputs_coord[-1]
 
     @torch.no_grad()
     def template(self, z):

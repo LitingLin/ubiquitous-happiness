@@ -75,6 +75,10 @@ class SOTDatasetSiamFCSampler:
     def get_positive_pair(self, index: int):
         sequence = self.dataset[index]
         frame_range = self.frame_range
+
+        if sequence.has_fps():
+            frame_range = _adjust_range_of_frame(frame_range, sequence.get_fps())
+
         visible = sequence.get_all_bounding_box_validity_flag()
         if visible is None:
             visible = np.ones([len(sequence)], dtype=np.uint8)
@@ -121,6 +125,8 @@ class MOTDatasetSiamFCSampler:
     def get_positive_pair(self, index):
         sequence = self.dataset[index]
         frame_range = self.frame_range
+        if sequence.has_fps():
+            frame_range = _adjust_range_of_frame(frame_range, sequence.get_fps())
         index_of_track = random.randint(0, sequence.get_number_of_objects() - 1)
         track = sequence.get_object(index_of_track)
         length_of_sequence = len(sequence)

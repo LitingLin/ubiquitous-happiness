@@ -247,6 +247,12 @@ class MultipleObjectTrackingDatasetSequence_MemoryMapped:
 
         '''
 
+    def has_fps(self):
+        return 'fps' in self.sequence_attributes
+
+    def get_fps(self):
+        return self.sequence_attributes['fps']
+
     def get_object_iterator(self):
         return MultipleObjectTrackingDatasetSequence_MemoryMapped_ObjectIterator(self)
 
