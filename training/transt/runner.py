@@ -48,17 +48,18 @@ class TransTRunner:
         return {'lr': self.optimizer.param_groups[0]["lr"]}
 
     def state_dict(self):
-        return {'model': self.get_model().state_dict(),
-                'optimizer': self.optimizer.state_dict(),
+        return {'model': self.get_model().state_dict(), 'version': 1}, \
+               {'optimizer': self.optimizer.state_dict(),
                 'lr_scheduler': self.lr_scheduler.state_dict(),
-                'epoch': self.epoch}
+                'epoch': self.epoch, 'version': 1}
 
-    def load_state_dict(self, state, model_only=False):
-        self.get_model().load_state_dict(state['model'])
-        if not model_only:
-            self.optimizer.load_state_dict(state['optimizer'])
-            self.lr_scheduler.load_state_dict(state['lr_scheduler'])
-            self.epoch = state['epoch']
+    def load_state_dict(self, model_state, training_state):
+        assert model_state['version'] == 1
+        self.get_model().load_state_dict(model_state['model'])
+        if training_state is not None:
+            self.optimizer.load_state_dict(training_state['optimizer'])
+            self.lr_scheduler.load_state_dict(training_state['lr_scheduler'])
+            self.epoch = training_state['epoch']
             self._emit_signal_epoch_changed()
 
     def to(self, device):
