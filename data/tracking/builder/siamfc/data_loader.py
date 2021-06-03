@@ -18,6 +18,8 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
         rank_id = get_rank()
         world_size = get_world_size()
 
+        pin_memory = 'cuda' in args.device
+
         rng_engine = np.random.Generator(np.random.PCG64(seed))
         train_data_config = None
         if 'data' in train_config['train']:
@@ -32,7 +34,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                          batch_size=None,
                                                                          num_workers=args.num_workers)
 
-        torch_train_data_loader = OrderedBatchSampler(torch_train_data_loader, train_config['train']['batch_size'], collate_fn)
+        torch_train_data_loader = OrderedBatchSampler(torch_train_data_loader, train_config['train']['batch_size'], collate_fn, pin_memory)
 
         val_data_config = None
         if 'data' in train_config['val']:
@@ -46,7 +48,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
         torch_val_data_loader = torch.utils.data.dataloader.DataLoader(val_data_loader,
                                                                        batch_size=None,
                                                                        num_workers=args.num_workers)
-        torch_val_data_loader = OrderedBatchSampler(torch_val_data_loader, train_config['val']['batch_size'], collate_fn)
+        torch_val_data_loader = OrderedBatchSampler(torch_val_data_loader, train_config['val']['batch_size'], collate_fn, pin_memory)
 
         if 'cuda' in args.device:
             device = torch.device(args.device)

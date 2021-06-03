@@ -1,5 +1,8 @@
+import torch
+import torch.cuda
 from torch.utils.data.sampler import Sampler
 from torch.utils.data.dataloader import default_collate
+import torch.utils.data._utils.pin_memory
 from typing import List
 
 
@@ -19,7 +22,7 @@ class OrderedBatchSampler(Sampler[List[int]]):
         [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
     """
 
-    def __init__(self, sampler: Sampler[int], batch_size: int, collate_fn=default_collate) -> None:
+    def __init__(self, sampler: Sampler[int], batch_size: int, collate_fn=default_collate, pin_memory=False) -> None:
         # Since collections.abc.Iterable does not check for `__getitem__`, which
         # is one way for an object to be an iterable, we don't do an `isinstance`
         # check here.
@@ -30,6 +33,10 @@ class OrderedBatchSampler(Sampler[List[int]]):
         self.sampler = sampler
         self.batch_size = batch_size
         self.collate_fn = collate_fn
+        if pin_memory and torch.cuda.is_available():
+            self.pin_memory = True
+        else:
+            self.pin_memory = False
 
     def __iter__(self):
         batch = {}
@@ -42,7 +49,10 @@ class OrderedBatchSampler(Sampler[List[int]]):
                     current_batch = []
                     for idx in current_batch_range:
                         current_batch.append(batch.pop(idx))
-                    yield self.collate_fn(current_batch)
+                    collated_data = self.collate_fn(current_batch)
+                    if self.pin_memory:
+                        collated_data = torch.utils.data._utils.pin_memory.pin_memory(collated_data)
+                    yield collated_data
                     iterations += 1
                 else:
                     break
