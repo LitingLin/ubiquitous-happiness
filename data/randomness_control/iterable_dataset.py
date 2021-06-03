@@ -30,7 +30,7 @@ class IterableDatasetOrchestratorWorkerIterator:
         self.orchestrator = orchestrator
         self.worker_scheduler_constraint = _WorkerSchedulerConstraint()
         self.orchestrator.batch_scheduler.set_scheduling_constraint_function(self.worker_scheduler_constraint)
-        self.dataset_length = len(self.orchestrator.iterable_dataset)
+        self.dataset_length = len(self.orchestrator) * self.orchestrator.world_size
         self.world_batch_size = self.orchestrator.batch_size * self.orchestrator.world_size
         self.world_batch_offset = self.orchestrator.rank_id * self.orchestrator.batch_size
         self.local_rng = np.random.Generator(np.random.PCG64())
