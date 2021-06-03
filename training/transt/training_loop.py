@@ -8,27 +8,25 @@ import json
 import datetime
 
 
-def run_training_loop(args, train_config, actor, data_loader_train, data_loader_val):
+def run_training_loop(args, train_config, runner, data_loader_train, data_loader_val):
     output_dir: str = args.output_dir
 
     print("Start training")
     start_time = time.perf_counter()
     for epoch in range(args.start_epoch, train_config['train']['epochs']):
-        train_stats = train_one_epoch(actor, data_loader_train, epoch,
+        train_stats = train_one_epoch(runner, data_loader_train, epoch,
                                       train_config['train']['clip_max_norm'])
-        data_loader_train.dataset.synchronize(epoch)
-        test_stats = evaluate(actor, data_loader_val)
-        data_loader_val.dataset.synchronize(epoch)
+        test_stats = evaluate(runner, data_loader_val)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                      **{f'test_{k}': v for k, v in test_stats.items()},
                      'epoch': epoch,
-                     'n_parameters': actor.n_parameters()}
+                     'n_parameters': runner.n_parameters()}
+
+        runner.move_next_epoch()
 
         if output_dir and is_main_process():
-            model_state_dict, training_state_dict = actor.state_dict()
-            training_state_dict['train_data_loader'] = data_loader_train.dataset.get_state()
-            training_state_dict['val_data_loader'] = data_loader_val.dataset.get_state()
+            model_state_dict, training_state_dict = runner.state_dict()
             dump_checkpoint(epoch, args.output_dir, model_state_dict, training_state_dict, 10, args.checkpoint_interval)
 
         if args.output_dir and is_main_process():

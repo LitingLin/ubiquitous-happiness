@@ -4,13 +4,14 @@ import math
 
 
 class TransTRunner:
-    def __init__(self, model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots=None):
+    def __init__(self, model, criterion, optimizer, lr_scheduler, data_loader_train, data_loader_val):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
         self.epoch = 0
-        self.epoch_changed_event_signal_slots = epoch_changed_event_signal_slots
+        self.data_loader_train = data_loader_train
+        self.data_loader_val = data_loader_val
 
     def forward(self, samples, targets):
         outputs = self.model(samples)
@@ -24,15 +25,14 @@ class TransTRunner:
         self.loss = loss
         return {'loss': loss_value, **loss_stats_reduced_unscaled, **loss_stats_reduced_scaled}
 
-    def _emit_signal_epoch_changed(self):
-        if self.epoch_changed_event_signal_slots is not None:
-            for epoch_changed_signal_slot in self.epoch_changed_event_signal_slots:
-                epoch_changed_signal_slot.set_epoch(self.epoch)
+    def _synchronize_dataloader_state(self):
+        self.data_loader_train.synchronize(self.epoch)
+        self.data_loader_val.synchronize(self.epoch)
 
-    def new_epoch(self):
+    def move_next_epoch(self):
         self.epoch += 1
         self.lr_scheduler.step()
-        self._emit_signal_epoch_changed()
+        self._synchronize_dataloader_state()
 
     def get_epoch(self):
         return self.epoch
@@ -51,6 +51,8 @@ class TransTRunner:
         return {'model': self.get_model().state_dict(), 'version': 1}, \
                {'optimizer': self.optimizer.state_dict(),
                 'lr_scheduler': self.lr_scheduler.state_dict(),
+                'train_data_loader': self.data_loader_train.get_state(),
+                'val_data_loader': self.data_loader_val.get_state(),
                 'epoch': self.epoch, 'version': 1}
 
     def load_state_dict(self, model_state, training_state):
@@ -59,8 +61,10 @@ class TransTRunner:
         if training_state is not None:
             self.optimizer.load_state_dict(training_state['optimizer'])
             self.lr_scheduler.load_state_dict(training_state['lr_scheduler'])
+            self.data_loader_train.load_state(training_state['train_data_loader'])
+            self.data_loader_val.load_state(training_state['val_data_loader'])
             self.epoch = training_state['epoch']
-            self._emit_signal_epoch_changed()
+            self._synchronize_dataloader_state()
 
     def to(self, device):
         self.model.to(device)

@@ -28,7 +28,7 @@ def _setup_optimizer(model, train_config):
     return optimizer, lr_scheduler
 
 
-def build_transt_training_runner(args, net_config: dict, train_config: dict, epoch_changed_event_signal_slots=None):
+def build_transt_training_runner(args, net_config: dict, train_config: dict, data_loader_train, data_loader_val):
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
@@ -44,28 +44,24 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, epo
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
 
-    return TransTRunner(model, criterion, optimizer, lr_scheduler, epoch_changed_event_signal_slots)
+    return TransTRunner(model, criterion, optimizer, lr_scheduler, data_loader_train, data_loader_val)
 
 
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                       val_dataset_config_path: str):
     processor, collate_fn = build_transt_data_processor(network_config, train_config)
-    _, (data_loader_train, data_loader_val) = build_siamfc_sampling_dataset_and_dataloader(args, train_config, train_dataset_config_path, val_dataset_config_path, processor, processor, args.seed, collate_fn)
-
-    return data_loader_train, data_loader_val
+    return build_siamfc_sampling_dataset_and_dataloader(args, train_config, train_dataset_config_path, val_dataset_config_path, processor, processor, args.seed, collate_fn)
 
 
 def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                                         val_dataset_config_path: str):
-    data_loader_train, data_loader_val = _build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+    (data_loader_train, data_loader_val), (torch_data_loader_train, torch_data_loader_val) = _build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
 
-    runner = build_transt_training_runner(args, network_config, train_config)
+    runner = build_transt_training_runner(args, network_config, train_config, data_loader_train, data_loader_val)
 
     if args.resume:
         model_state_dict, training_state_dict = load_checkpoint(args.resume)
         runner.load_state_dict(model_state_dict, training_state_dict)
-        data_loader_train.dataset.load_state(training_state_dict['train_data_loader'])
-        data_loader_val.dataset.load_state(training_state_dict['val_data_loader'])
         args.start_epoch = runner.get_epoch()
 
-    return runner, data_loader_train, data_loader_val
+    return runner, torch_data_loader_train, torch_data_loader_val
