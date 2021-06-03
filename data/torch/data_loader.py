@@ -9,7 +9,9 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                      train_batch_size, val_batch_size,
                                      train_num_workers,
                                      val_num_workers,
-                                     device, distributed, epoch_changed_event_signal_slots, collate_fn=None):
+                                     device, distributed, epoch_changed_event_signal_slots,
+                                     train_worker_init_fn=None, val_worker_init_fn=None,
+                                     collate_fn=None):
     do_shuffle = True
     if hasattr(train_dataset, 'set_epoch'):
         epoch_changed_event_signal_slots.append(train_dataset)
@@ -25,10 +27,12 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
     batch_sampler_train = torch.utils.data.BatchSampler(
         sampler_train, train_batch_size, drop_last=True)
 
-    data_loader_train = DataLoader(train_dataset, batch_sampler=batch_sampler_train,
-                                   num_workers=train_num_workers, collate_fn=collate_fn)
-    data_loader_val = DataLoader(val_dataset, val_batch_size, sampler=sampler_val,
-                                 drop_last=False, num_workers=val_num_workers, collate_fn=collate_fn)
+    pin_memory = 'cuda' in device
+
+    data_loader_train = DataLoader(train_dataset, batch_sampler=batch_sampler_train, worker_init_fn=train_worker_init_fn,
+                                   num_workers=train_num_workers, collate_fn=collate_fn, pin_memory=pin_memory)
+    data_loader_val = DataLoader(val_dataset, val_batch_size, sampler=sampler_val, worker_init_fn=val_worker_init_fn,
+                                 drop_last=False, num_workers=val_num_workers, collate_fn=collate_fn, pin_memory=pin_memory)
 
     if 'cuda' in device:
         device = torch.device(device)

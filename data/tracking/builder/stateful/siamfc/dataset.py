@@ -1,6 +1,5 @@
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
-from data.tracking.sampler.SiamFC.siamfc.sampler import SOTTrackingSiameseIterableDatasetSampler
-from data.tracking.dataset.siamfc.dataset import SiamFCDataset, siamfc_dataset_worker_init_fn
+from data.tracking.sampler.SiamFC.stateful.siamfc.sampler import SOTTrackingSiameseIterableDatasetSampler
 from data.tracking.processor.siamfc.image_decoding import SiamFCImageDecodingProcessor
 import numpy as np
 import copy
@@ -25,7 +24,7 @@ def _customized_dataset_parameter_handler(datasets, parameters):
     return datasets_parameters
 
 
-def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, post_processor):
+def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, post_processor, seed: int):
     datasets, dataset_parameters = build_dataset_from_config_distributed_awareness(dataset_config_path, _customized_dataset_parameter_handler)
 
     samples_per_epoch = None
@@ -58,4 +57,4 @@ def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, p
     dataset_sampling_weights = dataset_sampling_weights / dataset_sampling_weights.sum()
 
     processor = SiamFCImageDecodingProcessor(post_processor)
-    return SiamFCDataset(SOTTrackingSiameseIterableDatasetSampler(datasets, negative_sample_ratio, useful_dataset_parameters, dataset_sampling_weights, processor), samples_per_epoch), siamfc_dataset_worker_init_fn
+    return SOTTrackingSiameseIterableDatasetSampler(datasets, samples_per_epoch, negative_sample_ratio, useful_dataset_parameters, dataset_sampling_weights, processor, seed)
