@@ -79,6 +79,7 @@ class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
         epoch_length = self._get_length() * self.world_size
         target_position = target_epoch * epoch_length
         self.iterable_dataset.forward_to(target_position, self.global_rng)
+        self.iterable_dataset.reset_counter()
 
     def get_state(self):
         batch_rng_storage_state = self.batch_rng_storage.get_state()
