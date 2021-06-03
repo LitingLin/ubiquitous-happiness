@@ -28,6 +28,7 @@ class _WorkerSchedulerConstraint:
 class IterableDatasetOrchestratorWorkerIterator:
     def __init__(self, orchestrator):
         self.orchestrator = orchestrator
+        self.initial_position_offset = self.orchestrator.iterable_dataset.get_position()
         self.worker_scheduler_constraint = _WorkerSchedulerConstraint()
         self.orchestrator.batch_scheduler.set_scheduling_constraint_function(self.worker_scheduler_constraint)
         self.dataset_length = len(self.orchestrator) * self.orchestrator.world_size
@@ -43,7 +44,7 @@ class IterableDatasetOrchestratorWorkerIterator:
 
             local_position = self.orchestrator.batch_size * task_context.get_used_count() + task_context.get_index()
 
-            self.orchestrator.iterable_dataset.forward_to(position, self.orchestrator.global_rng)
+            self.orchestrator.iterable_dataset.forward_to(self.initial_position_offset + position, self.orchestrator.global_rng)
 
             batch_element_rng_state = self.orchestrator.batch_rng_storage.load(task_context.get_index())
             self.local_rng.__setstate__(batch_element_rng_state)
