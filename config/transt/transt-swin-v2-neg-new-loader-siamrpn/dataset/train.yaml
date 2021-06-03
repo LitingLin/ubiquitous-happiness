@@ -30,13 +30,13 @@ DATASETS:
   YoutubeBB:
 
   COCO:
-    Sampler:
+    Sampling:
       weight: 0.5
 
   ILSVRC_DET:
-    Sampler:
+    Sampling:
       weight: 0.5
 
   ILSVRC_VID:
-    Sampler:
+    Sampling:
       weight: 0.5

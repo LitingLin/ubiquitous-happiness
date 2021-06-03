@@ -23,11 +23,11 @@ DATASETS:
   GOT10k:
     SPLITS:
       - train
-    Sampler:
+    Sampling:
       weight: 1
 
   LaSOT:
     SPLITS:
       - train
-    Sampler:
+    Sampling:
       weight: 1
