@@ -23,11 +23,20 @@ DATASETS:
   GOT10k:
     SPLITS:
       - train
-    Sampler:
-      weight: 1
 
   LaSOT:
     SPLITS:
       - train
+  YoutubeBB:
+
+  COCO:
     Sampler:
-      weight: 1
+      weight: 0.5
+
+  ILSVRC_DET:
+    Sampler:
+      weight: 0.5
+
+  ILSVRC_VID:
+    Sampler:
+      weight: 0.5
