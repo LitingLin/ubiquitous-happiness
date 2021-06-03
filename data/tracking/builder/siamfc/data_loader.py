@@ -10,19 +10,17 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
         return build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path,
                                       train_post_processor, val_post_processor)
     else:
-
         train_data_config = None
         if 'data' in train_config['train']:
             train_data_config = train_config['train']['data']
 
-        train_dataset, train_worker_init_fn = build_siamfc_sampling_dataset(train_data_config, train_dataset_config_path,
-                                                      train_post_processor)
+        train_dataset, train_worker_init_fn = build_siamfc_sampling_dataset(train_data_config, train_dataset_config_path, train_post_processor)
 
         val_data_config = None
         if 'data' in train_config['val']:
             val_data_config = train_config['val']['data']
 
-        val_dataset, val_worker_init_fn = build_siamfc_sampling_dataset(val_data_config, val_dataset_config_path, val_post_processor,)
+        val_dataset, val_worker_init_fn = build_siamfc_sampling_dataset(val_data_config, val_dataset_config_path, val_post_processor)
 
         epoch_changed_event_signal_slots = []
 

@@ -22,7 +22,7 @@ def _fail_safe_save(path, model_state_dict, training_state_dict, overwrite_exist
     torch.save(model_state_dict, path + '.tmp')
     with open(training_state_file_path + '.tmp', 'wb') as f:
         pickle.dump(training_state_dict, f)
-    _safe_rename(model_state_dict, training_state_dict, overwrite_existing)
+    _safe_rename(path, training_state_file_path, overwrite_existing)
 
 
 def _fail_safe_copy(src_path, dst_path, overwrite_existing=True):
