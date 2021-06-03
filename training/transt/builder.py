@@ -1,7 +1,7 @@
 import torch
 from .runner import TransTRunner
 from data.TransT.builder import build_transt_data_processor
-from data.tracking.builder.siamfc.data_loader import build_siamfc_sampling_dataset_and_dataloader
+from data.tracking.builder.siamfc.data_loader import build_siamfc_sampling_dataloader
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
 from Miscellaneous.torch.checkpoint import load_checkpoint
@@ -50,7 +50,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, dat
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                       val_dataset_config_path: str):
     processor, collate_fn = build_transt_data_processor(network_config, train_config)
-    return build_siamfc_sampling_dataset_and_dataloader(args, train_config, train_dataset_config_path, val_dataset_config_path, processor, processor, args.seed, collate_fn)
+    return build_siamfc_sampling_dataloader(args, train_config, train_dataset_config_path, val_dataset_config_path, processor, processor, args.seed, collate_fn)
 
 
 def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
