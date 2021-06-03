@@ -71,7 +71,7 @@ class ResourceScheduler_MultiProcessingAwareness:
         self.allocation[index_of_resource_acquired] = True
         return True, index_of_resource_acquired, self.counter[index_of_resource_acquired]
 
-    def acquire(self, retry_interval=0.01, timeout=100):
+    def acquire(self, retry_interval=0.001, timeout=100):
         if timeout != 0:
             begin_time = time.perf_counter()
         while True:
