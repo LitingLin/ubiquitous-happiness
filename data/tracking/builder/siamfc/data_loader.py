@@ -4,6 +4,7 @@ from .dataset import build_siamfc_sampling_dataset
 from Miscellaneous.torch.distributed import get_world_size, get_rank
 import torch.utils.data.dataloader
 from data.performance.cuda_prefetcher import CUDAPrefetcher
+from data.randomness_control.ordered_batch_sampler import OrderedBatchSampler
 
 
 def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_config_path: str,
@@ -28,7 +29,9 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                         world_size,
                                                         np.random.SeedSequence(rng_engine.integers(0, 1000000)))
         torch_train_data_loader = torch.utils.data.dataloader.DataLoader(train_data_loader,
-                                                                         train_config['train']['batch_size'],
+                                                                         batch_sampler=OrderedBatchSampler(
+                                                                             train_data_loader,
+                                                                             train_config['train']['batch_size']),
                                                                          num_workers=args.num_workers,
                                                                          collate_fn=collate_fn)
 
@@ -42,7 +45,9 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                       world_size,
                                                       np.random.SeedSequence(rng_engine.integers(0, 1000000)))
         torch_val_data_loader = torch.utils.data.dataloader.DataLoader(val_data_loader,
-                                                                       train_config['val']['batch_size'],
+                                                                       batch_sampler=OrderedBatchSampler(
+                                                                           val_data_loader,
+                                                                           train_config['val']['batch_size']),
                                                                        num_workers=args.num_workers,
                                                                        collate_fn=collate_fn)
 

@@ -41,14 +41,16 @@ class IterableDatasetOrchestratorWorkerIterator:
             if position >= self.dataset_length:
                 raise StopIteration
 
+            local_position = self.orchestrator.batch_size * task_context.get_used_count() + task_context.get_index()
+
             self.orchestrator.iterable_dataset.forward_to(position, self.orchestrator.global_rng)
 
             batch_element_rng_state = self.orchestrator.batch_rng_storage.load(task_context.get_index())
             self.local_rng.__setstate__(batch_element_rng_state)
             data = self.orchestrator.iterable_dataset.do_sampling(self.local_rng)
-            self.worker_scheduler_constraint.set_position(position)
+            self.worker_scheduler_constraint.set_position(local_position)
             self.orchestrator.batch_rng_storage.save(task_context.get_index(), self.local_rng.__getstate__())
-            return data
+            return local_position, data
 
 
 class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
