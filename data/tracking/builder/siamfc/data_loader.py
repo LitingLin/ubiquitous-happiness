@@ -29,6 +29,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                         world_size,
                                                         np.random.SeedSequence(rng_engine.integers(0, 1000000)))
         torch_train_data_loader = torch.utils.data.dataloader.DataLoader(train_data_loader,
+                                                                         batch_size=None,
                                                                          num_workers=args.num_workers)
 
         torch_train_data_loader = OrderedBatchSampler(torch_train_data_loader, train_config['train']['batch_size'], collate_fn)
@@ -43,6 +44,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                       world_size,
                                                       np.random.SeedSequence(rng_engine.integers(0, 1000000)))
         torch_val_data_loader = torch.utils.data.dataloader.DataLoader(val_data_loader,
+                                                                       batch_size=None,
                                                                        num_workers=args.num_workers)
         torch_val_data_loader = OrderedBatchSampler(torch_val_data_loader, train_config['val']['batch_size'], collate_fn)
 
