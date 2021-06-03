@@ -2,7 +2,7 @@ import time
 from .train_step import train_one_epoch
 from .eval_step import evaluate
 from Miscellaneous.torch.distributed import is_main_process
-from Miscellaneous.torch.dump_checkpoint import _fail_safe_save, _fail_safe_copy
+from Miscellaneous.torch.checkpoint import dump_checkpoint
 import os
 import json
 import datetime
@@ -16,31 +16,20 @@ def run_training_loop(args, train_config, actor, data_loader_train, data_loader_
     for epoch in range(args.start_epoch, train_config['train']['epochs']):
         train_stats = train_one_epoch(actor, data_loader_train, epoch,
                                       train_config['train']['clip_max_norm'])
-        actor.new_epoch()
-        if output_dir and is_main_process():
-            state_dict = actor.state_dict()
-            latest_checkpoint_interval = 10
-            backup_checkpoint_interval = args.checkpoint_interval
-
-            saved_checkpoint_path = None
-            if (epoch + 1) % latest_checkpoint_interval == 0:
-                checkpoint_path = os.path.join(output_dir, 'checkpoint.pth')
-                _fail_safe_save(checkpoint_path, state_dict)
-                saved_checkpoint_path = checkpoint_path
-            # extra checkpoint before LR drop and every 100 epochs
-            if (epoch + 1) % backup_checkpoint_interval == 0:
-                backup_checkpoint_path = os.path.join(output_dir, f'checkpoint{epoch:04}.pth')
-                if saved_checkpoint_path is not None:
-                    _fail_safe_copy(saved_checkpoint_path, backup_checkpoint_path)
-                else:
-                    _fail_safe_save(backup_checkpoint_path, state_dict)
-
+        data_loader_train.dataset.synchronize(epoch)
         test_stats = evaluate(actor, data_loader_val)
+        data_loader_val.dataset.synchronize(epoch)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                      **{f'test_{k}': v for k, v in test_stats.items()},
                      'epoch': epoch,
                      'n_parameters': actor.n_parameters()}
+
+        if output_dir and is_main_process():
+            model_state_dict, training_state_dict = actor.state_dict()
+            training_state_dict['train_data_loader'] = data_loader_train.dataset.get_state()
+            training_state_dict['val_data_loader'] = data_loader_val.dataset.get_state()
+            dump_checkpoint(epoch, args.output_dir, model_state_dict, training_state_dict, 10, args.checkpoint_interval)
 
         if args.output_dir and is_main_process():
             with open(os.path.join(output_dir, "log.txt"), "a") as f:

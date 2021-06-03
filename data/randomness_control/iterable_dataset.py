@@ -45,7 +45,7 @@ class IterableDatasetOrchestratorWorkerIterator:
 
             batch_element_rng_state = self.orchestrator.batch_rng_storage.load(task_context.get_index())
             self.local_rng.__setstate__(batch_element_rng_state)
-            data = self.orchestrator.iterable_dataset.get(self.local_rng)
+            data = self.orchestrator.iterable_dataset.do_sampling(self.local_rng)
             self.worker_scheduler_constraint.set_position(position)
             self.orchestrator.batch_rng_storage.save(task_context.get_index(), self.local_rng.__getstate__())
             return data
@@ -66,7 +66,7 @@ class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
         self.drop_last = drop_last
 
     def _get_length(self):
-        return len(self.iterable_dataset) // (self.batch_size * self.world_size)
+        return len(self.iterable_dataset) // (self.world_size * self.batch_size) * self.batch_size
 
     def _initialize_batch_rng_storage(self, seed: np.random.SeedSequence):
         for index, child_seed in enumerate(seed.spawn(self.batch_size)):
@@ -74,7 +74,7 @@ class IterableDatasetOrchestrator(torch.utils.data.dataset.IterableDataset):
             self.batch_rng_storage.save(index, new_rng.__getstate__())
 
     def synchronize(self, target_epoch):
-        epoch_length = self._get_length() * self.batch_size * self.world_size
+        epoch_length = self._get_length() * self.world_size
         target_position = target_epoch * epoch_length
         self.iterable_dataset.forward_to(target_position, self.global_rng)
 

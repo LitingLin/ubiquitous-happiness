@@ -21,7 +21,7 @@ def _build_datasets_sampler(datasets, rng_engine: np.random.Generator):
 
     dataset_samplers = []
     for dataset in datasets:
-        dataset_samplers.append(Sampling_InfinteLoopWrapper(SamplingAlgo_RandomSamplingWithoutReplacement(len(dataset), rng_engine.integers(-1000, 1000))))
+        dataset_samplers.append(Sampling_InfinteLoopWrapper(SamplingAlgo_RandomSamplingWithoutReplacement(len(dataset), rng_engine.integers(0, 1000000))))
     return dataset_samplers
 
 
@@ -132,7 +132,7 @@ class SOTTrackingSiameseIterableDatasetSampler:
             else:
                 raise NotImplementedError
         if self.data_processor is not None:
-            data = self.data_processor(data)
+            data = self.data_processor(*data)
         return data
 
     def get_state(self):

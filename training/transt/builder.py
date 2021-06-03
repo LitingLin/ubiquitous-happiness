@@ -1,10 +1,10 @@
 import torch
 from .runner import TransTRunner
-from data.siamfc.dataset import build_tracking_dataset
 from data.TransT.builder import build_transt_data_processor
-from data.torch.data_loader import build_torch_train_val_dataloader
+from data.tracking.builder.siamfc.data_loader import build_siamfc_sampling_dataset_and_dataloader
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
+from Miscellaneous.torch.checkpoint import load_checkpoint
 
 
 def _setup_optimizer(model, train_config):
@@ -28,7 +28,7 @@ def _setup_optimizer(model, train_config):
     return optimizer, lr_scheduler
 
 
-def build_transt_training_actor(args, net_config: dict, train_config: dict, epoch_changed_event_signal_slots=None):
+def build_transt_training_runner(args, net_config: dict, train_config: dict, epoch_changed_event_signal_slots=None):
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
@@ -50,33 +50,22 @@ def build_transt_training_actor(args, net_config: dict, train_config: dict, epoc
 def _build_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                       val_dataset_config_path: str):
     processor, collate_fn = build_transt_data_processor(network_config, train_config)
-    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, processor, processor)
+    _, (data_loader_train, data_loader_val) = build_siamfc_sampling_dataset_and_dataloader(args, train_config, train_dataset_config_path, val_dataset_config_path, processor, processor, args.seed, collate_fn)
 
-    epoch_changed_event_signal_slots = []
-
-    data_loader_train, data_loader_val = build_torch_train_val_dataloader(train_dataset, val_dataset,
-                                                                          train_config['train']['batch_size'],
-                                                                          train_config['val']['batch_size'],
-                                                                          args.num_workers, args.num_workers,
-                                                                          args.device, args.distributed,
-                                                                          epoch_changed_event_signal_slots,
-                                                                          collate_fn=collate_fn)
-
-    return data_loader_train, data_loader_val, epoch_changed_event_signal_slots
+    return data_loader_train, data_loader_val
 
 
 def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                                         val_dataset_config_path: str):
-    data_loader_train, data_loader_val, epoch_changed_event_signal_slots = _build_dataloader(args, network_config,
-                                                                                             train_config,
-                                                                                             train_dataset_config_path,
-                                                                                             val_dataset_config_path)
+    data_loader_train, data_loader_val = _build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
 
-    actor = build_transt_training_actor(args, network_config, train_config, epoch_changed_event_signal_slots)
+    runner = build_transt_training_runner(args, network_config, train_config)
 
     if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
-        actor.load_state_dict(checkpoint)
-        args.start_epoch = actor.get_epoch()
+        model_state_dict, training_state_dict = load_checkpoint(args.resume)
+        runner.load_state_dict(model_state_dict, training_state_dict)
+        data_loader_train.dataset.load_state(training_state_dict['train_data_loader'])
+        data_loader_val.dataset.load_state(training_state_dict['val_data_loader'])
+        args.start_epoch = runner.get_epoch()
 
-    return actor, data_loader_train, data_loader_val
+    return runner, data_loader_train, data_loader_val

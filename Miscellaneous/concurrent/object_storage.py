@@ -22,7 +22,7 @@ class SharedMemory_ObjectStorage:
         offset = index * (self.bucket_size + 8)
 
         with self.lock:
-            self.shared_memory[offset: offset + 8] = serialized_object_size.to_bytes(4, byteorder='little', signed=False)
+            self.shared_memory[offset: offset + 8] = serialized_object_size.to_bytes(8, byteorder='little', signed=False)
             self.shared_memory[offset + 8: offset + 8 + serialized_object_size] = serialized_object
 
     def load(self, index):

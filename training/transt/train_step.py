@@ -19,4 +19,5 @@ def train_one_epoch(actor, data_loader: Iterable, epoch: int, max_norm: float = 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
+    actor.new_epoch()
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
