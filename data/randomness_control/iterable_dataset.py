@@ -28,7 +28,7 @@ class _WorkerSchedulerConstraint:
 class IterableDatasetOrchestratorWorkerIterator:
     def __init__(self, orchestrator):
         self.orchestrator = orchestrator
-        self.initial_position_offset = self.orchestrator.iterable_dataset.get_position()
+        self.initial_position_offset = 0 if self.orchestrator.iterable_dataset.get_position() < 0 else self.orchestrator.iterable_dataset.get_position()
         self.worker_scheduler_constraint = _WorkerSchedulerConstraint()
         self.orchestrator.batch_scheduler.set_scheduling_constraint_function(self.worker_scheduler_constraint)
         self.dataset_length = len(self.orchestrator) * self.orchestrator.world_size
