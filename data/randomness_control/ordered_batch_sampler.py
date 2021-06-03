@@ -43,6 +43,7 @@ class OrderedBatchSampler(Sampler[List[int]]):
                     for idx in current_batch_range:
                         current_batch.append(batch.pop(idx))
                     yield self.collate_fn(current_batch)
+                    iterations += 1
                 else:
                     break
 
