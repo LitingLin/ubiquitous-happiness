@@ -29,11 +29,9 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                         world_size,
                                                         np.random.SeedSequence(rng_engine.integers(0, 1000000)))
         torch_train_data_loader = torch.utils.data.dataloader.DataLoader(train_data_loader,
-                                                                         batch_sampler=OrderedBatchSampler(
-                                                                             train_data_loader,
-                                                                             train_config['train']['batch_size']),
-                                                                         num_workers=args.num_workers,
-                                                                         collate_fn=collate_fn)
+                                                                         num_workers=args.num_workers)
+
+        torch_train_data_loader = OrderedBatchSampler(torch_train_data_loader, train_config['train']['batch_size'], collate_fn)
 
         val_data_config = None
         if 'data' in train_config['val']:
@@ -45,11 +43,8 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                       world_size,
                                                       np.random.SeedSequence(rng_engine.integers(0, 1000000)))
         torch_val_data_loader = torch.utils.data.dataloader.DataLoader(val_data_loader,
-                                                                       batch_sampler=OrderedBatchSampler(
-                                                                           val_data_loader,
-                                                                           train_config['val']['batch_size']),
-                                                                       num_workers=args.num_workers,
-                                                                       collate_fn=collate_fn)
+                                                                       num_workers=args.num_workers)
+        torch_val_data_loader = OrderedBatchSampler(torch_val_data_loader, train_config['val']['batch_size'], collate_fn)
 
         if 'cuda' in args.device:
             device = torch.device(args.device)

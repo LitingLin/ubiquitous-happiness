@@ -1,4 +1,5 @@
 from torch.utils.data.sampler import Sampler
+from torch.utils.data.dataloader import default_collate
 from typing import List
 
 
@@ -18,7 +19,7 @@ class OrderedBatchSampler(Sampler[List[int]]):
         [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
     """
 
-    def __init__(self, sampler: Sampler[int], batch_size: int) -> None:
+    def __init__(self, sampler: Sampler[int], batch_size: int, collate_fn=default_collate) -> None:
         # Since collections.abc.Iterable does not check for `__getitem__`, which
         # is one way for an object to be an iterable, we don't do an `isinstance`
         # check here.
@@ -28,6 +29,7 @@ class OrderedBatchSampler(Sampler[List[int]]):
                              "but got batch_size={}".format(batch_size))
         self.sampler = sampler
         self.batch_size = batch_size
+        self.collate_fn = collate_fn
 
     def __iter__(self):
         batch = {}
@@ -40,7 +42,7 @@ class OrderedBatchSampler(Sampler[List[int]]):
                     current_batch = []
                     for idx in current_batch_range:
                         current_batch.append(batch.pop(idx))
-                    yield current_batch
+                    yield self.collate_fn(current_batch)
                 else:
                     break
 
