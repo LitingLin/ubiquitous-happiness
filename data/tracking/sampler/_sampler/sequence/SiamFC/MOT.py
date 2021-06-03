@@ -29,12 +29,12 @@ def _sampling_one_track_in_sequence_and_generate_object_visible_mask(sequence: M
     index_of_track = rng_engine.integers(0, sequence.get_number_of_objects())
     track = sequence.get_object(index_of_track)
 
-    mask = np.zeros(len(sequence), dtype=np.uint8)
+    mask = np.zeros(len(sequence), dtype=np.bool_)
     if track.get_all_bounding_box_validity_flag() is not None:
         ind = track.get_all_frame_index()[track.get_all_bounding_box_validity_flag()]
-        mask[ind] = 1
+        mask[ind] = True
     else:
-        mask[track.get_all_frame_index()] = 1
+        mask[track.get_all_frame_index()] = True
     return mask, track.get_id()
 
 

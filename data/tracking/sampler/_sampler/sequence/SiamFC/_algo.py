@@ -71,8 +71,8 @@ def do_siamfc_pair_sampling_negative_only(length: int, frame_range: int, mask: n
 
 
 if __name__ == '__main__':
-    b=np.ones(10, dtype=np.bool_)
-    b[9] = False
-    b[8] = False
-    v = do_siamfc_pair_sampling_negative_only(10, 2, b)
-    print(v)
+    a = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+       1, 1, 1, 1, 1, 1, 1], dtype=np.bool_)
+
+    do_siamfc_pair_sampling(29, 3, a, np.random.default_rng())
+

@@ -24,7 +24,7 @@ train:
   optimizer: AdamW
 
   data:
-    repeat_times_per_epoch: 2
+    samples_per_epoch: 38000
     negative_sample_ratio: 0.5
 
   loss:
