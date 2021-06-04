@@ -1,7 +1,7 @@
 import torch
 from .actor import TransTActor
 from data.siamfc.dataset import build_tracking_dataset
-from data.TransT.builder import build_transt_data_processor
+from data.tracking.methods.TransT.training.builder import build_transt_data_processor
 from data.torch.data_loader import build_torch_train_val_dataloader
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion

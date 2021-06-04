@@ -59,7 +59,7 @@ def jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_f
     return output_image, output_bbox
 
 
-def build_transform(color_jitter=0.4):
+def build_TransT_image_augmentation_transformer(color_jitter=0.4):
     # color jitter is enabled when not using AA
     if isinstance(color_jitter, (list, tuple)):
         # color jitter should be a 3-tuple/list if spec brightness/contrast/saturation
@@ -101,8 +101,8 @@ def transt_data_processing_evaluation_pipeline(image, bbox, output_size, curatio
     return output_image, output_bbox, image_mean
 
 
-def transt_data_processing_train_pipeline(image, bbox, area_factor, output_size, scaling_jitter_factor,
-                                           translation_jitter_factor, transform=None):
+def TransT_training_data_preprocessing_pipeline(image, bbox, area_factor, output_size, scaling_jitter_factor,
+                                                translation_jitter_factor, transform=None):
     image, bbox = jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_factor,
                                        translation_jitter_factor)
     bbox_restrict_in_image_boundary_(bbox, output_size)
@@ -119,7 +119,7 @@ def _transt_data_pre_processing_train_pipeline(image, gray_scale_transformer):
     return image.float() / 255.
 
 
-def transt_data_pre_processing_train_pipeline(z_image, x_image, gray_scale_transformer, gray_scale_probability, rng_engine):
+def TransT_training_image_preprocessing(z_image, x_image, gray_scale_transformer, gray_scale_probability, rng_engine):
     if rng_engine.random() > gray_scale_probability:
         gray_scale_transformer = None
     if id(x_image) != id(z_image):

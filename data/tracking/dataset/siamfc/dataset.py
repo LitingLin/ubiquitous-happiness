@@ -1,12 +1,10 @@
 import torch.utils.data
 import numpy as np
+import torch
 
 
-def siamfc_dataset_worker_init_fn(_):
-    from torch.utils.data import get_worker_info
-    worker_info = get_worker_info()
-    if worker_info is not None:
-        worker_info.dataset.seed_rng_engine(worker_info.seed)
+def siamfc_dataset_worker_init_fn(_, seed, dataset):
+    dataset.seed_rng_engine(seed)
 
 
 class SiamFCDataset(torch.utils.data.Dataset):

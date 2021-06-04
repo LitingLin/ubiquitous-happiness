@@ -5,7 +5,7 @@ import pickle
 
 
 def _get_training_state_file_path(model_state_file_path: str):
-    return os.path.dirname(model_state_file_path) + '-training.pkl'
+    return os.path.join(os.path.dirname(model_state_file_path), os.path.splitext(os.path.basename(model_state_file_path))[0] + '-training.pth')
 
 
 def _safe_rename(model_state_file_path, training_state_file_path, overwrite_existing=True):
@@ -20,8 +20,7 @@ def _safe_rename(model_state_file_path, training_state_file_path, overwrite_exis
 def _fail_safe_save(path, model_state_dict, training_state_dict, overwrite_existing=True):
     training_state_file_path = _get_training_state_file_path(path)
     torch.save(model_state_dict, path + '.tmp')
-    with open(training_state_file_path + '.tmp', 'wb') as f:
-        pickle.dump(training_state_dict, f)
+    torch.save(training_state_dict, training_state_file_path + '.tmp')
     _safe_rename(path, training_state_file_path, overwrite_existing)
 
 
@@ -52,6 +51,5 @@ def dump_checkpoint(epoch, output_path, model_state_dict, training_state_dict, l
 def load_checkpoint(checkpoint_path: str):
     training_state_file_path = _get_training_state_file_path(checkpoint_path)
     model_state_dict = torch.load(checkpoint_path, map_location='cpu')
-    with open(training_state_file_path, 'rb') as f:
-        training_state_dict = pickle.load(f)
+    training_state_dict = torch.load(training_state_file_path, map_location='cpu')
     return model_state_dict, training_state_dict

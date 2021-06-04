@@ -1,8 +1,8 @@
-from .collate_fn import transt_collate_fn
+from data.tracking.methods.TransT.training.collate_fn import transt_collate_fn
 
 
 def _build_transt_data_processor(network_config: dict, train_config: dict, label_generator):
-    from .processor.processor import TransTProcessor
+    from data.tracking.methods.TransT.training.processor import TransTProcessor
     return TransTProcessor(network_config['data']['template_size'], network_config['data']['search_size'],
                            network_config['data']['area_factor']['template'],
                            network_config['data']['area_factor']['search'],

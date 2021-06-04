@@ -1,6 +1,6 @@
 import torch
 from .runner import TransTRunner
-from data.TransT.builder import build_transt_data_processor
+from data.tracking.methods.TransT.training.builder import build_transt_data_processor
 from data.tracking.builder.stateful.siamfc.data_loader import build_siamfc_sampling_dataloader
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
