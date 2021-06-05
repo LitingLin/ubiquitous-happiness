@@ -1,23 +1,22 @@
 class TransTTracker(object):
-    def __init__(self, model, device, data_preprocessor, label_postprocessor, bounding_box_postprocessor):
+    def __init__(self, model, device, data_processor, network_post_processor):
         model = model.to(device)
         model.eval()
         self.net = model
         self.device = device
-        self.data_preprocessor = data_preprocessor
-        self.label_postprocessor = label_postprocessor
-        self.bounding_box_postprocessor = bounding_box_postprocessor
+        self.data_processor = data_processor
+        self.network_post_processor = network_post_processor
 
     def initialize(self, image, bbox):
         self.last_frame_object_bbox = bbox
-        curated_template_image = self.data_preprocessor.initialize(image, bbox)
+        curated_template_image = self.data_processor.initialize(image, bbox)
         curated_template_image = curated_template_image.unsqueeze()
         self.z = self.net.template(curated_template_image)
 
     def track(self, image):
-        c, h, w = image.shape
-        curated_search_image, curation_scaling, curation_source_center_point, curation_target_center_point = self.data_preprocessor.track(image, self.last_frame_object_bbox)
+        curated_search_image = self.data_processor.track(image, self.last_frame_object_bbox)
         curated_search_image = curated_search_image.unsqueeze()
         net_output = self.net.track(self.z, curated_search_image)
-        bounding_box = self.label_postprocessor(net_output)
-        bounding_box_predicted, self.last_frame_object_bbox = self.bounding_box_postprocessor(bounding_box, (w, h), curation_scaling, curation_source_center_point, curation_target_center_point)
+        bounding_box = self.network_post_processor(net_output)
+        bounding_box_predicted, self.last_frame_object_bbox = self.data_processor.get_bounding_box(bounding_box)
+        return bounding_box_predicted

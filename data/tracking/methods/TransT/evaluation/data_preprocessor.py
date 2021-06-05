@@ -11,7 +11,7 @@ def build_evaluation_transform():
 
 
 class TransTEvaluationDataProcessor:
-    def __init__(self, template_area_factor, search_area_factor, template_size, search_size, device, preprocessing_on_device):
+    def __init__(self, template_area_factor, search_area_factor, template_size, search_size, device, preprocessing_on_device, bounding_box_post_processor):
         self.template_area_factor = template_area_factor
         self.search_area_factor = search_area_factor
         self.template_size = template_size
@@ -19,6 +19,7 @@ class TransTEvaluationDataProcessor:
         self.device = device
         self.preprocessing_on_device = preprocessing_on_device
         self.transform = build_evaluation_transform()
+        self.bounding_box_post_processor = bounding_box_post_processor
 
     def initialize(self, image, bbox):
         if self.preprocessing_on_device:
@@ -44,4 +45,12 @@ class TransTEvaluationDataProcessor:
         if not self.preprocessing_on_device:
             curated_search_image = curated_search_image.to(self.device, non_blocking=True)
 
-        return curated_search_image, curation_scaling, curation_source_center_point, curation_target_center_point
+        c, h, w = image.shape
+        self.last_frame_image_size = (w, h)
+        self.last_frame_curation_scaling = curation_scaling
+        self.last_frame_curation_source_center_point = curation_source_center_point
+        self.last_frame_curation_target_center_point = curation_target_center_point
+        return curated_search_image
+
+    def get_bounding_box(self, bbox_normalized_cxcywh):
+        return self.bounding_box_post_processor(bbox_normalized_cxcywh, self.last_frame_image_size, self.last_frame_curation_scaling, self.last_frame_curation_source_center_point, self.last_frame_curation_target_center_point)
