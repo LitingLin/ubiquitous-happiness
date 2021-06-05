@@ -39,8 +39,8 @@ def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, p
             repeat_times_per_epoch = data_config['repeat_times_per_epoch']
             number_of_samples = sum(tuple(len(dataset) for dataset in datasets))
             samples_per_epoch = number_of_samples * repeat_times_per_epoch
-        if 'neg_ratio' in data_config:
-            negative_sample_ratio = data_config['neg_ratio']
+        if 'negative_sample_ratio' in data_config:
+            negative_sample_ratio = data_config['negative_sample_ratio']
 
     useful_dataset_parameters = [{}] * len(datasets)
     dataset_sampling_weights = []
