@@ -9,9 +9,9 @@ def evaluate(runner, data_loader):
     metric_logger = MetricLogger(delimiter="  ")
     header = 'Test:'
 
-    for samples, targets in metric_logger.log_every(data_loader, 10, header):
+    for data in metric_logger.log_every(data_loader, 10, header):
         with torch.no_grad():
-            forward_stats = runner.forward(samples, targets)
+            forward_stats = runner.forward(*data)
 
         metric_logger.update(**forward_stats)
     # gather the stats from all processes
