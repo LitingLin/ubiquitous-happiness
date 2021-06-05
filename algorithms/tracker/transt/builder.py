@@ -27,7 +27,7 @@ def build_transt_tracker(network_config, evaluation_config, weight_path, device)
     else:
         bbox_size_limit_in_feat_space = evaluation_config['tracking']['bbox_size_limit_in_feat_space']
 
-    bounding_box_post_processor = TransTBoundingBoxPostProcessor(network_config['data']['feature_size']['search'], evaluation_config['tracking']['min_wh'], bbox_size_limit_in_feat_space)
+    bounding_box_post_processor = TransTBoundingBoxPostProcessor(network_config['data']['search_size'], evaluation_config['tracking']['min_wh'], bbox_size_limit_in_feat_space)
 
     data_processor = TransTEvaluationDataProcessor(
         network_config['data']['area_factor']['template'], network_config['data']['area_factor']['search'],
