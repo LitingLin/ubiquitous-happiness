@@ -86,9 +86,9 @@ def do_SiamFC_curation_CHW(image, object_bbox, area_factor, output_size, image_m
 
     if image_mean is None:
         image_mean = get_image_mean_chw(image)
-    curation_scaling = curation_scaling.to(image.device, non_blocking=True)
-    curation_source_center_point = curation_source_center_point.to(image.device, non_blocking=True)
-    curation_target_center_point = curation_target_center_point.to(image.device, non_blocking=True)
-    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, curation_scaling, curation_source_center_point, curation_target_center_point, image_mean)
+    curation_scaling_device = curation_scaling.to(image.device, non_blocking=True)
+    curation_source_center_point_device = curation_source_center_point.to(image.device, non_blocking=True)
+    curation_target_center_point_device = curation_target_center_point.to(image.device, non_blocking=True)
+    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, curation_scaling_device, curation_source_center_point_device, curation_target_center_point_device, image_mean)
 
     return output_image, output_bbox, image_mean, curation_scaling, curation_source_center_point, curation_target_center_point
