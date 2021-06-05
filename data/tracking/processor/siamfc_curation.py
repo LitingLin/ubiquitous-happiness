@@ -87,7 +87,7 @@ def do_SiamFC_curation_CHW(image, object_bbox, area_factor, output_size, image_m
     if image_mean is None:
         image_mean = get_image_mean_chw(image)
 
-    curation_parameter = torch.cat((curation_scaling, curation_source_center_point, curation_target_center_point))
+    curation_parameter = torch.stack((curation_scaling, curation_source_center_point, curation_target_center_point))
     curation_parameter = curation_parameter.to(image.device, non_blocking=True)
     output_image, _ = torch_scale_and_translate_align_corners(image, output_size, curation_parameter[0], curation_parameter[1], curation_parameter[2], image_mean)
 
