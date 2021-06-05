@@ -48,6 +48,31 @@ def dump_checkpoint(epoch, output_path, model_state_dict, training_state_dict, l
             saved_checkpoint_path = backup_checkpoint_path
 
 
+def dump_checkpoint_from_runner(epoch, output_path, runner, latest_checkpoint_interval, backup_checkpoint_interval):
+    from Miscellaneous.torch.distributed import is_main_process
+
+    saved_checkpoint_path = None
+    if (epoch + 1) % latest_checkpoint_interval == 0:
+        model_state_dict, training_state_dict = runner.state_dict()
+
+        checkpoint_path = os.path.join(output_path, 'checkpoint.pth')
+        if is_main_process():
+            _fail_safe_save(checkpoint_path, model_state_dict, training_state_dict)
+
+        saved_checkpoint_path = checkpoint_path
+    # extra checkpoint before LR drop and every 100 epochs
+    if (epoch + 1) % backup_checkpoint_interval == 0:
+        backup_checkpoint_path = os.path.join(output_path, f'checkpoint{epoch:04}.pth')
+        if saved_checkpoint_path is not None:
+            if is_main_process():
+                _fail_safe_copy(saved_checkpoint_path, backup_checkpoint_path)
+        else:
+            model_state_dict, training_state_dict = runner.state_dict()
+            if is_main_process():
+                _fail_safe_save(backup_checkpoint_path, model_state_dict, training_state_dict)
+            saved_checkpoint_path = backup_checkpoint_path
+
+
 def load_checkpoint(checkpoint_path: str):
     training_state_file_path = _get_training_state_file_path(checkpoint_path)
     model_state_dict = torch.load(checkpoint_path, map_location='cpu')

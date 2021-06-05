@@ -13,15 +13,15 @@ def recover_bounding_box_from_normalized_cxcywh(label, search_region_size):
 
 
 class TransTBoundingBoxPostProcessor:
-    def __init__(self, search_region_size, bbox_size_limit_min_wh, bbox_size_limit_in_feat_space):
+    def __init__(self, search_region_size, bbox_size_limit_min_wh, bbox_size_limit_in_curated_image):
         self.search_region_size = search_region_size
         self.bbox_size_limit_min_wh = bbox_size_limit_min_wh
-        self.bbox_size_limit_in_feat_space = bbox_size_limit_in_feat_space
+        self.bbox_size_limit_in_curated_image = bbox_size_limit_in_curated_image
 
     def __call__(self, bbox_normalized_cxcywh, image_size, curation_scaling, curation_source_center_point, curation_target_center_point):
         bbox = recover_bounding_box_from_normalized_cxcywh(bbox_normalized_cxcywh, self.search_region_size)
 
-        if self.bbox_size_limit_in_feat_space:
+        if self.bbox_size_limit_in_curated_image:
             internal_bbox = bbox
             if self.bbox_size_limit_min_wh[0] >= 0 and self.bbox_size_limit_min_wh[1] >= 0:
                 from data.operator.bbox.spatial.xyxy2cxcywh import bbox_xyxy2cxcywh

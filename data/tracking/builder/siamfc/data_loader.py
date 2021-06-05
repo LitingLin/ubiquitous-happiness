@@ -3,8 +3,8 @@ from .dataset import build_siamfc_sampling_dataset
 
 
 def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_config_path: str,
-                                     val_dataset_config_path: str, train_post_processor, val_post_processor, seed: int,
-                                     collate_fn):
+                                     val_dataset_config_path: str, train_post_processor, val_post_processor,
+                                     collate_fn, device_tensor_selection_filter):
     if 'version' not in train_config or train_config['version'] < 2:
         from data.siamfc.dataset import build_tracking_dataset
         return build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path,
@@ -29,6 +29,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                               train_config['val']['batch_size'],
                                                                               args.num_workers, args.num_workers,
                                                                               args.device, args.distributed,
+                                                                              device_tensor_selection_filter,
                                                                               epoch_changed_event_signal_slots,
                                                                               train_worker_init_fn, val_worker_init_fn,
                                                                               collate_fn)

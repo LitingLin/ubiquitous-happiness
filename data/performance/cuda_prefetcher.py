@@ -2,49 +2,80 @@ import torch
 import gc
 
 
-def default_tensor_list_fn(data):
+def _default_tensor_list_fn(data):
     tensor_list = []
     if isinstance(data, (list, tuple)):
         for i in data:
-            tensor_list.extend(default_tensor_list_fn(i))
+            tensor_list.extend(_default_tensor_list_fn(i))
     elif isinstance(data, dict):
         for v in data.values():
-            tensor_list.extend(default_tensor_list_fn(v))
+            tensor_list.extend(_default_tensor_list_fn(v))
     elif isinstance(data, torch.Tensor):
         tensor_list.append(data)
     return tensor_list
 
 
-def default_regroup_fn(data, cuda_tensors: list):
+def _default_regroup_fn_(data, device_tensors: list):
     if isinstance(data, tuple):
         data = list(data)
     if isinstance(data, list):
         for i in range(len(data)):
             if isinstance(data[i], torch.Tensor):
-                data[i] = cuda_tensors.pop(0)
+                data[i] = device_tensors.pop(0)
             elif isinstance(data[i], (list, tuple, dict)):
-                data[i] = default_regroup_fn(data[i], cuda_tensors)
+                data[i] = _default_regroup_fn_(data[i], device_tensors)
     elif isinstance(data, dict):
         for k in data.keys():
             if isinstance(data[k], torch.Tensor):
-                data[k] = cuda_tensors.pop(0)
+                data[k] = device_tensors.pop(0)
             elif isinstance(data[k], (list, tuple, dict)):
-                data[k] = default_regroup_fn(data[k], cuda_tensors)
+                data[k] = _default_regroup_fn_(data[k], device_tensors)
     elif isinstance(data, torch.Tensor):
-        return cuda_tensors.pop(0)
+        return device_tensors.pop(0)
 
     return data
 
 
+class DefaultTensorFilter:
+    @staticmethod
+    def get_tensor_list(data):
+        return _default_tensor_list_fn(data)
+
+    @staticmethod
+    def regroup(data, device_tensors):
+        return _default_regroup_fn_(data, device_tensors)
+
+
+class TensorFilteringByIndices:
+    def __init__(self, indices):
+        self.indices = indices
+
+    def get_tensor_list(self, data):
+        split_points = []
+        device_tensor_list = []
+        for index in self.indices:
+            device_tensors = _default_tensor_list_fn(data[index])
+            split_points.append(len(device_tensors))
+            device_tensor_list.extend(device_tensors)
+        return device_tensor_list
+
+    def regroup(self, data, device_tensors: list):
+        collated = []
+        for index, datum in enumerate(data):
+            if index in self.indices:
+                collated.append(_default_regroup_fn_(datum, device_tensors))
+            else:
+                collated.append(datum)
+        return collated
+
+
 class CUDAPrefetcher:
-    def __init__(self, data_loader, device=None, tensor_list_fn=default_tensor_list_fn, regroup_fn=default_regroup_fn):
+    def __init__(self, data_loader, device=None, tensor_filter=DefaultTensorFilter):
         self.data_loader = data_loader
         if device is None:
             device = torch.device('cuda')
         self.device = device
-
-        self.tensor_list_fn = tensor_list_fn
-        self.regroup_fn = regroup_fn
+        self.tensor_filter = tensor_filter
 
     def __len__(self):
         return len(self.data_loader)
@@ -70,7 +101,7 @@ class CUDAPrefetcher:
         for tensor in tensor_list:
             tensor.record_stream(torch.cuda.current_stream())
         self.preload()
-        data = self.regroup_fn(data, tensor_list)
+        data = self.tensor_filter.regroup(data, tensor_list)
         assert len(tensor_list) == 0
         return data
 
@@ -81,7 +112,7 @@ class CUDAPrefetcher:
             self.data = None
             return
 
-        self.tensor_list = self.tensor_list_fn(self.data)
+        self.tensor_list = self.tensor_filter.get_tensor_list(self.data)
 
         with torch.cuda.stream(self.stream):
             for i in range(len(self.tensor_list)):

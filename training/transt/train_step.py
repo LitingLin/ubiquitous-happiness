@@ -10,8 +10,8 @@ def train_one_epoch(runner, data_loader: Iterable, epoch: int, max_norm: float =
     header = 'Epoch: [{}]'.format(epoch)
     print_freq = 10
 
-    for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
-        forward_stats = runner.forward(samples, targets)
+    for data in metric_logger.log_every(data_loader, print_freq, header):
+        forward_stats = runner.forward(*data)
         backward_stats = runner.backward(max_norm)
 
         metric_logger.update(**forward_stats)

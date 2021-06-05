@@ -27,9 +27,10 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                      train_batch_size, val_batch_size,
                                      train_num_workers,
                                      val_num_workers,
-                                     device, distributed, epoch_changed_event_signal_slots,
+                                     device, distributed, device_tensor_selection_filter,
+                                     epoch_changed_event_signal_slots,
                                      train_worker_init_fn=None, val_worker_init_fn=None,
-                                     collate_fn=None):
+                                     collate_fn=None,):
     do_shuffle = True
     if hasattr(train_dataset, 'set_epoch'):
         epoch_changed_event_signal_slots.append(train_dataset)
@@ -57,7 +58,7 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
 
     if 'cuda' in device:
         device = torch.device(device)
-        data_loader_train = CUDAPrefetcher(data_loader_train, device)
-        data_loader_val = CUDAPrefetcher(data_loader_val, device)
+        data_loader_train = CUDAPrefetcher(data_loader_train, device, device_tensor_selection_filter)
+        data_loader_val = CUDAPrefetcher(data_loader_val, device, device_tensor_selection_filter)
 
     return data_loader_train, data_loader_val

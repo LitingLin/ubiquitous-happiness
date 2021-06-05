@@ -11,8 +11,9 @@ class TransTRunner:
         self.lr_scheduler = lr_scheduler
         self.epoch = 0
         self.epoch_changed_event_slots = epoch_changed_event_slots
+        self.number_of_samples = 0
 
-    def forward(self, samples, targets):
+    def forward(self, samples, targets, is_positives):
         outputs = self.model(samples)
         loss, loss_value, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, targets)
 
@@ -22,7 +23,8 @@ class TransTRunner:
             sys.exit(1)
 
         self.loss = loss
-        return {'loss': loss_value, **loss_stats_reduced_unscaled, **loss_stats_reduced_scaled}
+
+        return {'loss': loss_value, **loss_stats_reduced_unscaled, **loss_stats_reduced_scaled, 'pos_samples_ratio': torch.sum(is_positives) / len(is_positives)}
 
     def _on_epoch_changed(self):
         if self.epoch_changed_event_slots is not None:
