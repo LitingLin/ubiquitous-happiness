@@ -43,7 +43,8 @@ class SOTTrackingSiameseIterableDatasetSampler:
         self.current_index_of_sequence = index_of_sequence
 
     def _pick_random_object_as_negative_sample(self, rng_engine: np.random.Generator):
-        dataset = rng_engine.choice(self.datasets, p=self.datasets_sampling_weight)
+        index_of_dataset = rng_engine.choice(np.arange(len(self.datasets)), p=self.datasets_sampling_weight)
+        dataset = self.datasets[index_of_dataset]
         index_of_sequence = rng_engine.integers(0, len(dataset))
         sequence = dataset[index_of_sequence]
         if isinstance(dataset, DetectionDataset_MemoryMapped):

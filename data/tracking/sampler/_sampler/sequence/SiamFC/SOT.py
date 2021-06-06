@@ -2,12 +2,15 @@ from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset
 from ._algo import do_siamfc_pair_sampling_positive_only, do_siamfc_pair_sampling_negative_only, do_siamfc_pair_sampling
 from ._dummy_bbox import generate_dummy_bbox_xyxy
 import numpy as np
+from data.operator.bbox.validity import bbox_is_valid
+from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
 
 
 def _data_getter(sequence, indices, rng_engine: np.random.Generator):
     z = sequence[indices[0]]
     z_image = z.get_image_path()
     z_bbox = z.get_bounding_box()
+    assert bbox_is_valid(z_bbox) and bounding_box_is_intersect_with_image(z_bbox, z.get_image_size())
     if len(indices) == 1:
         return ((z_image, z_bbox), )
 
@@ -15,8 +18,10 @@ def _data_getter(sequence, indices, rng_engine: np.random.Generator):
     x_image = x.get_image_path()
     x_bbox = x.get_bounding_box()
     x_bbox_validity = x.get_bounding_box_validity_flag()
-    if x_bbox_validity is False:
+    if x_bbox_validity is not None and not x_bbox_validity:
         x_bbox = generate_dummy_bbox_xyxy(x.get_image_size(), rng_engine, z_bbox)
+    else:
+        assert bbox_is_valid(x_bbox) and bounding_box_is_intersect_with_image(x_bbox, x.get_image_size())
     return ((z_image, z_bbox), (x_image, x_bbox))
 
 

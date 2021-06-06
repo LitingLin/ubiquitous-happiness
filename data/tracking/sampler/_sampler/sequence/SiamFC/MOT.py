@@ -2,12 +2,16 @@ from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDatas
 from ._algo import do_siamfc_pair_sampling_positive_only, do_siamfc_pair_sampling_negative_only, do_siamfc_pair_sampling
 import numpy as np
 from ._dummy_bbox import generate_dummy_bbox_xyxy
+from data.operator.bbox.validity import bbox_is_valid
+from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
 
 
 def _data_getter(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, track_id, index_of_frames, rng_engine: np.random.Generator):
     z = sequence.get_frame(index_of_frames[0])
     z_image = z.get_image_path()
     z_bbox = z.get_object_by_id(track_id).get_bounding_box()
+
+    assert bbox_is_valid(z_bbox) and bounding_box_is_intersect_with_image(z_bbox, z.get_image_size())
 
     if len(index_of_frames) == 1:
         return ((z_image, z_bbox), )
@@ -16,12 +20,16 @@ def _data_getter(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, t
     x_image = x.get_image_path()
     if x.has_object(track_id):
         x_obj_info = x.get_object_by_id(track_id)
-        if x_obj_info.get_bounding_box_validity_flag() is False:
+        x_bbox_validity = x_obj_info.get_bounding_box_validity_flag()
+        if x_bbox_validity is not None and not x_bbox_validity:
             x_bbox = generate_dummy_bbox_xyxy(x.get_image_size(), rng_engine, z_bbox)
         else:
             x_bbox = x_obj_info.get_bounding_box()
     else:
         x_bbox = generate_dummy_bbox_xyxy(x.get_image_size(), rng_engine, z_bbox)
+
+    assert bbox_is_valid(x_bbox) and bounding_box_is_intersect_with_image(x_bbox, x.get_image_size())
+
     return ((z_image, z_bbox), (x_image, x_bbox))
 
 
