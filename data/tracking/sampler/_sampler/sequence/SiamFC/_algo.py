@@ -2,7 +2,7 @@ from data.tracking.sampler._sampling_algos.stateless.random import sampling_mult
 import numpy as np
 
 
-def sample_one_positive(length, mask, rng_engine):
+def sample_one_positive(length, mask, rng_engine: np.random.Generator):
     if mask is None:
         z_index = sampling(length, rng_engine)
     else:
@@ -11,7 +11,7 @@ def sample_one_positive(length, mask, rng_engine):
     return z_index
 
 
-def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None, rng_engine=np.random):
+def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
     z_index = sample_one_positive(length, mask, rng_engine)
 
     if length == 1:
@@ -40,7 +40,7 @@ def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None
     return (z_index, x_index), is_positive
 
 
-def do_siamfc_pair_sampling_positive_only(length: int, frame_range: int, mask: np.ndarray=None, rng_engine=np.random):
+def do_siamfc_pair_sampling_positive_only(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
     return sampling_multiple_indices_with_range_and_mask(length, mask, 2, frame_range, allow_duplication=False, allow_insufficiency=True, sort=False, rng_engine=rng_engine)
 
 
@@ -48,7 +48,7 @@ def _gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 
-def do_siamfc_pair_sampling_negative_only(length: int, frame_range: int, mask: np.ndarray=None, rng_engine=np.random):
+def do_siamfc_pair_sampling_negative_only(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
     z_index = sample_one_positive(length, mask, rng_engine)
     if mask is None or length == 1:
         return (z_index,)
@@ -64,7 +64,11 @@ def do_siamfc_pair_sampling_negative_only(length: int, frame_range: int, mask: n
     if len(x_axis_values) == 0:
         return (z_index,)
     probability = _gaussian(x_axis_values, 0., 5.)
-    probability = probability / probability.sum()
+    probability_sum = probability.sum()
+    if probability_sum == 0:
+        probability = None
+    else:
+        probability = probability / probability_sum
     candidates = np.arange(0, length)[not_mask]
     x_index = rng_engine.choice(candidates, p=probability)
     return z_index, x_index
