@@ -11,6 +11,7 @@ def _data_getter(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, t
     z_image = z.get_image_path()
     z_bbox = z.get_object_by_id(track_id).get_bounding_box()
 
+    assert any(v > 0 for v in z.get_image_size())
     assert bbox_is_valid(z_bbox) and bounding_box_is_intersect_with_image(z_bbox, z.get_image_size())
 
     if len(index_of_frames) == 1:
@@ -27,7 +28,7 @@ def _data_getter(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, t
             x_bbox = x_obj_info.get_bounding_box()
     else:
         x_bbox = generate_dummy_bbox_xyxy(x.get_image_size(), rng_engine, z_bbox)
-
+    assert any(v > 0 for v in x.get_image_size())
     assert bbox_is_valid(x_bbox) and bounding_box_is_intersect_with_image(x_bbox, x.get_image_size())
 
     return ((z_image, z_bbox), (x_image, x_bbox))
@@ -73,7 +74,8 @@ def get_one_random_sample_in_multiple_object_tracking_dataset_sequence(sequence:
     else:
         index_of_frame_object = rng_engine.integers(0, len(frame))
         frame_object = frame[index_of_frame_object]
-        if frame_object.get_bounding_box_validity_flag() is False:
+        bbox_validity = frame_object.get_bounding_box_validity_flag()
+        if bbox_validity is not None and not bbox_validity:
             return frame.get_image_path(), generate_dummy_bbox_xyxy(frame.get_image_size(), rng_engine)
         else:
             return frame.get_image_path(), frame_object.get_bounding_box()

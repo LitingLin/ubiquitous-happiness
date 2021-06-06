@@ -10,6 +10,7 @@ def _data_getter(sequence, indices, rng_engine: np.random.Generator):
     z = sequence[indices[0]]
     z_image = z.get_image_path()
     z_bbox = z.get_bounding_box()
+    assert any(v > 0 for v in z.get_image_size())
     assert bbox_is_valid(z_bbox) and bounding_box_is_intersect_with_image(z_bbox, z.get_image_size())
     if len(indices) == 1:
         return ((z_image, z_bbox), )
@@ -22,6 +23,7 @@ def _data_getter(sequence, indices, rng_engine: np.random.Generator):
         x_bbox = generate_dummy_bbox_xyxy(x.get_image_size(), rng_engine, z_bbox)
     else:
         assert bbox_is_valid(x_bbox) and bounding_box_is_intersect_with_image(x_bbox, x.get_image_size())
+    assert any(v > 0 for v in x.get_image_size())
     return ((z_image, z_bbox), (x_image, x_bbox))
 
 
@@ -41,7 +43,8 @@ def do_sampling_in_single_object_tracking_dataset_sequence(sequence: SingleObjec
 def get_one_random_sample_in_single_object_tracking_dataset_sequence(sequence: SingleObjectTrackingDatasetSequence_MemoryMapped, rng_engine: np.random.Generator):
     index_of_frame = rng_engine.integers(0, len(sequence))
     frame = sequence[index_of_frame]
-    if frame.get_bounding_box_validity_flag() is False:
+    bbox_validity = frame.get_bounding_box_validity_flag()
+    if bbox_validity is not None and not bbox_validity:
         return frame.get_image_path(), generate_dummy_bbox_xyxy(frame.get_image_size(), rng_engine)
     else:
         return frame.get_image_path(), frame.get_bounding_box()
