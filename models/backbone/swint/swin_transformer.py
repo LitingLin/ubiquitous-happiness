@@ -712,5 +712,5 @@ def build_swin_small_patch2_window7_224(load_pretrained=False, output_layers=(3,
 
 if __name__ == '__main__':
     model = build_swin_small_patch2_window7_224(output_layers=(2,))
-    a=model(torch.zeros((1,3, 256, 256)))
+    a=model(torch.zeros((1,3, 512, 512)))
     print(a[0].shape)
