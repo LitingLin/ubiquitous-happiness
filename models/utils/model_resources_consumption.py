@@ -35,6 +35,9 @@ def draw_model_time_and_memory_consumption_respect_to_input_size(model, test_ran
     x = []
     times = []
     memory_consumptions = []
+    input_ = torch.zeros((1, 3, 128, 128), dtype=torch.float, device=device)
+    with torch.no_grad():
+        model(input_)
     for size in tqdm.tqdm(test_range):
         x.append(size)
         input_ = torch.zeros((1, 3, size, size), dtype=torch.float, device=device)
@@ -53,7 +56,7 @@ def draw_model_time_and_memory_consumption_respect_to_input_size(model, test_ran
 if __name__ == '__main__':
     from models.backbone.swint.swin_transformer import build_swin_base_patch4_window7_224
     network = build_swin_base_patch4_window7_224()
-    cuda=False
+    cuda=True
     if cuda:
         device = torch.device('cuda:0')
     else:
