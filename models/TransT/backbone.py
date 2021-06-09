@@ -37,8 +37,8 @@ def build_backbone(net_config: dict, load_pretrained=True):
         from models.backbone.detr_tracking.resnet import construct_resnet50
         backbone = construct_resnet50(load_pretrained, **backbone_build_params)
     elif backbone_config['type'] == 'swin_transformer':
-        from models.backbone.swint.swin_transformer import build_swint_backbone
-        backbone = build_swint_backbone(load_pretrained=load_pretrained, **backbone_build_params)
+        from models.backbone.swint.swin_transformer import build_swin_transformer_backbone
+        backbone = build_swin_transformer_backbone(load_pretrained=load_pretrained, **backbone_build_params)
     elif backbone_config['type'] == 'resnet50_pytracking':
         from .resnet50 import resnet50
         backbone = resnet50(pretrained=load_pretrained, **backbone_build_params)

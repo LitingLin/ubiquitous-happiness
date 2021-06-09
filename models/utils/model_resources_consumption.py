@@ -54,7 +54,7 @@ def draw_model_time_and_memory_consumption_respect_to_input_size(model, test_ran
 
 
 if __name__ == '__main__':
-    from models.backbone.swint.swin_transformer import build_swin_base_patch4_window7_224
+    from models.backbone.swint.swin_transformer_old import build_swin_base_patch4_window7_224
     network = build_swin_base_patch4_window7_224()
     cuda=True
     if cuda:
