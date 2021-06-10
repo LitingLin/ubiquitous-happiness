@@ -84,5 +84,45 @@ class FeatureFusionWindowAttention(nn.Module):
         return x
 
 
-class SwinFeatureFusionEncoder:
-    def
+class CrossWindowCrossAttention(nn.Module):
+    def __init__(self):
+        pass
+
+    def forward(self, z, x):
+        pass
+
+
+class InWindowCrossAttention(nn.Module):
+    def __init__(self):
+        pass
+
+    def forward(self):
+        pass
+
+
+
+if __name__ == '__main__':
+    import math
+
+
+
+    # calculate attention mask for SW-MSA
+    Hp = int(math.ceil(H / self.window_size)) * self.window_size
+    Wp = int(math.ceil(W / self.window_size)) * self.window_size
+    img_mask = torch.zeros((1, Hp, Wp, 1), device=x.device)  # 1 Hp Wp 1
+    h_slices = (slice(0, -self.window_size),
+                slice(-self.window_size, -self.shift_size),
+                slice(-self.shift_size, None))
+    w_slices = (slice(0, -self.window_size),
+                slice(-self.window_size, -self.shift_size),
+                slice(-self.shift_size, None))
+    cnt = 0
+    for h in h_slices:
+        for w in w_slices:
+            img_mask[:, h, w, :] = cnt
+            cnt += 1
+
+    mask_windows = window_partition(img_mask, self.window_size)  # nW, window_size, window_size, 1
+    mask_windows = mask_windows.view(-1, self.window_size * self.window_size)
+    attn_mask = mask_windows.unsqueeze(1) - mask_windows.unsqueeze(2)
+    attn_mask = attn_mask.masked_fill(attn_mask != 0, float(-100.0)).masked_fill(attn_mask == 0, float(0.0))
