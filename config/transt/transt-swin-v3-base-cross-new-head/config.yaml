@@ -1,0 +1,41 @@
+name: Swin-XTracker-Base-Cross
+version: 3
+
+type: XTracker
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  feature_size:
+    search: [7, 7]
+  template_size: [112, 112] # 16 * 8
+  search_size: [224, 224] # 32 * 8
+
+backbone:
+  type: swin_transformer
+  parameters:
+    name: swin_base_patch4_window7_224_in22k
+
+transformer:
+  backbone_cross_attention_injection:
+    stage_1:
+      cross_attention:
+        type: cross_attention
+      self_attention:
+        type: swin_transformer_block
+      num_layers: 4
+    stage_2:
+      cross_attention:
+        type: cross_attention
+      self-attention:
+        type: swin_transformer_block
+      num_layers: 6
+      decoder:
+        type: cross_attention_decoder
+
+  template_branch_involves: [0, 1, 2]
+  search_branch_involves: [0, 1, 2, 3]
+
+  head:
+    type: detr
