@@ -84,11 +84,42 @@ class FeatureFusionWindowAttention(nn.Module):
         return x
 
 
+from models.backbone.swint.swin_transformer import window_partition, window_reverse
+import torch.nn.functional as F
+
+
+def _prepare_window_partition(x, H, W, norm1, window_size):
+    B, L, C = x.shape
+    assert L == H * W, "input feature has wrong size"
+
+    shortcut = x
+    x = norm1(x)
+    x = x.view(B, H, W, C)
+
+    # pad feature maps to multiples of window size
+    pad_l = pad_t = 0
+    pad_r = (window_size - W % window_size) % window_size
+    pad_b = (window_size - H % window_size) % window_size
+    x = F.pad(x, (0, 0, pad_l, pad_r, pad_t, pad_b))
+    _, Hp, Wp, _ = x.shape
+
+    # partition windows
+    x_windows = window_partition(x, window_size)  # nW*B, window_size, window_size, C
+    x_windows = x_windows.view(-1, window_size * window_size, C)  # nW*B, window_size*window_size, C
+
+    return x_windows
+
+
 class CrossWindowCrossAttention(nn.Module):
     def __init__(self):
+        self.
         pass
 
-    def forward(self, z, x):
+    def forward(self, z, x, z_H, z_W, x_H, x_W):
+        _prepare_window_partition(z, z_H, z_W)
+
+
+
         pass
 
 
