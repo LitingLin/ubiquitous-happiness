@@ -1,7 +1,7 @@
 version: 2
 
 dataloader:
-  version: old
+  version: 1
 
 data:
   scale_jitter_factor:
