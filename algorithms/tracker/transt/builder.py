@@ -27,6 +27,8 @@ def build_transt_tracker(network_config, evaluation_config, weight_path, device)
     if 'preprocessing_on_device' in evaluation_config['tracking']:
         preprocessing_on_device = evaluation_config['tracking']['preprocessing_on_device']
 
+    print(f'Data preprocessing on Device: {preprocessing_on_device}')
+
     if 'bbox_size_limit_in_feat_space' not in evaluation_config['tracking']:
         bbox_size_limit_in_feat_space = False
     else:
