@@ -8,10 +8,11 @@ data:
     template: 0
     search: 0.25
   translation_jitter_factor:
-    search: 3
     template: 0
+    search: 3
   gray_scale_probability: 0.05
   color_jitter: 0.4
+  gaussian_target_label_min_overlap: 0.7
 
 train:
   lr: 1.e-4
@@ -30,13 +31,13 @@ train:
   loss:
     classification:
       gaussian_focal_loss:
-        weight: 9
+        weight: 100
     bounding_box_regression:
       L1_loss:
-        weight: 10
+        weight: 5
       IoU_loss:
         type: GIoU
-        weight: 1
+        weight: 1.5
     quality_assessment:
       IoU_aware_loss:
         type: GIoU
