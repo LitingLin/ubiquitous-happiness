@@ -11,6 +11,8 @@ from Miscellaneous.torch.print_running_environment import print_running_environm
 from Miscellaneous.yaml_ops import yaml_load
 from Miscellaneous.git_state import get_git_sha
 from Miscellaneous.torch.distributed import get_rank, init_distributed_mode
+from training.transt.training_loop import run_training_loop
+from training.transt.builder import build_training_actor_and_dataloader
 
 
 def get_args_parser():
@@ -52,16 +54,8 @@ def main(args):
     network_config = yaml_load(network_config_path)
     train_config = yaml_load(train_config_path)
 
-    if 'dataloader' in train_config:
-        from training.transt.training_loop import run_training_loop
-        from training.transt.builder import build_training_actor_and_dataloader
-        actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
-        run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
-    else:
-        from training.transt._old.training_loop import run_training_loop
-        from training.transt._old.builder import build_training_actor_and_dataloader
-        actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
-        run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
+    actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+    run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
 
 
 if __name__ == '__main__':

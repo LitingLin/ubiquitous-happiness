@@ -5,30 +5,31 @@ from timm.models.layers import trunc_normal_
 
 
 class RelativePositionCrossAttention(nn.Module):
-    def __init__(self, dim, num_heads, z_size, x_size, qkv_bias=True, qk_scale=None, attn_drop=0.,
-                 proj_drop=0.):  # h, w
+    def __init__(self, dim, num_heads, z_2d_shape, x_2d_shape,  # (H, W)
+                 qkv_bias=True, qk_scale=None, attn_drop=0.,
+                 proj_drop=0.):
         super(RelativePositionCrossAttention, self).__init__()
-        position_bias_table_size = (max(z_size[0], x_size[0]), max(z_size[1], x_size[1]))
+        position_bias_table_size = (max(z_2d_shape[0], x_2d_shape[0]), max(z_2d_shape[1], x_2d_shape[1]))
         relative_position_index_ = _generate_2d_relative_position_index(position_bias_table_size)
 
-        h_z_begin = int(position_bias_table_size[0] / 2 - z_size[0] / 2)
-        h_x_begin = int(position_bias_table_size[0] / 2 - x_size[0] / 2)
-        h_z_end = h_z_begin + z_size[0]
-        h_x_end = h_x_begin + x_size[0]
+        h_z_begin = int(position_bias_table_size[0] / 2 - z_2d_shape[0] / 2)
+        h_x_begin = int(position_bias_table_size[0] / 2 - x_2d_shape[0] / 2)
+        h_z_end = h_z_begin + z_2d_shape[0]
+        h_x_end = h_x_begin + x_2d_shape[0]
 
-        w_z_begin = int(position_bias_table_size[1] / 2 - z_size[1] / 2)
-        w_x_begin = int(position_bias_table_size[1] / 2 - x_size[1] / 2)
-        w_z_end = w_z_begin + z_size[1]
-        w_x_end = w_x_begin + x_size[1]
+        w_z_begin = int(position_bias_table_size[1] / 2 - z_2d_shape[1] / 2)
+        w_x_begin = int(position_bias_table_size[1] / 2 - x_2d_shape[1] / 2)
+        w_z_end = w_z_begin + z_2d_shape[1]
+        w_x_end = w_x_begin + x_2d_shape[1]
 
         relative_position_index = []
 
         for h_z in range(h_z_begin, h_z_end):
             for h_x in range(h_x_begin, h_x_end):
                 for w_z in range(w_z_begin, w_z_end):
-                    z_position = h_z * z_size[0] + w_z
-                    x_position_begin = h_x * z_size[1] + w_x_begin
-                    x_position_end = h_x * z_size[1] + w_x_end
+                    z_position = h_z * z_2d_shape[0] + w_z
+                    x_position_begin = h_x * z_2d_shape[1] + w_x_begin
+                    x_position_end = h_x * z_2d_shape[1] + w_x_end
                     relative_position_index.append(
                         relative_position_index_[z_position][x_position_begin: x_position_end])
         relative_position_index = torch.cat(relative_position_index)

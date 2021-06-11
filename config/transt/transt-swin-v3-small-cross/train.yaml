@@ -1,7 +1,7 @@
 version: 2
 
 dataloader:
-  version: 1
+  version: old
 
 data:
   scale_jitter_factor:
@@ -25,7 +25,7 @@ train:
 
   data:
     samples_per_epoch: 38000
-    negative_sample_ratio: 0.4
+    negative_sample_ratio: 0.
 
   loss:
     use_template: transt

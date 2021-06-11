@@ -184,7 +184,7 @@ class SwinTransformerBlock(nn.Module):
         self.H = None
         self.W = None
 
-    def forward(self, x, mask_matrix):
+    def forward(self, x, mask_matrix=None):
         """ Forward function.
         Args:
             x: Input feature, tensor size (B, H*W, C).
@@ -252,7 +252,7 @@ class PatchEmbed(nn.Module):
         norm_layer (nn.Module, optional): Normalization layer. Default: None
     """
 
-    def __init__(self, patch_size=4, in_chans=3, embed_dim=96, norm_layer=None ,pretrain_img_size = 224,
+    def __init__(self, patch_size=4, in_chans=3, embed_dim=96, norm_layer=None, pretrain_img_size=224,
                  ape=False, drop_rate=0.):
         super().__init__()
         patch_size = to_2tuple(patch_size)
@@ -453,22 +453,22 @@ class BasicStage(nn.Module):
 
 def _build_stages(num_layers,
                   pretrain_img_size=224,
-                 patch_size=4,
-                 in_chans=3,
-                 embed_dim=96,
-                 depths=(2, 2, 6, 2),
-                 num_heads=(3, 6, 12, 24),
-                 window_size=7,
-                 mlp_ratio=4.,
-                 qkv_bias=True,
-                 qk_scale=None,
-                 drop_rate=0.,
-                 attn_drop_rate=0.,
-                 drop_path_rate=0.2,
-                 norm_layer=nn.LayerNorm,
-                 ape=False,
-                 patch_norm=True,
-                 use_checkpoint=False):
+                  patch_size=4,
+                  in_chans=3,
+                  embed_dim=96,
+                  depths=(2, 2, 6, 2),
+                  num_heads=(3, 6, 12, 24),
+                  window_size=7,
+                  mlp_ratio=4.,
+                  qkv_bias=True,
+                  qk_scale=None,
+                  drop_rate=0.,
+                  attn_drop_rate=0.,
+                  drop_path_rate=0.2,
+                  norm_layer=nn.LayerNorm,
+                  ape=False,
+                  patch_norm=True,
+                  use_checkpoint=False):
     # build layers
     stages = nn.ModuleList()
     dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
@@ -477,7 +477,8 @@ def _build_stages(num_layers,
         if i_layer == 0:
             pre_stage = PatchEmbed(
                 patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim,
-                norm_layer=norm_layer if patch_norm else None, pretrain_img_size=pretrain_img_size, ape=ape,drop_rate=drop_rate)
+                norm_layer=norm_layer if patch_norm else None, pretrain_img_size=pretrain_img_size, ape=ape,
+                drop_rate=drop_rate)
         else:
             dim = int(embed_dim * 2 ** (i_layer - 1))
             pre_stage = PatchMerging(dim, norm_layer)
@@ -532,7 +533,7 @@ def _freeze_stages(stages, frozen_stages, ape):
 
 def _update_state_dict_(state_dict, prefix=''):
     for full_key in list(state_dict.keys()):
-        key: str = full_key[len(prefix) : ]
+        key: str = full_key[len(prefix):]
         if key.startswith('layers.'):
             layer_index = int(key[len('layers.'): len('layers.') + 1])
             if key[len('layers..') + 1:].startswith('downsample'):
@@ -567,22 +568,22 @@ class SwinTransformer(nn.Module):
                  use_checkpoint=False):
         super(SwinTransformer, self).__init__()
         self.stages, self.stage_dims = _build_stages(len(depths), pretrain_img_size,
-                 patch_size,
-                 in_chans,
-                 embed_dim,
-                 depths,
-                 num_heads,
-                 window_size,
-                 mlp_ratio,
-                 qkv_bias,
-                 qk_scale,
-                 drop_rate,
-                 attn_drop_rate,
-                 drop_path_rate,
-                 norm_layer,
-                 ape,
-                 patch_norm,
-                 use_checkpoint)
+                                                     patch_size,
+                                                     in_chans,
+                                                     embed_dim,
+                                                     depths,
+                                                     num_heads,
+                                                     window_size,
+                                                     mlp_ratio,
+                                                     qkv_bias,
+                                                     qk_scale,
+                                                     drop_rate,
+                                                     attn_drop_rate,
+                                                     drop_path_rate,
+                                                     norm_layer,
+                                                     ape,
+                                                     patch_norm,
+                                                     use_checkpoint)
 
         self.num_channels_output = tuple(self.stage_dims[i] for i in out_indices)
         # add a norm layer for each output
@@ -641,62 +642,73 @@ _cfg = {
     # patch models (my experiments)
     'swin_base_patch4_window12_384': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window12_384_22kto1k.pth',
-        params=dict(pretrain_img_size=384, patch_size=4, window_size=12, embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32))
+        params=dict(pretrain_img_size=384, patch_size=4, window_size=12, embed_dim=128, depths=(2, 2, 18, 2),
+                    num_heads=(4, 8, 16, 32))
     ),
     'swin_base_patch4_window7_224': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window7_224_22kto1k.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=128, depths=(2, 2, 18, 2),
+                    num_heads=(4, 8, 16, 32))
     ),
 
     'swin_large_patch4_window12_384': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window12_384_22kto1k.pth',
-        params=dict(pretrain_img_size=384, patch_size=4, window_size=12, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
+        params=dict(pretrain_img_size=384, patch_size=4, window_size=12, embed_dim=192, depths=(2, 2, 18, 2),
+                    num_heads=(6, 12, 24, 48))
     ),
 
     'swin_large_patch4_window7_224': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window7_224_22kto1k.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=192, depths=(2, 2, 18, 2),
+                    num_heads=(6, 12, 24, 48))
     ),
 
     'swin_small_patch4_window7_224': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_small_patch4_window7_224.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=96, depths=(2, 2, 18, 2), num_heads=(3, 6, 12, 24))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=96, depths=(2, 2, 18, 2),
+                    num_heads=(3, 6, 12, 24))
     ),
 
     'swin_tiny_patch4_window7_224': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=96, depths=(2, 2, 6, 2), num_heads=(3, 6, 12, 24))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=96, depths=(2, 2, 6, 2),
+                    num_heads=(3, 6, 12, 24))
     ),
 
     'swin_base_patch4_window12_384_in22k': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window12_384_22k.pth',
-        params=dict(pretrain_img_size=384, patch_size=4, window_size=12, embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32))
+        params=dict(pretrain_img_size=384, patch_size=4, window_size=12, embed_dim=128, depths=(2, 2, 18, 2),
+                    num_heads=(4, 8, 16, 32))
     ),
 
     'swin_base_patch4_window7_224_in22k': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window7_224_22k.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=128, depths=(2, 2, 18, 2), num_heads=(4, 8, 16, 32))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=128, depths=(2, 2, 18, 2),
+                    num_heads=(4, 8, 16, 32))
     ),
 
     'swin_large_patch4_window12_384_in22k': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window12_384_22k.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=12, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=12, embed_dim=192, depths=(2, 2, 18, 2),
+                    num_heads=(6, 12, 24, 48))
     ),
 
     'swin_large_patch4_window7_224_in22k': dict(
         url='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window7_224_22k.pth',
-        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
+        params=dict(pretrain_img_size=224, patch_size=4, window_size=7, embed_dim=192, depths=(2, 2, 18, 2),
+                    num_heads=(6, 12, 24, 48))
     ),
 
     'swin_small_patch2_window7_224': dict(
-        params=dict(pretrain_img_size=224, patch_size=2, window_size=7, embed_dim=192, depths=(2, 2, 18, 2), num_heads=(6, 12, 24, 48))
+        params=dict(pretrain_img_size=224, patch_size=2, window_size=7, embed_dim=192, depths=(2, 2, 18, 2),
+                    num_heads=(6, 12, 24, 48))
     ),
 
     'swin_tiny_patch2_window7_224': dict(
-        params=dict(pretrain_img_size=224, patch_size=2, window_size=7, embed_dim=96, depths=(2, 2, 6, 2), num_heads=(3, 6, 12, 24))
+        params=dict(pretrain_img_size=224, patch_size=2, window_size=7, embed_dim=96, depths=(2, 2, 6, 2),
+                    num_heads=(3, 6, 12, 24))
     )
 }
-
 
 import copy
 

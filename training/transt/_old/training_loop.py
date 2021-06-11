@@ -2,7 +2,7 @@ import time
 from .train_step import train_one_epoch
 from .eval_step import evaluate
 from Miscellaneous.torch.distributed import is_main_process
-from Miscellaneous.torch.dump_checkpoint import _fail_safe_save, _fail_safe_copy
+from Miscellaneous.torch.checkpoint import _fail_safe_save, _fail_safe_copy
 import os
 import json
 import datetime

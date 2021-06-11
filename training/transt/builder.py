@@ -54,9 +54,39 @@ def _build_dataloader(args, network_config: dict, train_config: dict, train_data
     return build_siamfc_sampling_dataloader(args, train_config, train_dataset_config_path, val_dataset_config_path, processor, processor, collate_fn, TensorFilteringByIndices((0, 1)))
 
 
+def _build_old_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
+                      val_dataset_config_path: str):
+    processor, collate_fn = build_transt_data_processor(network_config, train_config)
+
+    from data.siamfc.dataset import build_tracking_dataset
+    from data.torch.data_loader import build_torch_train_val_dataloader
+    train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, processor, processor)
+
+    epoch_changed_event_signal_slots = []
+
+    data_loader_train, data_loader_val = build_torch_train_val_dataloader(train_dataset, val_dataset,
+                                                                          train_config['train']['batch_size'],
+                                                                          train_config['val']['batch_size'],
+                                                                          args.num_workers, args.num_workers,
+                                                                          args.device, args.distributed,
+                                                                          epoch_changed_event_signal_slots,
+                                                                          TensorFilteringByIndices((0, 1)),
+                                                                          collate_fn=collate_fn)
+
+    return (train_dataset, val_dataset), (data_loader_train, data_loader_val), epoch_changed_event_signal_slots
+
+
+
 def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                                         val_dataset_config_path: str):
-    (train_dataset, val_dataset), (data_loader_train, data_loader_val), epoch_changed_event_slots = _build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+    if 'dataloader' not in train_config or train_config['dataloader']['version'] == 'old':
+        (train_dataset, val_dataset), (
+        data_loader_train, data_loader_val), epoch_changed_event_slots = _build_old_dataloader(args, network_config,
+                                                                                           train_config,
+                                                                                           train_dataset_config_path,
+                                                                                           val_dataset_config_path)
+    else:
+        (train_dataset, val_dataset), (data_loader_train, data_loader_val), epoch_changed_event_slots = _build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
 
     runner = build_transt_training_runner(args, network_config, train_config, epoch_changed_event_slots)
 

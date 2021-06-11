@@ -193,8 +193,8 @@ def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rn
             samples_per_epoch = data_config['samples_per_epoch']
         if 'repeat_times_per_epoch' in data_config:
             repeat_times_per_epoch = data_config['repeat_times_per_epoch']
-        if 'neg_ratio' in data_config:
-            neg_ratio = data_config['neg_ratio']
+        if 'negative_sample_ratio' in data_config:
+            neg_ratio = data_config['negative_sample_ratio']
 
     dataset = TrackingDataset(raw_datasets, dataset_parameters, samples_per_epoch, repeat_times_per_epoch, neg_ratio, post_processor, rng_seed)
     return dataset

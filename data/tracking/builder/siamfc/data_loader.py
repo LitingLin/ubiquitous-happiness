@@ -29,8 +29,8 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                               train_config['val']['batch_size'],
                                                                               args.num_workers, args.num_workers,
                                                                               args.device, args.distributed,
-                                                                              device_tensor_selection_filter,
                                                                               epoch_changed_event_signal_slots,
+                                                                              device_tensor_selection_filter,
                                                                               train_worker_init_fn, val_worker_init_fn,
                                                                               collate_fn)
 

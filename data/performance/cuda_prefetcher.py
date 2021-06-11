@@ -70,7 +70,9 @@ class TensorFilteringByIndices:
 
 
 class CUDAPrefetcher:
-    def __init__(self, data_loader, device=None, tensor_filter=DefaultTensorFilter):
+    def __init__(self, data_loader, device=None, tensor_filter=None):
+        if tensor_filter is None:
+            tensor_filter = DefaultTensorFilter
         self.data_loader = data_loader
         if device is None:
             device = torch.device('cuda')
