@@ -23,20 +23,20 @@ DATASETS:
   GOT10k:
     SPLITS:
       - train
-    NUM_USE: 181986
 
   LaSOT:
     SPLITS:
       - train
-    NUM_USE: 181986
-
   YoutubeBB:
 
   COCO:
-    NUM_USE: 90000
+    Sampling:
+      weight: 0.5
 
   ILSVRC_DET:
-    NUM_USE: 90000
+    Sampling:
+      weight: 0.5
 
   ILSVRC_VID:
-    NUM_USE: 90000
+    Sampling:
+      weight: 0.5
