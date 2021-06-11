@@ -176,3 +176,39 @@ class CrossAttention(nn.Module):
         x = x + self.x_drop_path(self.x_mlp(self.x_norm2(x)))
 
         return z, x
+
+
+class CrossAttentionDecoder(nn.Module):
+    def __init__(self, dim, num_heads, z_size, x_size,  # (H, W)
+                 mlp_ratio=4., qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
+                 act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+        super(CrossAttentionDecoder, self).__init__()
+
+        self.dim = dim
+        self.z_size = z_size
+        self.x_size = x_size
+
+        self.z_norm1 = norm_layer(dim)
+        self.x_norm1 = norm_layer(dim)
+
+        self.x_z_cross_attn = RelativePositionCrossAttention(dim, num_heads, x_size, z_size, qkv_bias, qk_scale, attn_drop, drop)
+
+        mlp_hidden_dim = int(dim * mlp_ratio)
+
+        self.x_drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+        self.x_norm2 = norm_layer(dim)
+        self.x_mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+
+    def forward(self, z, x):
+        x_shortcut = x
+
+        z = self.z_norm1(z)
+        x = self.x_norm1(x)
+
+        x_z_attn = self.x_z_cross_attn(x, z)
+
+        # FFN
+        x = x_shortcut + self.x_drop_path(x_z_attn)
+        x = x + self.x_drop_path(self.x_mlp(self.x_norm2(x)))
+
+        return x

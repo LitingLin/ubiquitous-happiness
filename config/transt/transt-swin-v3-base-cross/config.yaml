@@ -1,4 +1,4 @@
-name: Swin-XTracker-Small-Cross
+name: Swin-XTracker-Base-Cross
 version: 3
 
 type: XTracker
@@ -15,7 +15,7 @@ data:
 backbone:
   type: swin_transformer
   parameters:
-    name: swin_small_patch4_window7_224
+    name: swin_base_patch4_window7_224_in22k
 
 transformer:
   backbone_cross_attention_injection:
@@ -24,13 +24,13 @@ transformer:
         type: cross_attention
       self_attention:
         type: swin_transformer_block
-      num_layers: 2
+      num_layers: 4
     stage_2:
       cross_attention:
         type: cross_attention
       self-attention:
         type: swin_transformer_block
-      num_layers: 2
+      num_layers: 6
       decoder:
         type: cross_attention_decoder
 

@@ -1,7 +1,7 @@
 from models.backbone.swint.swin_transformer import SwinTransformer, SwinTransformerBlock
 import torch
 from torch import nn
-from models.TransT.module.swin_feature_fusion import InterPatchCrossAttention, CrossAttention
+from models.TransT.module.swin_feature_fusion import InterPatchCrossAttention, CrossAttention, CrossAttentionDecoder
 import copy
 from timm.models.layers import trunc_normal_
 
@@ -95,6 +95,13 @@ class SwinTransformerX(nn.Module):
                 cross_attn_module = nn.ModuleList([copy.deepcopy(cross_attn_module) for _ in range(stage_injection_parameter['num_layers'])])
             if cross_attentions is not None or self_attentions is not None:
                 self.add_module(f'stage{index_of_stage}_cross_attn', cross_attn_module)
+            if 'decoder' in stage_injection_parameter:
+                parameter = stage_injection_parameter['decoder']
+                if parameter['type'] == 'cross_attention_decoder':
+                    cross_attn_decoder = CrossAttentionDecoder(**parameter['parameters'])
+                else:
+                    raise NotImplementedError(f'Unknown layer type {parameter["type"]}')
+                self.add_module(f'stage{index_of_stage}_cross_attn_decoder', cross_attn_decoder)
 
         self.apply(_init_weights)
         self.swin_transformer_stages = copy.deepcopy(swin_transformer.stages)
@@ -115,7 +122,10 @@ class SwinTransformerX(nn.Module):
                         z, x = cross_attn_layer(z, x)
                 else:
                     z, x = cross_attn(z, x)
-        return z, x
+            if hasattr(self, f'stage{index_of_stage}_cross_attn_decoder'):
+                cross_attn_decoder = getattr(self, f'stage{index_of_stage}_cross_attn_decoder')
+                x = cross_attn_decoder(z, x)
+        return x
 
 
 class SwinTransformerXTracker(nn.Module):
@@ -126,7 +136,7 @@ class SwinTransformerXTracker(nn.Module):
 
     def forward(self, samples):
         z, x = samples
-        z, x = self.backbone(z, x)
+        x = self.backbone(z, x)
         return self.head(x.unsqueeze(0))
 
 
@@ -146,7 +156,7 @@ def _parse_parameters(parameters, inferred_parameters, window_size, transformer_
 
     cross_attention_class_parameter = {'dim': inferred_parameters[0]}
 
-    if parsed_parameter_dict['type'] == 'window_cross_attention' or parsed_parameter_dict['type'] == 'cross_attention':
+    if parsed_parameter_dict['type'] == 'window_cross_attention' or parsed_parameter_dict['type'] == 'cross_attention' or parsed_parameter_dict['type'] == 'cross_attention_decoder':
         cross_attention_class_parameter['z_size'] = inferred_parameters[1]
         cross_attention_class_parameter['x_size'] = inferred_parameters[2]
     if parsed_parameter_dict['type'] == 'window_cross_attention':
@@ -242,11 +252,15 @@ def build_swin_transformer_x_tracker(network_config: dict):
             parsed_parameter_dict['self_attention'] = _parse_parameters(stage_injection_parameter['self_attention'], stage_parameters[stage_index], window_size, network_config['transformer'])
         if 'num_layers' in stage_injection_parameter:
             parsed_parameter_dict['num_layers'] = stage_injection_parameter['num_layers']
+        if 'decoder' in stage_injection_parameter:
+            parsed_parameter_dict['decoder'] = _parse_parameters(stage_injection_parameter['decoder'], stage_parameters[stage_index], window_size, network_config['transformer'])
+
         stage_injection_parameters[stage_index] = parsed_parameter_dict
     backbone = SwinTransformerX(swin_transformer,
                                 {'involves': template_branch_involves_indices},
                                 {'involves': search_branch_involves_indices},
                                 stage_injection_parameters)
+    del swin_transformer
     network_config['transformer']['hidden_dim'] = dim
     from models.TransT.head.builder import build_head
     head = build_head(network_config)
