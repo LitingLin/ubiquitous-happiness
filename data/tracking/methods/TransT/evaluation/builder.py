@@ -6,6 +6,7 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
     preprocessing_on_device = True
     if 'preprocessing_on_device' in evaluation_config['tracking']:
         preprocessing_on_device = evaluation_config['tracking']['preprocessing_on_device']
+    print(f'Data preprocessing on Device: {preprocessing_on_device}')
 
     if 'bbox_size_limit_in_feat_space' not in evaluation_config['tracking']:
         bbox_size_limit_in_feat_space = False
