@@ -14,8 +14,8 @@ def build_transt(network_config, load_pretrained=True):
         head = build_head(network_config)
 
         return TransTTracking(backbone, transformer, head)
-    elif network_config['version'] == 3:
+    elif network_config['version'] == 3 and network_config['type'] == 'XTracker':
         from .variants.swin_cross_tracker import build_swin_transformer_x_tracker
-        return build_swin_transformer_x_tracker(network_config)
+        return build_swin_transformer_x_tracker(network_config, load_pretrained)
     else:
         raise NotImplementedError(f'Unknown version {network_config["version"]}')

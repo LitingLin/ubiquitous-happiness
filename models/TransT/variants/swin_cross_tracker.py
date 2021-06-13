@@ -139,6 +139,14 @@ class SwinTransformerXTracker(nn.Module):
         x = self.backbone(z, x)
         return self.head(x.unsqueeze(0))
 
+    @torch.no_grad()
+    def template(self, z):
+        return z
+
+    @torch.no_grad()
+    def track(self, z, x):
+        return self.forward((z, x))
+
 
 def _get_config_in_order(name, conf1, conf2):
     if name in conf1:
@@ -199,9 +207,9 @@ def _parse_parameters(parameters, inferred_parameters, window_size, transformer_
     return parsed_parameter_dict
 
 
-def build_swin_transformer_x_tracker(network_config: dict):
+def build_swin_transformer_x_tracker(network_config: dict, load_pretrained=True):
     from models.backbone.swint.swin_transformer import build_swin_transformer_backbone
-    swin_transformer = build_swin_transformer_backbone(network_config['backbone']['parameters']['name'])
+    swin_transformer = build_swin_transformer_backbone(network_config['backbone']['parameters']['name'], load_pretrained=load_pretrained)
 
     backbone_cross_attention_injection_parameters = network_config['transformer']['backbone_cross_attention_injection']
 
