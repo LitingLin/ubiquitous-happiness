@@ -713,13 +713,13 @@ _cfg = {
 import copy
 
 
-def build_swin_transformer_backbone(name, load_pretrained=True, output_layers=(3,), frozen_stages=-1):
+def build_swin_transformer_backbone(name, load_pretrained=True, output_layers=(3,)):
     max_output_index = max(output_layers)
     params = copy.deepcopy(_cfg[name]['params'])
     if max_output_index < 3:
         params['depths'] = params['depths'][0: max_output_index + 1]
         params['num_heads'] = params['num_heads'][0: max_output_index + 1]
-    transformer = SwinTransformer(out_indices=output_layers, frozen_stages=frozen_stages, **params)
+    transformer = SwinTransformer(out_indices=output_layers, **params)
 
     url = None
     if load_pretrained:

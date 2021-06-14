@@ -209,7 +209,12 @@ def _parse_parameters(parameters, inferred_parameters, window_size, transformer_
 
 def build_swin_transformer_x_tracker(network_config: dict, load_pretrained=True):
     from models.backbone.swint.swin_transformer import build_swin_transformer_backbone
-    swin_transformer = build_swin_transformer_backbone(network_config['backbone']['parameters']['name'], load_pretrained=load_pretrained)
+
+    frozen_stages = -1
+    if 'frozen_stages' in network_config['backbone']['parameters']:
+        frozen_stages = network_config['backbone']['parameters']['frozen_stages']
+
+    swin_transformer = build_swin_transformer_backbone(network_config['backbone']['parameters']['name'], load_pretrained=load_pretrained, frozen_stages=frozen_stages)
 
     backbone_cross_attention_injection_parameters = network_config['transformer']['backbone_cross_attention_injection']
 
