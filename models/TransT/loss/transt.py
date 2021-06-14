@@ -69,7 +69,7 @@ class TransTCriterion(nn.Module):
                     src_ious = predicted_ious[(target_feat_map_indices_batch_id_vector, target_feat_map_indices)]
                     losses['loss_iou_aware'] = self.iou_aware_loss(xyxy_src_boxes, xyxy_box_labels, src_ious) / num_boxes_pos
         else:
-            zero = torch.mean(predicted_bounding_box - predicted_bounding_box)
+            zero = torch.mean(predicted_bounding_box * 0)
             if self.bbox_loss is not None:
                 losses['loss_bbox'] = zero
 
