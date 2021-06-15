@@ -153,3 +153,15 @@ class MemoryMappedDataset:
 
     def get_bounding_box_data_type(self):
         return self.context.get_bounding_box_data_type()
+
+    def get_unique_id(self):
+        import hashlib
+        from Miscellaneous.slugify import slugify
+
+        m = hashlib.md5()
+        m.update(bytes(self.get_name(), encoding='utf-8'))
+        dataset_filters = self.get_applied_filter_list()
+        if dataset_filters is not None:
+            m.update(bytes(str(dataset_filters), encoding='utf-8'))
+        unique_id = f'{slugify(self.get_name())}-{str(self.get_data_split())}-{m.digest().hex()}'
+        return unique_id
