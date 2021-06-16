@@ -49,19 +49,3 @@ class ApiGatewayRandomSampler:
 
     def get_status(self):
         return self.client('get_status', )
-
-
-
-
-if __name__ == '__main__':
-    from evaluation.SOT.runner import get_standard_evaluation_datasets
-
-    datasets = get_standard_evaluation_datasets()
-    socket_address = 'tcp://127.0.0.1:10001'
-    sampler = ApiGatewayRandomSampler(datasets, socket_address, 0)
-    sampler.launch()
-    print(sampler.get_next())
-    print(sampler.get_next())
-    print(sampler.get_state())
-    print(sampler.get_status())
-    sampler.stop()
