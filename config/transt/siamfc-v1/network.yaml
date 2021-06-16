@@ -1,6 +1,19 @@
-model:
-  backbone:
-    type: alexnet
-    version: 1
-  head:
-    type: linear
+name: SiamFC-GOT
+
+version: 3
+type: SiamFC
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  feature_size:
+    search: [7, 7]
+  template_size: [112, 112] # 16 * 8
+  search_size: [224, 224] # 32 * 8
+
+backbone:
+  type: alexnet
+
+head:
+  type: linear

@@ -1,0 +1,49 @@
+version: 3
+
+data:
+  augmentation:
+    scale_jitter_factor:
+      template: 0
+      search: 0.25
+    translation_jitter_factor:
+      search: 3
+      template: 0
+    gray_scale_probability: 0.05
+    color_jitter: 0.4
+
+  sampler:
+    version: old
+
+    train:
+      batch_size: 16
+
+      samples_per_epoch: 38000
+      negative_sample_ratio: 0.
+
+      sequence_sampler:
+        type: Siamese
+        parameter:
+          frame_range: 100
+
+    val:
+      batch_size: 16
+
+      repeat_times_per_epoch: 1
+
+      sequence_sampler:
+        type: Siamese
+        parameter:
+          frame_range: 100
+
+optimization:
+  epochs: 1000
+  optimizer:
+    type: AdamW
+    lr: 1.e-4
+    lr_backbone: 1.e-5
+    weight_decay: 1.e-4
+    lr_drop: 500
+    clip_max_norm: 0.1
+
+  loss:
+    use_template: transt

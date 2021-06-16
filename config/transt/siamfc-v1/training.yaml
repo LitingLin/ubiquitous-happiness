@@ -2,7 +2,7 @@ data:
   exemplar_sz: 127
   instance_sz: 239 # 255-2*8
   context: 0.5
-  T: 100
+  total_stride: 8
   augmentation:
     translation: 4
     stretch_ratio: 0.05
@@ -20,16 +20,32 @@ data:
     r_pos: 16
     r_neg: 0
 
+  sampler:
+    version: 2
 
-model:
-  initialization: xavier
-  total_stride: 8
-  loss:
-    type: balanced
+    train:
+      batch_size: 16
+      repeat_times_per_epoch: 2
 
-train:
-  batch_size: 8
+      sequence_sampler:
+        type: Siamese
+        parameter:
+          frame_range: 100
+
+    val:
+      batch_size: 16
+      repeat_times_per_epoch: 1
+
+      sequence_sampler:
+        type: Siamese
+        parameter:
+          frame_range: 100
+
+
+optimization:
   epochs: 50
+  checkpoint_interval: 10
+  model_initialization: xavier
   optimizer:
     type: SGD
     initial_lr: 1.e-2
@@ -57,13 +73,6 @@ train:
         head:
           gain: 1
           bias: 1
-  data:
-    repeat_times_per_epoch: 2
-  checkpoint_interval: 10
+  loss:
+    type: balanced
 
-
-val:
-  batch_size: 8
-
-  data:
-    repeat_times_per_epoch: 1
