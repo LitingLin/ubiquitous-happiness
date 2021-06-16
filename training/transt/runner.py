@@ -4,7 +4,9 @@ import math
 
 
 class TransTRunner:
-    def __init__(self, model, criterion, optimizer, lr_scheduler, additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None, epoch_changed_event_slots=None):
+    def __init__(self, model, criterion, optimizer, lr_scheduler,
+                 additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None,
+                 epoch_changed_event_slots=None, statistics_collectors=None):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
@@ -15,6 +17,7 @@ class TransTRunner:
         self.begin_training_event_slots = begin_training_event_slots
         self.stop_training_event_slot = stop_training_event_slot
         self.epoch_changed_event_slots = epoch_changed_event_slots
+        self.statistics_collectors = statistics_collectors
 
     def __enter__(self):
         self.start()
@@ -51,6 +54,10 @@ class TransTRunner:
                 event_slot.set_epoch(self.epoch)
 
     def move_next_epoch(self):
+        if self.statistics_collectors is not None:
+            print(f'Epoch {self.epoch} statistics:')
+            for statistics_collector in self.statistics_collectors:
+                print(statistics_collector.get_status())
         self.epoch += 1
         self.lr_scheduler.step()
         self._on_epoch_changed()

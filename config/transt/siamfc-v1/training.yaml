@@ -2,7 +2,7 @@ data:
   exemplar_sz: 127
   instance_sz: 239 # 255-2*8
   context: 0.5
-  total_stride: 8
+
   augmentation:
     translation: 4
     stretch_ratio: 0.05
@@ -16,6 +16,7 @@ data:
       - [4.6446791, 4.7371016, 4.8832412]
     random_gray_ratio: 0.
   label:
+    total_stride: 8
     size: [1, 15, 15]
     r_pos: 16
     r_neg: 0

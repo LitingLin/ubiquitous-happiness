@@ -1,7 +1,6 @@
 import torch
 import os
 import shutil
-import pickle
 
 
 def _get_training_state_file_path(model_state_file_path: str):
@@ -48,12 +47,22 @@ def dump_checkpoint(epoch, output_path, model_state_dict, training_state_dict, l
             saved_checkpoint_path = backup_checkpoint_path
 
 
+def _get_state_from_runner_with_barrier(runner):
+    import torch.distributed
+    from Miscellaneous.torch.distributed import is_dist_available_and_initialized
+
+    model_state_dict, training_state_dict = runner.state_dict()
+    if is_dist_available_and_initialized():
+        torch.distributed.barrier()
+    return model_state_dict, training_state_dict
+
+
 def dump_checkpoint_from_runner(epoch, output_path, runner, latest_checkpoint_interval, backup_checkpoint_interval):
     from Miscellaneous.torch.distributed import is_main_process
 
     saved_checkpoint_path = None
     if (epoch + 1) % latest_checkpoint_interval == 0:
-        model_state_dict, training_state_dict = runner.state_dict()
+        model_state_dict, training_state_dict = _get_state_from_runner_with_barrier(runner)
 
         checkpoint_path = os.path.join(output_path, 'checkpoint.pth')
         if is_main_process():
@@ -67,7 +76,7 @@ def dump_checkpoint_from_runner(epoch, output_path, runner, latest_checkpoint_in
             if is_main_process():
                 _fail_safe_copy(saved_checkpoint_path, backup_checkpoint_path)
         else:
-            model_state_dict, training_state_dict = runner.state_dict()
+            model_state_dict, training_state_dict = _get_state_from_runner_with_barrier(runner)
             if is_main_process():
                 _fail_safe_save(backup_checkpoint_path, model_state_dict, training_state_dict)
             saved_checkpoint_path = backup_checkpoint_path
