@@ -25,7 +25,8 @@ class ApiGatewayRandomSampler:
             self.server.stop()
 
     def get_state(self):
-        assert is_main_process()
+        if not is_main_process():
+            return None
 
         if self.server.is_launched():
             state = self.client('get_state', )
@@ -35,7 +36,8 @@ class ApiGatewayRandomSampler:
             return self.server_callback.get_state()
 
     def set_state(self, state):
-        assert is_main_process()
+        if not is_main_process():
+            return
 
         if self.server.is_launched():
             self.client('set_state', state)

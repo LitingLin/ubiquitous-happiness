@@ -16,6 +16,12 @@ class TransTRunner:
         self.stop_training_event_slot = stop_training_event_slot
         self.epoch_changed_event_slots = epoch_changed_event_slots
 
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+
     def start(self):
         if self.begin_training_event_slots is not None:
             for slot in self.begin_training_event_slots:
