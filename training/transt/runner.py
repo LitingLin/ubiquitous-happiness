@@ -4,14 +4,27 @@ import math
 
 
 class TransTRunner:
-    def __init__(self, model, criterion, optimizer, lr_scheduler, epoch_changed_event_slots=None):
+    def __init__(self, model, criterion, optimizer, lr_scheduler, additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None, epoch_changed_event_slots=None):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
         self.epoch = 0
-        self.epoch_changed_event_slots = epoch_changed_event_slots
         self.number_of_samples = 0
+        self.additional_stateful_objects = additional_stateful_objects
+        self.begin_training_event_slots = begin_training_event_slots
+        self.stop_training_event_slot = stop_training_event_slot
+        self.epoch_changed_event_slots = epoch_changed_event_slots
+
+    def start(self):
+        if self.begin_training_event_slots is not None:
+            for slot in self.begin_training_event_slots:
+                slot.start()
+
+    def stop(self):
+        if self.stop_training_event_slot is not None:
+            for slot in self.stop_training_event_slot:
+                slot.stop()
 
     def forward(self, samples, targets, is_positives):
         outputs = self.model(samples)
@@ -50,10 +63,13 @@ class TransTRunner:
         return {'lr': self.optimizer.param_groups[0]["lr"]}
 
     def state_dict(self):
-        return {'model': self.get_model().state_dict(), 'version': 1}, \
-               {'optimizer': self.optimizer.state_dict(),
+        training_state_dict = {'optimizer': self.optimizer.state_dict(),
                 'lr_scheduler': self.lr_scheduler.state_dict(),
                 'epoch': self.epoch, 'version': 1}
+        if self.additional_stateful_objects is not None:
+            for state_name, stateful_object in self.additional_stateful_objects.items():
+                training_state_dict[state_name] = stateful_object.get_state()
+        return {'model': self.get_model().state_dict(), 'version': 1}, training_state_dict
 
     def load_state_dict(self, model_state, training_state):
         assert model_state['version'] == 1
@@ -62,6 +78,9 @@ class TransTRunner:
             self.optimizer.load_state_dict(training_state['optimizer'])
             self.lr_scheduler.load_state_dict(training_state['lr_scheduler'])
             self.epoch = training_state['epoch']
+            if self.additional_stateful_objects is not None:
+                for state_name, stateful_object in self.additional_stateful_objects.items():
+                    stateful_object.set_state(training_state[state_name])
             self._on_epoch_changed()
 
     def to(self, device):

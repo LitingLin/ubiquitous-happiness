@@ -11,6 +11,7 @@ import datetime
 def run_training_loop(args, train_config, runner, data_loader_train, data_loader_val):
     print("Start training")
     start_time = time.perf_counter()
+    runner.start()
     for epoch in range(args.start_epoch, train_config['train']['epochs']):
         train_stats = train_one_epoch(runner, data_loader_train, epoch,
                                       train_config['train']['clip_max_norm'])
@@ -28,7 +29,7 @@ def run_training_loop(args, train_config, runner, data_loader_train, data_loader
             if is_main_process():
                 with open(os.path.join(args.output_dir, "log.txt"), "a") as f:
                     f.write(json.dumps(log_stats) + "\n")
-
+    runner.stop()
     total_time = time.perf_counter() - start_time
     total_time_str = str(datetime.timedelta(seconds=total_time))
     print('Training time {}'.format(total_time_str))

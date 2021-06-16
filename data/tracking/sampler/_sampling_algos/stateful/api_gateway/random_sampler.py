@@ -4,10 +4,10 @@ from data.tracking.sampler._sampling_algos.stateful.api_gateway._server import A
 
 
 class ApiGatewayRandomSampler:
-    def __init__(self, datasets, socket_address, seed: int):
+    def __init__(self, datasets, datasets_sampling_probability, socket_address, seed: int):
         self.datasets = datasets
         if is_main_process():
-            self.server_callback = ApiGatewayRandomSamplerServer(datasets, seed)
+            self.server_callback = ApiGatewayRandomSamplerServer(datasets, datasets_sampling_probability, seed)
             self.server = ServerLauncher(socket_address, self.server_callback)
         self.client = Client(socket_address)
 
