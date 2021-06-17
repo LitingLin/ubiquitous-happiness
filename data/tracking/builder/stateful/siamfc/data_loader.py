@@ -11,7 +11,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                      val_dataset_config_path: str, train_post_processor, val_post_processor, seed: int,
                                      collate_fn):
     if 'version' not in train_config or train_config['version'] < 2:
-        from data.siamfc.dataset import build_tracking_dataset
+        from data.siamfc._old.dataset import build_tracking_dataset
         return build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path,
                                       train_post_processor, val_post_processor)
     else:

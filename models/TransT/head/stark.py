@@ -24,11 +24,9 @@ def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1,
 
 class Corner_Predictor(nn.Module):
     """ Corner Predictor module"""
-    def __init__(self, inplanes=64, channel=256, feat_sz=20, stride=16, freeze_bn=False):
+    def __init__(self, inplanes=64, channel=256, feat_sz=20, freeze_bn=False):
         super(Corner_Predictor, self).__init__()
         self.feat_sz = feat_sz
-        self.stride = stride
-        self.img_sz = self.feat_sz * self.stride
         '''top-left corner'''
         self.conv1_tl = conv(inplanes, channel, freeze_bn=freeze_bn)
         self.conv2_tl = conv(channel, channel // 2, freeze_bn=freeze_bn)
@@ -43,21 +41,16 @@ class Corner_Predictor(nn.Module):
         self.conv4_br = conv(channel // 4, channel // 8, freeze_bn=freeze_bn)
         self.conv5_br = nn.Conv2d(channel // 8, 1, kernel_size=1)
 
-        '''about coordinates and indexs'''
-        with torch.no_grad():
-            self.indice = torch.arange(0, self.feat_sz).view(-1, 1) * self.stride
-            # generate mesh-grid
-            self.coord_x = self.indice.repeat((self.feat_sz, 1)) \
-                .view((self.feat_sz * self.feat_sz,)).float().cuda()
-            self.coord_y = self.indice.repeat((1, self.feat_sz)) \
-                .view((self.feat_sz * self.feat_sz,)).float().cuda()
+        indices = torch.linspace(0, 1, self.feat_sz)
+        self.register_buffer('coord_x', indices.repeat((self.feat_sz, 1)).view((self.feat_sz * self.feat_sz,)))
+        self.register_buffer('coord_y', indices.repeat((1, self.feat_sz)).view((self.feat_sz * self.feat_sz,)))
 
     def forward(self, x):
         """ Forward pass with input x. """
         score_map_tl, score_map_br = self.get_score_map(x)
         coorx_tl, coory_tl = self.soft_argmax(score_map_tl)
         coorx_br, coory_br = self.soft_argmax(score_map_br)
-        return torch.stack((coorx_tl, coory_tl, coorx_br, coory_br), dim=1) / self.img_sz
+        return torch.stack((coorx_tl, coory_tl, coorx_br, coory_br), dim=1)
 
     def get_score_map(self, x):
         # top-left branch
@@ -84,10 +77,48 @@ class Corner_Predictor(nn.Module):
         return exp_x, exp_y
 
 
+class Corner_Predictor_MLP(nn.Module):
+    """ Corner Predictor module"""
+    def __init__(self, inplanes=64, channel=256, feat_sz=20):
+        super(Corner_Predictor_MLP, self).__init__()
+        self.feat_sz = feat_sz
+        '''top-left corner'''
+        self.tl_mlp = MLP(inplanes, channel, 1, 5)
+        '''bottom-right corner'''
+        self.br_mlp = MLP(inplanes, channel, 1, 5)
+
+        indices = torch.linspace(0, 1, self.feat_sz)
+        self.register_buffer('coord_x', indices.repeat((self.feat_sz, 1)).view((self.feat_sz * self.feat_sz,)))
+        self.register_buffer('coord_y', indices.repeat((1, self.feat_sz)).view((self.feat_sz * self.feat_sz,)))
+
+    def forward(self, x):
+        """ Forward pass with input x. """
+        score_map_tl, score_map_br = self.get_score_map(x)
+        coorx_tl, coory_tl = self.soft_argmax(score_map_tl)
+        coorx_br, coory_br = self.soft_argmax(score_map_br)
+        return torch.stack((coorx_tl, coory_tl, coorx_br, coory_br), dim=1)
+
+    def get_score_map(self, x):
+        # top-left branch
+        score_map_tl = self.tl_mlp(x)
+
+        # bottom-right branch
+        score_map_br = self.br_mlp(x)
+        return score_map_tl, score_map_br
+
+    def soft_argmax(self, score_map):
+        """ get soft-argmax coordinate for a given heatmap """
+        prob_vec = nn.functional.softmax(
+            score_map.view((-1, self.feat_sz * self.feat_sz)), dim=1)  # (batch, feat_sz * feat_sz)
+        exp_x = torch.sum((self.coord_x * prob_vec), dim=1)
+        exp_y = torch.sum((self.coord_y * prob_vec), dim=1)
+        return exp_x, exp_y
+
+
 class StarkHead:
-    def __init__(self, feature_map_size, network_stride, hidden_dim):
+    def __init__(self, feature_map_size, hidden_dim):
         self.classification_branch = MLP(hidden_dim, hidden_dim, 1, 3)
-        self.localization_branch = Corner_Predictor(inplanes=hidden_dim, channel=256, feat_sz=feature_map_size, stride=network_stride)
+        self.localization_branch = Corner_Predictor(inplanes=hidden_dim, channel=256, feat_sz=feature_map_size)
         self.feature_map_size = feature_map_size
 
     def forward(self, x):
@@ -104,3 +135,44 @@ class StarkHead:
         box = self.localization_branch(x)
         box = box_xyxy_to_cxcywh(box)
         return cls, box
+
+
+class StarkSHead(nn.Module):
+    def __init__(self, localization_branch):
+        super(StarkSHead, self).__init__()
+        self.localization_branch = localization_branch
+
+    def forward(self, x):
+        '''
+        Args:
+            x (torch.Tensor): (S, N, L, C)
+        '''
+        assert x.shape[0] == 1, 'Only support one scale currently'
+        x = x[0]
+
+        box = self.localization_branch(x)
+        box = box_xyxy_to_cxcywh(box)
+        return box
+
+
+def build_stark_head(network_config: dict):
+    assert network_config['head']['type'] == 'Stark'
+    head_parameters = network_config['head']['parameters']
+
+    input_dim = head_parameters['input_dim']
+    feature_map_size = network_config['data']['feature_size']
+
+    if head_parameters['sub_type'] == 'StarkS':
+        localization_branch_type = head_parameters['localization']['type']
+        localization_branch_parameters = head_parameters['localization']['parameters']
+
+        hidden_dim = localization_branch_parameters['hidden_dim']
+
+        if localization_branch_type == 'CornerPredictor':
+            return StarkSHead(Corner_Predictor(input_dim, hidden_dim, feature_map_size))
+        elif localization_branch_type == 'CornerPredictorMLP':
+            return StarkSHead(Corner_Predictor_MLP(input_dim, hidden_dim, feature_map_size))
+        else:
+            raise NotImplementedError(f'Unknown localization branch type: {localization_branch_type}')
+    else:
+        raise NotImplementedError(f'Unknown head sub type: {head_parameters["sub_type"]}')

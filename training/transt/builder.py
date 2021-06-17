@@ -26,7 +26,7 @@ def _setup_optimizer(model, train_config):
     return optimizer, lr_scheduler
 
 
-def build_transt_training_runner(args, net_config: dict, train_config: dict, additional_state_objects, training_start_event_slots, training_stop_event_slots, epoch_changed_event_slots):
+def build_transt_training_runner(args, net_config: dict, train_config: dict, additional_state_objects, training_start_event_slots, training_stop_event_slots, epoch_changed_event_slots, statistics_collectors):
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
@@ -42,12 +42,12 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, add
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
 
-    return TransTRunner(model, criterion, optimizer, lr_scheduler, additional_state_objects, training_start_event_slots, training_stop_event_slots, epoch_changed_event_slots)
+    return TransTRunner(model, criterion, optimizer, lr_scheduler, additional_state_objects, training_start_event_slots, training_stop_event_slots, epoch_changed_event_slots, statistics_collectors)
 
 
 def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                                         val_dataset_config_path: str):
-    stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots = (None, None, None)
+    stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, statistics_collectors = (None, None, None, None)
     if 'dataloader' not in train_config or train_config['dataloader']['version'] == 'old':
         from .dataloader.old import build_old_dataloader
         (train_dataset, val_dataset),\
@@ -66,12 +66,12 @@ def build_training_actor_and_dataloader(args, network_config: dict, train_config
         from .dataloader.v2 import build_dataloader
         (train_dataset, val_dataset),\
         (data_loader_train, data_loader_val),\
-        (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots)\
+        (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors)\
             = build_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
     else:
         raise NotImplementedError(f'Unknown dataloader version {train_config["dataloader"]["version"]}')
 
-    runner = build_transt_training_runner(args, network_config, train_config, stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots)
+    runner = build_transt_training_runner(args, network_config, train_config, stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors)
 
     if args.resume:
         model_state_dict, training_state_dict = load_checkpoint(args.resume)

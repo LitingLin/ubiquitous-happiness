@@ -6,7 +6,7 @@ from training.detr_tracking.actor import DETRTrackingActor
 from data.detr_tracking_variants.siam_encoder.processor.mask_generator import SiamTransformerMaskGeneratingProcessor
 from data.siamfc.processor.z_curate_x_resize import SiamFC_Z_Curate_BBOX_XYWH_X_Resize_BBOX_CXCYWHNormalized_Processor
 from data.torch.data_loader import build_torch_train_val_dataloader
-from data.siamfc.dataset import build_tracking_dataset
+from data.siamfc._old.dataset import build_tracking_dataset
 
 
 def _setup_optimizer(model, train_config):

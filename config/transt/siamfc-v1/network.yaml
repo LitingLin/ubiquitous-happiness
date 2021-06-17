@@ -7,13 +7,22 @@ data:
   area_factor:
     template: 2.0
     search: 4.0
-  feature_size:
-    search: [7, 7]
-  template_size: [112, 112] # 16 * 8
-  search_size: [224, 224] # 32 * 8
+  feature_size: [7, 7]
+  template_size: [112, 112]
+  search_size: [224, 224]
 
 backbone:
   type: alexnet
 
+neck:
+  type: XCross
+
 head:
-  type: linear
+  type: Stark
+  parameters:
+    input_dim: 256
+    sub_type: StarkS
+    localization:
+      type: CornerPredictor
+      parameters:
+        hidden_dim: 256

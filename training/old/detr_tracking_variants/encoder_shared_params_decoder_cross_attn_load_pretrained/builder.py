@@ -7,7 +7,7 @@ from data.detr_tracking_variants.siam_encoder.processor.mask_generator import Si
 from data.siamfc.processor.z_curate_x_size_limit import SiamFC_Z_Curate_BBOX_XYWH_X_SizeLimit_BBOX_CXCYWHNormalized_Processor
 from data.collate_fn.collate_different_size_image_and_generating_mask import collate_different_size_4D_tensors_and_generate_masks
 from torch.utils.data.dataloader import default_collate
-from data.siamfc.dataset import build_tracking_dataset
+from data.siamfc._old.dataset import build_tracking_dataset
 
 
 def add_bn_to_dict(bn, name_prefix, dict_):

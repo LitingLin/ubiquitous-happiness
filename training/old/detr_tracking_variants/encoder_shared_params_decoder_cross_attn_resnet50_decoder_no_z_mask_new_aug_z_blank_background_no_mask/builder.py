@@ -7,7 +7,7 @@ from data.torch.data_loader import build_torch_train_val_dataloader
 from data.collate_fn.collate_different_size_image_and_generating_mask import \
     collate_different_size_4D_tensors_and_generate_masks
 from torch.utils.data.dataloader import default_collate
-from data.siamfc.dataset import build_tracking_dataset
+from data.siamfc._old.dataset import build_tracking_dataset
 from data.detr_tracking_variants.simple_exemplar_blank_background_no_mask.training_builder import build_training_processor
 
 

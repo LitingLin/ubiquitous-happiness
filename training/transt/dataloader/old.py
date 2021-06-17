@@ -6,7 +6,7 @@ def build_old_dataloader(args, network_config: dict, train_config: dict, train_d
                       val_dataset_config_path: str):
     processor, collate_fn = build_transt_data_processor(network_config, train_config)
 
-    from data.siamfc.dataset import build_tracking_dataset
+    from data.siamfc._old.dataset import build_tracking_dataset
     from data.torch.data_loader import build_torch_train_val_dataloader
     train_dataset, val_dataset = build_tracking_dataset(train_config, train_dataset_config_path, val_dataset_config_path, processor, processor)
 

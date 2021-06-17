@@ -11,7 +11,7 @@ from .actor import SiamFCTrainingActor
 from data.siamfc.label import SiamFCLabelGenerator
 from data.siamfc.processor.siamfc import SiamFCDataProcessor
 from data.siamfc.post_combiner import SiamFCPostDataCombiner
-from data.siamfc.dataset import build_tracking_dataset
+from data.siamfc._old.dataset import build_tracking_dataset
 from data.torch.data_loader import build_torch_train_val_dataloader
 
 

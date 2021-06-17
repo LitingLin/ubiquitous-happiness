@@ -2,7 +2,7 @@ import torch
 from .actor import MultiresSiamFCFrontEndDeformDETRTrackingTrainingActor
 from models.network.detr_tracking_variants.deformable_detr_tracking.build_siamfc_multi_res_deform_atten_track import build_siamfc_multires_deform_atten_track
 from models.loss.detr_tracking.builder import build_detr_tracking_loss
-from data.siamfc.dataset import build_tracking_dataset
+from data.siamfc._old.dataset import build_tracking_dataset
 from data.siamfc.processor.z_curate_no_bbox_x_resize import SiamFCZCurateNoBBoxXResizeProcessor
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.distributed import DistributedSampler

@@ -16,6 +16,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
     training_start_event_signal_slots = []
     training_stop_event_signal_slots = []
     stateful_objects = {}
+    statistics_collectors = {}
 
     train_data_config = None
     if 'data' in train_config['train']:
@@ -26,6 +27,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                         train_seed, training_start_event_signal_slots, training_stop_event_signal_slots)
 
     stateful_objects['train_sampling_orchestrator'] = train_sampler
+    statistics_collectors['train_sampling_orchestrator'] = train_sampler
 
     val_data_config = None
     if 'data' in train_config['val']:
@@ -36,6 +38,7 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                     val_seed, training_start_event_signal_slots, training_stop_event_signal_slots)
 
     stateful_objects['val_sampling_orchestrator'] = val_sampler
+    statistics_collectors['val_sampling_orchestrator'] = val_sampler
 
     epoch_changed_event_signal_slots = []
 
@@ -50,4 +53,4 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                           train_worker_init_fn, val_worker_init_fn,
                                                                           collate_fn)
 
-    return (train_dataset, val_dataset), (train_data_loader, val_data_loader), (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_signal_slots)
+    return (train_dataset, val_dataset), (train_data_loader, val_data_loader), (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_signal_slots, statistics_collectors)
