@@ -15,13 +15,15 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
 
 
 def build_transt_data_processor(network_config: dict, train_config: dict):
-    if 'version' not in network_config or network_config['transformer']['head']['type'] == 'detr':
+    if network_config['head']['type'] == 'detr':
         from .label.transt import TransTLabelGenerator
-        label_generator = TransTLabelGenerator(network_config['data']['feature_size']['search'], network_config['data']['search_size'])
+        label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'])
         return _build_transt_data_processor(network_config, train_config, label_generator)
-    elif 'exp-1' in network_config['transformer']['head']['type']:
+    elif 'exp-1' in network_config['head']['type']:
         from .label.exp_1 import Exp1LabelGenerator
-        label_generator = Exp1LabelGenerator(network_config['data']['feature_size']['search'], network_config['data']['search_size'], train_config['data']['gaussian_target_label_min_overlap'])
+        label_generator = Exp1LabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'], train_config['data']['gaussian_target_label_min_overlap'])
         return _build_transt_data_processor(network_config, train_config, label_generator)
+    elif network_config['head']['type'] == 'Stark':
+        pass
     else:
         raise RuntimeError(f"Unknown {network_config['transformer']['head']['type']}")

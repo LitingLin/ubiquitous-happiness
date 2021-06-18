@@ -7,7 +7,6 @@ data:
   area_factor:
     template: 2.0
     search: 4.0
-  feature_size: [7, 7]
   template_size: [112, 112]
   search_size: [224, 224]
 
@@ -20,8 +19,11 @@ neck:
 head:
   type: Stark
   parameters:
+    input_size: [7, 7]
     input_dim: 256
     sub_type: StarkS
+    classification:
+      type:
     localization:
       type: CornerPredictor
       parameters:

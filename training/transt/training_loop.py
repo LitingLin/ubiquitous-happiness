@@ -22,7 +22,7 @@ def run_training_loop(args, train_config, runner, data_loader_train, data_loader
                          'epoch': epoch,
                          'n_parameters': runner.n_parameters()}
 
-            runner.move_next_epoch()
+            runner.move_to_next_epoch()
 
             if args.output_dir is not None:
                 dump_checkpoint_from_runner(epoch, args.output_dir, runner, 10, args.checkpoint_interval)
