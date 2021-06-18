@@ -10,7 +10,7 @@ import Dataset.Base.Video.dataset
 import Dataset.Base.Image.dataset
 
 image_dataset_key_exclude_list = ('name', 'split', 'version', 'filters', 'type', 'category_id_name_map', 'images', 'context')
-image_dataset_image_key_exclude_list = ('size', 'path', 'objects')
+image_dataset_image_key_exclude_list = ('size', 'path', 'objects', 'category_id')
 image_dataset_object_key_exclude_list = ('category_id', 'bounding_box')
 
 video_dataset_key_exclude_list = ('name', 'split', 'version', 'filters', 'type', 'category_id_name_map', 'sequences', 'context')
@@ -231,10 +231,16 @@ class BaseDatasetSequenceConstructor:
 
 
 class BaseDatasetImageConstructor:
-    def __init__(self, image: dict, root_path: str, context: _DatasetConstructionContext):
+    def __init__(self, image: dict, root_path: str, context: _DatasetConstructionContext, category_id_name_map: dict=None):
         self.image = image
         self.root_path = root_path
         self.context = context
+        self.category_id_name_map = category_id_name_map
+
+    def set_category_id(self, category_id):
+        assert self.category_id_name_map is not None, "set set_category_id_name_map first"
+        assert category_id in self.category_id_name_map
+        self.image['category_id'] = category_id
 
     def set_attribute(self, name: str, value):
         self.image[name] = value
@@ -325,6 +331,8 @@ class BaseVideoDatasetConstructor(_BaseDatasetConstructor):
 class BaseImageDatasetConstructor(_BaseDatasetConstructor):
     def __init__(self, dataset: dict, root_path: str, data_version: int, context: _DatasetConstructionContext):
         super(BaseImageDatasetConstructor, self).__init__(dataset, root_path, 'image', Dataset.Base.Image.dataset.__version__, data_version, context)
+        if 'images' not in dataset:
+            dataset['images'] = []
 
     def set_total_number_of_images(self, number: int):
         self.context.get_processing_bar().set_total(number)

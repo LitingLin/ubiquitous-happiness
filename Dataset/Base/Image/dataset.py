@@ -1,6 +1,5 @@
 import os
 from Dataset.Type.specialized_dataset import SpecializedImageDatasetType
-from data.types.bounding_box_format import BoundingBoxFormat
 from Dataset.Base.Common.dataset import _BaseDataset, _BaseDatasetObject
 from Miscellaneous.platform_style_path import join_path
 
@@ -11,6 +10,12 @@ class ImageDatasetImage:
     def __init__(self, image: dict, root_path: str):
         self.image = image
         self.root_path = root_path
+
+    def has_category_id(self):
+        return 'category_id' in self.image
+
+    def get_category_id(self):
+        return self.image['category_id']
 
     def has_attribute(self, name: str):
         return name in self.image
@@ -52,6 +57,9 @@ class ImageDataset(_BaseDataset):
         if type_ == SpecializedImageDatasetType.Detection:
             from Dataset.DET.Constructor.base import DetectionDatasetConstructorGenerator
             return DetectionDatasetConstructorGenerator(self.dataset, self.root_path, version)
+        elif type_ == SpecializedImageDatasetType.Classification:
+            from Dataset.CLS.Constructor.base import ImageClassificationDatasetConstructorGenerator
+            return ImageClassificationDatasetConstructorGenerator(self.dataset, self.root_path, version)
         else:
             raise NotImplementedError
 
@@ -63,6 +71,10 @@ class ImageDataset(_BaseDataset):
             return DetectionDataset_MemoryMapped(self.root_path,
                                                  construct_detection_dataset_memory_mapped_from_base_image_dataset(
                                                      self.dataset, path))
+        elif type_ == SpecializedImageDatasetType.Classification:
+            from Dataset.CLS.Storage.MemoryMapped.constructor import construct_image_classification_dataset_memory_mapped_from_base_image_dataset
+            from Dataset.CLS.Storage.MemoryMapped.dataset import ImageClassificationDataset_MemoryMapped
+            return ImageClassificationDataset_MemoryMapped(self.root_path, construct_image_classification_dataset_memory_mapped_from_base_image_dataset(self.dataset, path))
         else:
             raise NotImplementedError
 

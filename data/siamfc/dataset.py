@@ -201,16 +201,10 @@ def _build_tracking_dataset(data_config, dataset_config_path, post_processor, rn
 
 
 def build_tracking_dataset(train_config: dict, train_dataset_config_path: str, val_dataset_config_path: str, train_post_processor, val_post_processor):
-    train_data_config = None
-    if 'data' in train_config['train']:
-        train_data_config = train_config['train']['data']
-
+    train_data_config = train_config['data']['sampler']['train']
     train_dataset = _build_tracking_dataset(train_data_config, train_dataset_config_path, train_post_processor, 33)
 
-    val_data_config = None
-    if 'data' in train_config['val']:
-        val_data_config = train_config['val']['data']
+    val_data_config = train_config['data']['sampler']['val']
+    val_dataset = _build_tracking_dataset(val_data_config, val_dataset_config_path, val_post_processor, 44)
 
-    eval_dataset = _build_tracking_dataset(val_data_config, val_dataset_config_path, val_post_processor, 44)
-
-    return train_dataset, eval_dataset
+    return train_dataset, val_dataset

@@ -60,6 +60,12 @@ class DetectionDatasetImage_MemoryMapped:
     def get_image_size(self):
         return self.image_attributes['size']
 
+    def has_category_id(self):
+        return 'category_id' in self.image_attributes
+
+    def get_category_id(self):
+        return self.image_attributes['category_id']
+
     def __getitem__(self, index: int):
         if index >= len(self):
             raise IndexError

@@ -2,6 +2,7 @@ from enum import Enum, auto
 
 
 class SpecializedImageDatasetType(Enum):
+    Classification = auto()
     Detection = auto()
 
 

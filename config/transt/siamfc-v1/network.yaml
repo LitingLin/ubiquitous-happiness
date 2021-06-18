@@ -12,7 +12,7 @@ data:
   search_size: [224, 224]
 
 backbone:
-  type: alexnet
+  type: alexnet-bn
 
 neck:
   type: XCross

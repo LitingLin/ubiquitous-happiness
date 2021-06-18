@@ -38,8 +38,7 @@ class DetectionDatasetObjectConstructorGenerator:
 
 class DetectionDatasetImageConstructor(BaseDatasetImageConstructor):
     def __init__(self, image: dict, root_path: str, category_id_name_map: dict, context):
-        super(DetectionDatasetImageConstructor, self).__init__(image, root_path, context)
-        self.category_id_name_map = category_id_name_map
+        super(DetectionDatasetImageConstructor, self).__init__(image, root_path, context, category_id_name_map)
 
     def new_object(self):
         object_ = {}
@@ -63,8 +62,6 @@ class DetectionDatasetImageConstructorGenerator(BaseDatasetImageConstructorGener
 class DetectionDatasetConstructor(BaseImageDatasetConstructor):
     def __init__(self, dataset: dict, root_path: str, version: int, context):
         super(DetectionDatasetConstructor, self).__init__(dataset, root_path, version, context)
-        if 'images' not in dataset:
-            dataset['images'] = []
 
     def new_image(self):
         image = {}

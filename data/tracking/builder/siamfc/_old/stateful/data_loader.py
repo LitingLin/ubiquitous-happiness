@@ -18,7 +18,9 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
     stateful_objects = {}
     statistics_collectors = {}
 
-    train_data_config = train_config['data']['sampler']['train']
+    train_data_config = None
+    if 'data' in train_config['train']:
+        train_data_config = train_config['train']['data']
 
     train_sampler, train_dataset, train_worker_init_fn = build_siamfc_sampling_dataset(train_data_config, train_dataset_config_path,
                                                                         train_post_processor, train_sampling_orchestrator_server_address,
@@ -27,7 +29,9 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
     stateful_objects['train_sampling_orchestrator'] = train_sampler
     statistics_collectors['train_sampling_orchestrator'] = train_sampler
 
-    val_data_config = train_config['data']['sampler']['val']
+    val_data_config = None
+    if 'data' in train_config['val']:
+        val_data_config = train_config['val']['data']
 
     val_sampler, val_dataset, val_worker_init_fn = build_siamfc_sampling_dataset(val_data_config, val_dataset_config_path,
                                                                     val_post_processor, val_sampling_orchestrator_server_address,
@@ -39,10 +43,8 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
     epoch_changed_event_signal_slots = []
 
     train_data_loader, val_data_loader = build_torch_train_val_dataloader(train_dataset, val_dataset,
-                                                                          train_config['data']['sampler']['train'][
-                                                                              'batch_size'],
-                                                                          train_config['data']['sampler']['val'][
-                                                                              'batch_size'],
+                                                                          train_config['train']['batch_size'],
+                                                                          train_config['val']['batch_size'],
                                                                           args.num_workers, args.num_workers,
                                                                           args.device, args.distributed,
                                                                           epoch_changed_event_signal_slots,

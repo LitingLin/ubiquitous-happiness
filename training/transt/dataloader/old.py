@@ -1,4 +1,4 @@
-from data.tracking.methods.TransT.training.builder import build_transt_data_processor
+from data.tracking.methods.TransT.training._old.builder import build_transt_data_processor
 from data.performance.cuda_prefetcher import TensorFilteringByIndices
 
 

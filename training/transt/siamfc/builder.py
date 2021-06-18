@@ -1,7 +1,8 @@
 def build_siamfc_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                                         val_dataset_config_path: str):
     stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots = (None, None, None)
-    if 'dataloader' not in train_config or train_config['dataloader']['version'] == 'old':
+    sampler_parameters = train_config['data']['sampler']
+    if sampler_parameters['version'] == 'old':
         from .dataloader.old import build_old_dataloader
         (train_dataset, val_dataset),\
         (data_loader_train, data_loader_val),\

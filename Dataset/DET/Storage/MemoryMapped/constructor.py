@@ -21,6 +21,8 @@ def construct_detection_dataset_memory_mapped_from_base_image_dataset(base_datas
             'size': base_image['size'],
             'objects': object_attributes
         }
+        if 'category_id' in base_image:
+            image_attributes['category_id'] = base_image['category_id']
 
         bounding_box_matrix = []
         bounding_box_validity_flag_vector = []

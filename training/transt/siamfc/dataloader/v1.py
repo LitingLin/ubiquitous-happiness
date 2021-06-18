@@ -1,5 +1,5 @@
-from data.tracking.methods.TransT.training.builder import build_transt_data_processor
-from data.tracking.builder.siamfc.stateful.data_loader import build_siamfc_sampling_dataloader
+from data.tracking.methods.TransT.training._old.builder import build_transt_data_processor
+from data.tracking.builder.siamfc.data_loader import build_siamfc_sampling_dataloader
 from data.performance.cuda_prefetcher import TensorFilteringByIndices
 
 

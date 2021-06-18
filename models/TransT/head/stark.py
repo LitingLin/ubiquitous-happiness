@@ -100,10 +100,14 @@ class Corner_Predictor_MLP(nn.Module):
 
     def get_score_map(self, x):
         # top-left branch
+        N, C, H, W = x.shape
+        x = x.flatten(2).permute(1, 2)  # (N, H * W, C)
         score_map_tl = self.tl_mlp(x)
+        score_map_tl = score_map_tl.permute(1, 2).reshape(N, H, W)
 
         # bottom-right branch
         score_map_br = self.br_mlp(x)
+        score_map_br = score_map_br.permute(1, 2).reshape(N, H, W)
         return score_map_tl, score_map_br
 
     def soft_argmax(self, score_map):

@@ -1,5 +1,6 @@
 from torch import nn
 import torch.nn.functional as F
+from timm.models.layers import trunc_normal_
 
 
 class MLP(nn.Module):
@@ -13,7 +14,8 @@ class MLP(nn.Module):
 
     def reset_parameters(self):
         for module in self.layers:
-            nn.init.xavier_uniform_(module.weight, gain=1)
+            # nn.init.xavier_uniform_(module.weight, gain=1)
+            trunc_normal_(module.weight, std=.02)
             nn.init.constant_(module.bias, 0)
 
     def forward(self, x):
