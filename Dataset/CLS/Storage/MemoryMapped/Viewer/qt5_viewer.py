@@ -5,7 +5,7 @@ from PyQt5.QtGui import QPixmap, QColor
 import random
 
 
-class DetectionDatasetQt5Viewer:
+class CLSDatasetQt5Viewer:
     def __init__(self, dataset: ImageClassificationDataset_MemoryMapped):
         self.dataset = dataset
         self.viewer = Qt5Viewer()

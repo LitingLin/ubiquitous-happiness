@@ -35,7 +35,7 @@ class ImageClassificationDatasetImage_MemoryMapped:
 
 class ImageClassificationDataset_MemoryMapped(MemoryMappedDataset):
     def __init__(self, root_path: str, storage: ListMemoryMapped):
-        super(ImageClassificationDataset_MemoryMapped, self).__init__(root_path, storage, __version__, 'Detection')
+        super(ImageClassificationDataset_MemoryMapped, self).__init__(root_path, storage, __version__, 'ImageClassification')
 
     @staticmethod
     def load(path: str, root_path: str):

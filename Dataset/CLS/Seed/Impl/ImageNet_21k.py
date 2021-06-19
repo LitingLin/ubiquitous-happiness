@@ -13,6 +13,8 @@ def construct_ImageNet_21k(constructor: ImageClassificationDatasetConstructor, s
     wordnet_ids = np.genfromtxt(wordnet_id_file_path, dtype='str')
     category_id_name_map = {index_: str(wordnet_id) for index_, wordnet_id in enumerate(wordnet_ids)}
 
+    constructor.set_category_id_name_map(category_id_name_map)
+
     for class_id, class_name in category_id_name_map.items():
         class_path = os.path.join(root_path, class_name)
         if not os.path.isdir(class_path):
