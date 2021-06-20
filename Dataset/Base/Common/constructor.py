@@ -4,7 +4,7 @@ from data.types.bounding_box_format import BoundingBoxFormat
 from data.types.pixel_coordinate_system import PixelCoordinateSystem
 from data.types.bounding_box_coordinate_system import BoundingBoxCoordinateSystem
 from data.types.pixel_definition import PixelDefinition
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from tqdm import tqdm
 import Dataset.Base.Video.dataset
 import Dataset.Base.Image.dataset
@@ -187,8 +187,12 @@ def _add_path_impl(path, root_path):
 def set_path_(image_dict: dict, image_path: str, root_path: str, size):
     image_dict['path'] = _add_path_impl(image_path, root_path)
     if size is None:
-        image = Image.open(image_path)
-        image_dict['size'] = image.size
+        try:
+            image = Image.open(image_path)
+            image_dict['size'] = image.size
+        except UnidentifiedImageError:
+            print(f'Warning: failed to decode image file {image_path}')
+            image_dict['size'] = (0, 0)
     else:
         assert len(size) == 2
         for v in size:
