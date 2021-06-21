@@ -89,14 +89,20 @@ class ServerLauncher:
 
 class Client:
     def __init__(self, socket_address: str):
-        self.initialized = False
         self.socket_address = socket_address
 
     def _initialize(self):
-        if self.initialized is False:
+        if not hasattr(self, 'socket'):
             self.socket = zmq.Context.instance().socket(zmq.REQ)
             self.socket.connect(self.socket_address)
-            self.initialized = True
+
+    def start(self):
+        self._initialize()
+
+    def stop(self):
+        if hasattr(self, 'socket'):
+            self.socket.close()
+            del self.socket
 
     def __call__(self, *args):
         self._initialize()

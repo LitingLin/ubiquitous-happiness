@@ -1,5 +1,5 @@
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
-from data.tracking.sampler.SiamFC.stateful.api_sampler import SOTTrackingSiameseIterableDatasetApiGatewaySampler
+from data.tracking.sampler.SiamFC.stateful.old_api_sampler import SOTTrackingSiameseIterableDatasetApiGatewaySampler
 from data.tracking.dataset.siamfc.dataset import SiamFCDataset, siamfc_dataset_worker_init_fn
 from data.tracking.processor.siamfc.image_decoding import SiamFCImageDecodingProcessor
 import numpy as np

@@ -4,6 +4,7 @@ import numpy as np
 from ._dummy_bbox import generate_dummy_bbox_xyxy
 from data.operator.bbox.validity import bbox_is_valid
 from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
+from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod
 
 
 def _data_getter(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, track_id, index_of_frames, rng_engine: np.random.Generator):
@@ -47,10 +48,10 @@ def _sampling_one_track_in_sequence_and_generate_object_visible_mask(sequence: M
     return mask, track.get_id()
 
 
-def do_positive_sampling_in_multiple_object_tracking_dataset_sequence(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, frame_range: int, rng_engine: np.random.Generator):
+def do_positive_sampling_in_multiple_object_tracking_dataset_sequence(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, frame_range: int, sampling_method: SiamesePairSamplingMethod, rng_engine: np.random.Generator):
     mask, track_id = _sampling_one_track_in_sequence_and_generate_object_visible_mask(sequence, rng_engine)
 
-    return _data_getter(sequence, track_id, do_siamfc_pair_sampling_positive_only(len(sequence), frame_range, mask, rng_engine), rng_engine)
+    return _data_getter(sequence, track_id, do_siamfc_pair_sampling_positive_only(len(sequence), frame_range, mask, sampling_method, rng_engine), rng_engine)
 
 
 def do_negative_sampling_in_multiple_object_tracking_dataset_sequence(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, frame_range: int, rng_engine: np.random.Generator):
@@ -59,10 +60,10 @@ def do_negative_sampling_in_multiple_object_tracking_dataset_sequence(sequence: 
     return _data_getter(sequence, track_id, do_siamfc_pair_sampling_negative_only(len(sequence), frame_range, mask, rng_engine), rng_engine)
 
 
-def do_sampling_in_multiple_object_tracking_dataset_sequence(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, frame_range: int, rng_engine: np.random.Generator):
+def do_sampling_in_multiple_object_tracking_dataset_sequence(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, frame_range: int, sampling_method: SiamesePairSamplingMethod, rng_engine: np.random.Generator):
     mask, track_id = _sampling_one_track_in_sequence_and_generate_object_visible_mask(sequence, rng_engine)
 
-    indices, is_positive = do_siamfc_pair_sampling(len(sequence), frame_range, mask, rng_engine)
+    indices, is_positive = do_siamfc_pair_sampling(len(sequence), frame_range, mask, sampling_method, rng_engine)
     return _data_getter(sequence, track_id, indices, rng_engine), is_positive
 
 

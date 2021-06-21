@@ -6,6 +6,7 @@ from data.tracking.processor.siamfc.image_decoding import SiamFCImageDecodingPro
 from Miscellaneous.torch.distributed import is_main_process
 import numpy as np
 import copy
+from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod
 
 
 def _customized_dataset_parameter_handler(datasets, parameters):
@@ -32,18 +33,23 @@ def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, p
 
     samples_per_epoch = sum(tuple(len(dataset) for dataset in datasets))
     negative_sample_ratio = 0
-    default_frame_range = 100
+    sequence_sampler_parameters = data_config['sequence_sampler']['parameters']
+    default_frame_range = sequence_sampler_parameters['frame_range']
+    sequence_sampling_method = SiamesePairSamplingMethod[sequence_sampler_parameters['sampling_method']]
+    enforce_fine_positive_sample = False
+    if 'enforce_fine_positive_sample' in sequence_sampler_parameters:
+        enforce_fine_positive_sample = sequence_sampler_parameters['enforce_fine_positive_sample']
+    enable_adaptive_frame_range = True
+    if 'enable_adaptive_frame_range' in sequence_sampler_parameters:
+        enable_adaptive_frame_range = sequence_sampler_parameters['enable_adaptive_frame_range']
 
-    if data_config is not None:
-        if 'samples_per_epoch' in data_config:
-            samples_per_epoch = data_config['samples_per_epoch']
-        if 'repeat_times_per_epoch' in data_config:
-            repeat_times_per_epoch = data_config['repeat_times_per_epoch']
-            samples_per_epoch = samples_per_epoch * repeat_times_per_epoch
-        if 'negative_sample_ratio' in data_config:
-            negative_sample_ratio = data_config['negative_sample_ratio']
-        if 'sequence_sampling_frame_range' in data_config:
-            default_frame_range = data_config['sequence_sampling_frame_range']
+    if 'samples_per_epoch' in data_config:
+        samples_per_epoch = data_config['samples_per_epoch']
+    if 'repeat_times_per_epoch' in data_config:
+        repeat_times_per_epoch = data_config['repeat_times_per_epoch']
+        samples_per_epoch = samples_per_epoch * repeat_times_per_epoch
+    if 'negative_sample_ratio' in data_config:
+        negative_sample_ratio = data_config['negative_sample_ratio']
 
     useful_dataset_parameters = [{}] * len(datasets)
     dataset_sampling_weights = []
@@ -68,8 +74,10 @@ def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, p
         sampler_server = None
 
     sampler = SOTTrackingSiameseIterableDatasetApiGatewaySampler(sampling_orchestrator_server_address, datasets,
-                                                                 negative_sample_ratio, default_frame_range,
+                                                                 negative_sample_ratio, enforce_fine_positive_sample,
+                                                                 sequence_sampling_method, enable_adaptive_frame_range,
+                                                                 default_frame_range,
                                                                  useful_dataset_parameters, dataset_sampling_weights,
                                                                  processor)
 
-    return sampler_server, SiamFCDataset(sampler, samples_per_epoch), siamfc_dataset_worker_init_fn
+    return sampler_server, sampler, SiamFCDataset(sampler, samples_per_epoch), siamfc_dataset_worker_init_fn

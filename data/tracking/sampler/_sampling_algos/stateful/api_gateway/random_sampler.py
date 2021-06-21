@@ -9,15 +9,18 @@ class ApiGatewayRandomSamplerServer:
         self.client = Client(socket_address)
 
     def __del__(self):
+        self.client.stop()
         self.server.stop()
 
     def start(self):
         if not self.server.is_launched():
             self.server.launch()
+            self.client.start()
 
     def stop(self):
         if self.server.is_launched():
             self.server_callback.set_state(self.client('get_state', ))
+            self.client.stop()
             self.server.stop()
 
     def get_state(self):
@@ -46,3 +49,9 @@ class ApiGatewayRandomSampler:
     def get_next(self):
         index_of_dataset, index_of_sequence = self.client('get_next', )
         return index_of_dataset, index_of_sequence
+
+    def start(self):
+        self.client.start()
+
+    def stop(self):
+        self.client.stop()

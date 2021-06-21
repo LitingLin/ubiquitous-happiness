@@ -1,5 +1,6 @@
 from data.tracking.sampler._sampling_algos.stateless.random import sampling_multiple_indices_with_range_and_mask, sampling, sampling_with_mask
 import numpy as np
+from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod
 
 
 def sample_one_positive(length, mask, rng_engine: np.random.Generator):
@@ -11,26 +12,42 @@ def sample_one_positive(length, mask, rng_engine: np.random.Generator):
     return z_index
 
 
-def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
+def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None, sampling_method: SiamesePairSamplingMethod=SiamesePairSamplingMethod.causal, rng_engine: np.random.Generator=np.random.default_rng()):
+    assert frame_range > 0
     z_index = sample_one_positive(length, mask, rng_engine)
 
     if length == 1:
         return (z_index,), 0
 
-    x_frame_begin = z_index - frame_range
-    x_frame_begin = max(x_frame_begin, 0)
-    x_frame_end = z_index + frame_range + 1
-    x_frame_end = min(x_frame_end, length)
+    if sampling_method == SiamesePairSamplingMethod.causal:
+        x_frame_begin = z_index + 1
+        x_frame_end = z_index + frame_range + 1
+        x_frame_end = min(x_frame_end, length)
+        if x_frame_begin >= x_frame_end:
+            return (z_index,), 0
+    elif sampling_method == SiamesePairSamplingMethod.interval:
+        x_frame_begin = z_index - frame_range
+        x_frame_begin = max(x_frame_begin, 0)
+        x_frame_end = z_index + frame_range + 1
+        x_frame_end = min(x_frame_end, length)
+    else:
+        raise NotImplementedError
 
     x_candidate_indices = np.arange(x_frame_begin, x_frame_end)
-    if mask is None:
-        x_candidate_indices = np.delete(x_candidate_indices, z_index - x_frame_begin)
+
+    if sampling_method == SiamesePairSamplingMethod.causal:
+        if mask is not None:
+            x_candidate_indices_mask = np.copy(mask[x_frame_begin: x_frame_end])
+            x_candidate_indices = x_candidate_indices[x_candidate_indices_mask]
     else:
-        x_candidate_indices_mask = np.copy(mask[x_frame_begin: x_frame_end])
-        x_candidate_indices_mask[z_index - x_frame_begin] = False
-        x_candidate_indices = x_candidate_indices[x_candidate_indices_mask]
-        if len(x_candidate_indices) == 0:
-            return (z_index,), 0
+        if mask is None:
+            x_candidate_indices = np.delete(x_candidate_indices, z_index - x_frame_begin)
+        else:
+            x_candidate_indices_mask = np.copy(mask[x_frame_begin: x_frame_end])
+            x_candidate_indices_mask[z_index - x_frame_begin] = False
+            x_candidate_indices = x_candidate_indices[x_candidate_indices_mask]
+    if len(x_candidate_indices) == 0:
+        return (z_index,), 0
 
     x_index = rng_engine.choice(x_candidate_indices)
     if mask is not None and not mask[x_index]:
@@ -40,8 +57,15 @@ def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None
     return (z_index, x_index), is_positive
 
 
-def do_siamfc_pair_sampling_positive_only(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
-    return sampling_multiple_indices_with_range_and_mask(length, mask, 2, frame_range, allow_duplication=False, allow_insufficiency=True, sort=False, rng_engine=rng_engine)
+def do_siamfc_pair_sampling_positive_only(length: int, frame_range: int, mask: np.ndarray=None, sampling_method: SiamesePairSamplingMethod=SiamesePairSamplingMethod.causal, rng_engine: np.random.Generator=np.random.default_rng()):
+    assert frame_range > 0
+    sort = False
+    if sampling_method == SiamesePairSamplingMethod.causal:
+        sort = True
+        frame_range = frame_range + 1
+    elif sampling_method == SiamesePairSamplingMethod.interval:
+        frame_range = 2 * frame_range + 1
+    return sampling_multiple_indices_with_range_and_mask(length, mask, 2, frame_range, allow_duplication=False, allow_insufficiency=True, sort=sort, rng_engine=rng_engine)
 
 
 def _gaussian(x, mu, sig):

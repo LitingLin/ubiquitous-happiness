@@ -2,6 +2,7 @@ import numpy as np
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
 from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped
 from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapped
+from data.tracking.sampler._sampling_algos.stateful.api_gateway.random_sampler import ApiGatewayRandomSampler
 
 from data.tracking.sampler._sampler.sequence.SiamFC.DET import \
     do_sampling_in_detection_dataset_image, get_one_random_sample_in_detection_dataset_image
@@ -15,12 +16,15 @@ from data.tracking.sampler._sampler.sequence.SiamFC.MOT import \
     get_one_random_sample_in_multiple_object_tracking_dataset_sequence
 
 
-class SOTTrackingSiameseIterableDatasetSampler:
-    def __init__(self, datasets, negative_sample_ratio, datasets_sampling_parameters=None, datasets_sampling_weight=None, data_processor=None):
+class SOTTrackingSiameseIterableDatasetApiGatewaySampler:
+    def __init__(self, server_address, datasets, negative_sample_ratio, default_frame_range = 100, datasets_sampling_parameters=None, datasets_sampling_weight=None, data_processor=None):
+        self.sampling_server = ApiGatewayRandomSampler(server_address)
+
         self.datasets = datasets
 
         self.dataset_lengths = [len(dataset) for dataset in datasets]
         self.datasets_sampling_weight = datasets_sampling_weight
+        self.default_frame_range = default_frame_range
         self.negative_sample_ratio = negative_sample_ratio
         self.data_processor = data_processor
         self.datasets_sampling_parameters = datasets_sampling_parameters
@@ -30,13 +34,11 @@ class SOTTrackingSiameseIterableDatasetSampler:
         self.current_is_sampling_positive_sample = None
 
     def move_next(self, rng_engine: np.random.Generator):
-        index_of_dataset = rng_engine.choice(np.arange(len(self.datasets)), p=self.datasets_sampling_weight)
+        index_of_dataset, index_of_sequence = self.sampling_server.get_next()
         if self.negative_sample_ratio == 0:
             is_negative = False
         else:
             is_negative = rng_engine.random() < self.negative_sample_ratio
-
-        index_of_sequence = rng_engine.integers(0, self.dataset_lengths[index_of_dataset])
 
         self.current_index_of_dataset = index_of_dataset
         self.current_is_sampling_positive_sample = not is_negative
@@ -61,7 +63,7 @@ class SOTTrackingSiameseIterableDatasetSampler:
         dataset = self.datasets[self.current_index_of_dataset]
         sequence = dataset[self.current_index_of_sequence]
 
-        frame_range = 100
+        frame_range = self.default_frame_range
         if self.datasets_sampling_parameters is not None:
             sampling_parameter = self.datasets_sampling_parameters[self.current_index_of_dataset]
             if 'frame_range' in sampling_parameter:
