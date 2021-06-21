@@ -15,7 +15,7 @@ data:
     version: 2
 
     train:
-      batch_size: 64
+      batch_size: 16
       samples_per_epoch: 32768
 
       sequence_sampler:
@@ -24,7 +24,7 @@ data:
           frame_range: 100
 
     val:
-      batch_size: 64
+      batch_size: 16
       repeat_times_per_epoch: 1
 
       sequence_sampler:
@@ -35,12 +35,11 @@ data:
 optimization:
   epochs: 50
   optimizer:
-    type: SGD
+    type: AdamW
     lr: 1.e-3
     lr_backbone: 1.e-4
     weight_decay: 5.e-4
     momentum: 0.9
-    nesterov: true
     lr_scheduler:
       type: ExponentialLR
       ultimate_lr: 1.e-5

@@ -28,7 +28,7 @@ class DETR(nn.Module):
     def __init__(self, backbone, transformer, num_queries):
         """ Initializes the model.
         Parameters:
-            backbone: torch module of the backbone to be used. See backbone.py
+            backbone: torch module of the backbone to be used. See base.py
             transformer: torch module of the transformer architecture. See transformer.py
             num_queries: number of object queries, ie detection slot. This is the maximal number of objects
                          DETR can detect in a single image. For COCO, we recommend 100 queries.

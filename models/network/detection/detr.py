@@ -21,7 +21,7 @@ class DETR(nn.Module):
     def __init__(self, backbone, transformer, num_classes, num_queries, aux_loss=False):
         """ Initializes the model.
         Parameters:
-            backbone: torch module of the backbone to be used. See backbone.py
+            backbone: torch module of the backbone to be used. See base.py
             transformer: torch module of the transformer architecture. See detr_transformer.py
             num_classes: number of object classes
             num_queries: number of object queries, ie detection slot. This is the maximal number of objects

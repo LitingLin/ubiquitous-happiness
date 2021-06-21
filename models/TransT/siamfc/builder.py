@@ -10,7 +10,13 @@ def build_backbone(network_config: dict, load_pretrained=True):
         backbone = AlexNet()
     elif backbone_type == 'resnet-18-pytracking':
         from models.backbone.pytracking.resnet import resnet18
-        backbone = resnet18(pretrained=load_pretrained)
+        backbone = resnet18(pretrained=load_pretrained, output_layers=backbone_config['output_layers'])
+    elif backbone_type == 'resnet-18-vggm':
+        from models.backbone.pytracking.resnet18_vggm import resnet18_vggmconv1
+        backbone = resnet18_vggmconv1(output_layers=backbone_config['output_layers'])
+    elif backbone_type == 'resnet-50-atrous':
+        from models.backbone.pysot.resnet_atrous import construct_resnet50_atrous
+        backbone = construct_resnet50_atrous(load_pretrained, backbone_config['output_layers'])
     else:
         raise NotImplementedError(f"Unknown backbone type {backbone_type}")
     return backbone

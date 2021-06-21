@@ -172,6 +172,13 @@ class ResNet(Backbone):
             outputs[name] = x
         return len(output_layers) == len(outputs)
 
+    @staticmethod
+    def _to_list(dict_: OrderedDict):
+        if len(dict_) == 1:
+            return dict_.popitem()[1]
+        else:
+            return list(dict_.values())
+
     def forward(self, x, output_layers=None):
         """ Forward pass with input x. The output_layers specify the feature blocks which must be returned """
         outputs = OrderedDict()
@@ -184,36 +191,36 @@ class ResNet(Backbone):
         x = self.relu(x)
 
         if self._add_output_and_check('conv1', x, outputs, output_layers):
-            return outputs
+            return self._to_list(outputs)
 
         x = self.maxpool(x)
 
         x = self.layer1(x)
 
         if self._add_output_and_check('layer1', x, outputs, output_layers):
-            return outputs
+            return self._to_list(outputs)
 
         x = self.layer2(x)
 
         if self._add_output_and_check('layer2', x, outputs, output_layers):
-            return outputs
+            return self._to_list(outputs)
 
         x = self.layer3(x)
 
         if self._add_output_and_check('layer3', x, outputs, output_layers):
-            return outputs
+            return self._to_list(outputs)
 
         x = self.layer4(x)
 
         if self._add_output_and_check('layer4', x, outputs, output_layers):
-            return outputs
+            return self._to_list(outputs)
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
         if self._add_output_and_check('fc', x, outputs, output_layers):
-            return outputs
+            return self._to_list(outputs)
 
         if len(output_layers) == 1 and output_layers[0] == 'default':
             return x
