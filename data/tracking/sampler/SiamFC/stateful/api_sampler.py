@@ -17,8 +17,8 @@ from data.tracking.sampler._sampler.sequence.SiamFC.MOT import \
 
 
 class SOTTrackingSiameseIterableDatasetApiGatewaySampler:
-    def __init__(self, server_address, seed, datasets, negative_sample_ratio, default_frame_range = 100, datasets_sampling_parameters=None, datasets_sampling_weight=None, data_processor=None):
-        self.sampling_server = ApiGatewayRandomSampler(datasets, datasets_sampling_weight, server_address, seed)
+    def __init__(self, server_address, datasets, negative_sample_ratio, default_frame_range = 100, datasets_sampling_parameters=None, datasets_sampling_weight=None, data_processor=None):
+        self.sampling_server = ApiGatewayRandomSampler(server_address)
 
         self.datasets = datasets
 
@@ -35,13 +35,10 @@ class SOTTrackingSiameseIterableDatasetApiGatewaySampler:
 
     def move_next(self, rng_engine: np.random.Generator):
         index_of_dataset, index_of_sequence = self.sampling_server.get_next()
-        index_of_dataset = rng_engine.choice(np.arange(len(self.datasets)), p=self.datasets_sampling_weight)
         if self.negative_sample_ratio == 0:
             is_negative = False
         else:
             is_negative = rng_engine.random() < self.negative_sample_ratio
-
-        index_of_sequence = rng_engine.integers(0, self.dataset_lengths[index_of_dataset])
 
         self.current_index_of_dataset = index_of_dataset
         self.current_is_sampling_positive_sample = not is_negative
@@ -111,15 +108,3 @@ class SOTTrackingSiameseIterableDatasetApiGatewaySampler:
         if self.data_processor is not None:
             data = self.data_processor(*data)
         return data
-
-    def start(self):
-        self.sampling_server.launch()
-
-    def stop(self):
-        self.sampling_server.stop()
-
-    def get_state(self):
-        return self.sampling_server.get_state()
-
-    def set_state(self, state):
-        self.sampling_server.set_state(state)

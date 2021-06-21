@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class ApiGatewayRandomSamplerServer:
+class ApiGatewayRandomSamplerServerHandler:
     def __init__(self, datasets, datasets_sampling_probability, seed):
         self.datasets_sampling_probability = datasets_sampling_probability
         self.rng_engine = np.random.Generator(np.random.PCG64(seed))

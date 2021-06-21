@@ -20,21 +20,28 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
 
     train_data_config = train_config['data']['sampler']['train']
 
-    train_sampler, train_dataset, train_worker_init_fn = build_siamfc_sampling_dataset(train_data_config, train_dataset_config_path,
+    train_sampler_orchestrator_server, train_dataset, train_worker_init_fn = build_siamfc_sampling_dataset(train_data_config, train_dataset_config_path,
                                                                         train_post_processor, train_sampling_orchestrator_server_address,
-                                                                        train_seed, training_start_event_signal_slots, training_stop_event_signal_slots)
+                                                                        train_seed)
 
-    stateful_objects['train_sampling_orchestrator'] = train_sampler
-    statistics_collectors['train_sampling_orchestrator'] = train_sampler
+    if train_sampler_orchestrator_server is not None:
+        stateful_objects['train_sampling_orchestrator'] = train_sampler_orchestrator_server
+        statistics_collectors['train_sampling_orchestrator'] = train_sampler_orchestrator_server
+        training_start_event_signal_slots.append(train_sampler_orchestrator_server)
+        training_stop_event_signal_slots.append(train_sampler_orchestrator_server)
 
     val_data_config = train_config['data']['sampler']['val']
 
-    val_sampler, val_dataset, val_worker_init_fn = build_siamfc_sampling_dataset(val_data_config, val_dataset_config_path,
+    val_sampler_orchestrator_server, val_dataset, val_worker_init_fn = build_siamfc_sampling_dataset(val_data_config, val_dataset_config_path,
                                                                     val_post_processor, val_sampling_orchestrator_server_address,
-                                                                    val_seed, training_start_event_signal_slots, training_stop_event_signal_slots)
+                                                                    val_seed)
 
-    stateful_objects['val_sampling_orchestrator'] = val_sampler
-    statistics_collectors['val_sampling_orchestrator'] = val_sampler
+    if val_sampler_orchestrator_server is not None:
+        stateful_objects['val_sampling_orchestrator'] = val_sampler_orchestrator_server
+        statistics_collectors['val_sampling_orchestrator'] = val_sampler_orchestrator_server
+        training_start_event_signal_slots.append(val_sampler_orchestrator_server)
+        training_stop_event_signal_slots.append(val_sampler_orchestrator_server)
+
 
     epoch_changed_event_signal_slots = []
 

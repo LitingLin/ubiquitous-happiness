@@ -1,7 +1,9 @@
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
 from data.tracking.sampler.SiamFC.stateful.api_sampler import SOTTrackingSiameseIterableDatasetApiGatewaySampler
+from data.tracking.sampler._sampling_algos.stateful.api_gateway.random_sampler import ApiGatewayRandomSamplerServer
 from data.tracking.dataset.siamfc.dataset import SiamFCDataset, siamfc_dataset_worker_init_fn
 from data.tracking.processor.siamfc.image_decoding import SiamFCImageDecodingProcessor
+from Miscellaneous.torch.distributed import is_main_process
 import numpy as np
 import copy
 
@@ -25,7 +27,7 @@ def _customized_dataset_parameter_handler(datasets, parameters):
     return datasets_parameters
 
 
-def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, post_processor, sampling_orchestrator_server_address, seed, training_start_event_slot, training_stop_event_slot):
+def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, post_processor, sampling_orchestrator_server_address, seed):
     datasets, dataset_parameters = build_dataset_from_config_distributed_awareness(dataset_config_path, _customized_dataset_parameter_handler)
 
     samples_per_epoch = sum(tuple(len(dataset) for dataset in datasets))
@@ -59,11 +61,15 @@ def build_siamfc_sampling_dataset(data_config: dict, dataset_config_path: str, p
     dataset_sampling_weights = dataset_sampling_weights / dataset_sampling_weights.sum()
 
     processor = SiamFCImageDecodingProcessor(post_processor)
-    sampler = SOTTrackingSiameseIterableDatasetApiGatewaySampler(sampling_orchestrator_server_address, seed, datasets,
+
+    if is_main_process():
+        sampler_server = ApiGatewayRandomSamplerServer(datasets, dataset_sampling_weights, sampling_orchestrator_server_address, seed)
+    else:
+        sampler_server = None
+
+    sampler = SOTTrackingSiameseIterableDatasetApiGatewaySampler(sampling_orchestrator_server_address, datasets,
                                                                  negative_sample_ratio, default_frame_range,
                                                                  useful_dataset_parameters, dataset_sampling_weights,
                                                                  processor)
-    training_start_event_slot.append(sampler)
-    training_stop_event_slot.append(sampler)
 
-    return sampler, SiamFCDataset(sampler, samples_per_epoch), siamfc_dataset_worker_init_fn
+    return sampler_server, SiamFCDataset(sampler, samples_per_epoch), siamfc_dataset_worker_init_fn
