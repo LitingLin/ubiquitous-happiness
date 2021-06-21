@@ -21,38 +21,38 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
     train_data_config = train_config['data']['sampler']['train']
 
     train_sequence_sampler_parameters = train_data_config['sequence_sampler']
-    if train_sequence_sampler_parameters['type'] == 'sequence_sampler':
+    if train_sequence_sampler_parameters['type'] == 'Siamese':
         train_sampler_orchestrator_server, train_sampler_orchestrator, train_dataset, train_worker_init_fn =\
             build_siamfc_sampling_dataset(train_data_config, train_dataset_config_path, train_post_processor,
                                           train_sampling_orchestrator_server_address, train_seed)
     else:
         raise NotImplementedError
 
-    training_stop_event_signal_slots.append(train_sampler_orchestrator)
+    # training_stop_event_signal_slots.append(train_sampler_orchestrator)
     if train_sampler_orchestrator_server is not None:
         stateful_objects['train_sampling_orchestrator'] = train_sampler_orchestrator_server
         statistics_collectors['train_sampling_orchestrator'] = train_sampler_orchestrator_server
         training_start_event_signal_slots.append(train_sampler_orchestrator_server)
         training_stop_event_signal_slots.append(train_sampler_orchestrator_server)
-    training_start_event_signal_slots.append(train_sampler_orchestrator)
+    # training_start_event_signal_slots.append(train_sampler_orchestrator)
 
     val_data_config = train_config['data']['sampler']['val']
 
     val_sequence_sampler_parameters = val_data_config['sequence_sampler']
-    if val_sequence_sampler_parameters['type'] == 'sequence_sampler':
+    if val_sequence_sampler_parameters['type'] == 'Siamese':
         val_sampler_orchestrator_server, val_sampler_orchestrator, val_dataset, val_worker_init_fn =\
             build_siamfc_sampling_dataset(val_data_config, val_dataset_config_path, val_post_processor,
                                           val_sampling_orchestrator_server_address, val_seed)
     else:
         raise NotImplementedError
 
-    training_stop_event_signal_slots.append(val_sampler_orchestrator)
+    # training_stop_event_signal_slots.append(val_sampler_orchestrator)
     if val_sampler_orchestrator_server is not None:
         stateful_objects['val_sampling_orchestrator'] = val_sampler_orchestrator_server
         statistics_collectors['val_sampling_orchestrator'] = val_sampler_orchestrator_server
         training_start_event_signal_slots.append(val_sampler_orchestrator_server)
         training_stop_event_signal_slots.append(val_sampler_orchestrator_server)
-    training_start_event_signal_slots.append(val_sampler_orchestrator)
+    # training_start_event_signal_slots.append(val_sampler_orchestrator)
 
     epoch_changed_event_signal_slots = []
 
