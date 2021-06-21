@@ -17,7 +17,6 @@ data:
     train:
       batch_size: 64
       samples_per_epoch: 32768
-      # repeat_times_per_epoch: 2
 
       sequence_sampler:
         type: Siamese
@@ -35,7 +34,6 @@ data:
 
 optimization:
   epochs: 50
-  # model_initialization: xavier
   optimizer:
     type: SGD
     lr: 1.e-3

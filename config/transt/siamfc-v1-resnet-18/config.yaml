@@ -1,0 +1,27 @@
+name: SiamFC-GOT
+
+version: 3
+type: SiamFC
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [128, 128]
+  search_size: [256, 256]
+
+backbone:
+  type: resnet-18-pytracking
+
+neck:
+  type: DualPathXCorr
+  parameters:
+    input_dim: 256
+    hidden_dim: 256
+
+head:
+  type: DETR
+  parameters:
+    input_size: [17, 17]
+    input_dim: 256
+    hidden_dim: 256
