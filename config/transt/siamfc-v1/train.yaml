@@ -15,7 +15,7 @@ data:
     version: 2
 
     train:
-      batch_size: 16
+      batch_size: 128
       samples_per_epoch: 38000
       # repeat_times_per_epoch: 2
 
@@ -25,7 +25,7 @@ data:
           frame_range: 100
 
     val:
-      batch_size: 16
+      batch_size: 128
       repeat_times_per_epoch: 1
 
       sequence_sampler:

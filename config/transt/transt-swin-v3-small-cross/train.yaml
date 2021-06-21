@@ -16,7 +16,7 @@ data:
 train:
   lr: 1.e-4
   lr_backbone: 1.e-5
-  batch_size: 16
+  batch_size: 2
   weight_decay: 1.e-4
   epochs: 1000
   lr_drop: 500
@@ -31,7 +31,7 @@ train:
     use_template: transt
 
 val:
-  batch_size: 16
+  batch_size: 2
 
   data:
     repeat_times_per_epoch: 1
