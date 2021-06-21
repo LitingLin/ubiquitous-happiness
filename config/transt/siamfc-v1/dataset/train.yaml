@@ -28,16 +28,3 @@ DATASETS:
   LaSOT:
     SPLITS:
       - "train"
-  YoutubeBB:
-
-  COCO:
-    Sampling:
-      weight: 0.5
-
-  ILSVRC_DET:
-    Sampling:
-      weight: 0.5
-
-  ILSVRC_VID:
-    Sampling:
-      weight: 0.5
