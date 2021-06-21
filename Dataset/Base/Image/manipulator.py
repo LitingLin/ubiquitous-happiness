@@ -15,6 +15,8 @@ class ImageDatasetImageManipulator:
         self.image['name'] = name
 
     def __len__(self):
+        if 'objects' not in self.image:
+            return 0
         return len(self.image['objects'])
 
     def __iter__(self):
