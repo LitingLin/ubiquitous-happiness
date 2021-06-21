@@ -57,7 +57,7 @@ class TransTRunner:
     def move_to_next_epoch(self):
         if self.statistics_collectors is not None:
             print(f'Epoch {self.epoch} statistics:')
-            for statistics_collector_name, statistics_collector in self.statistics_collectors.items:
+            for statistics_collector_name, statistics_collector in self.statistics_collectors.items():
                 print('----------------------------')
                 print(f'{statistics_collector_name}:')
                 print(statistics_collector.get_status())

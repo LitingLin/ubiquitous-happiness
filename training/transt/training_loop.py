@@ -41,6 +41,9 @@ def run_training_loop(args, train_config, runner, data_loader_train, data_loader
                 if is_main_process():
                     with open(os.path.join(args.output_dir, "log.txt"), "a") as f:
                         f.write(json.dumps(log_stats) + "\n")
+
+        if args.output_dir is not None:
+            dump_checkpoint_from_runner(epoch, args.output_dir, runner, 1, 1)
     total_time = time.perf_counter() - start_time
     total_time_str = str(datetime.timedelta(seconds=total_time))
     print('Training time {}'.format(total_time_str))
