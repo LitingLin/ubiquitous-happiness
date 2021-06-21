@@ -22,6 +22,9 @@ class DatasetContextDAO:
             self.bounding_box_data_type = bounding_box_data_type
             self.pixel_coordinate_system = PixelCoordinateSystem[context['pixel_coordinate_system']]
 
+    def has_context(self):
+        return 'context' in self.attributes
+
     def _try_allocate_context_object(self):
         if 'context' not in self.attributes:
             self.attributes['context'] = {}

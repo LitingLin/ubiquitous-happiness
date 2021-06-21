@@ -52,6 +52,9 @@ class ImageDatasetTweakTool:
                                                                         bounding_box_coordinate_system,
                                                                         pixel_definition,
                                                                         self.manipulator.context_dao)
+        if converter is None:
+            return
+
         for image in self.manipulator:
             for object_ in image:
                 if object_.has_bounding_box():

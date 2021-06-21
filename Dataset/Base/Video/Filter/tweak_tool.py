@@ -34,6 +34,9 @@ class VideoDatasetTweakTool:
                                                                         bounding_box_coordinate_system,
                                                                         pixel_definition,
                                                                         self.manipulator.context_dao)
+        if converter is None:
+            return
+
         for sequence in self.manipulator:
             for frame in sequence:
                 for object_ in frame:

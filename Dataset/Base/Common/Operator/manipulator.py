@@ -34,6 +34,9 @@ def update_objects_bounding_box_validity(frame, context, skip_if_mark_non_validi
 
 def prepare_bounding_box_annotation_standard_conversion(bounding_box_format, pixel_coordinate_system,
                                                      bounding_box_coordinate_system, pixel_definition, context):
+    if not context.has_context():
+        return None
+
     from data.operator.bbox.transform.compile import compile_bbox_transform
     if bounding_box_format is None:
         bounding_box_format = context.get_bounding_box_format()
