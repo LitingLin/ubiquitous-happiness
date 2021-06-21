@@ -6,8 +6,8 @@ def build_backbone(network_config: dict, load_pretrained=True):
 
     backbone_type = backbone_config['type']
     if backbone_type == 'Alexnet-BN':
-        from models.backbone.alexnet_bn import AlexNet
-        backbone = AlexNet()
+        from models.backbone.pysot.alexnet import construct_alexnet
+        backbone = construct_alexnet(load_pretrained, output_layers=backbone_config['output_layers'])
     elif backbone_type == 'resnet-18-pytracking':
         from models.backbone.pytracking.resnet import resnet18
         backbone = resnet18(pretrained=load_pretrained, output_layers=backbone_config['output_layers'])

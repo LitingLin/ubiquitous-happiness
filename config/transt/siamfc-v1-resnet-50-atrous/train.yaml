@@ -34,6 +34,7 @@ data:
 
 optimization:
   epochs: 50
+  sync_bn: true
   optimizer:
     type: SGD
     lr: 1.e-3

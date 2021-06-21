@@ -35,13 +35,15 @@ data:
 
 optimization:
   epochs: 50
+  sync_bn: true
   # model_initialization: xavier
   optimizer:
-    type: AdamW
-    lr: 1.e-3
+    type: SGD
+    lr: 1.e-2
     lr_backbone: 1.e-4
     weight_decay: 5.e-4
     momentum: 0.9
+    nesterov: true
     lr_scheduler:
       type: ExponentialLR
       ultimate_lr: 1.e-5

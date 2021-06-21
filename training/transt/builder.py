@@ -17,6 +17,12 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, add
     criterion = build_criterion(train_config)
     optimizer, lr_scheduler = setup_optimizer(model, net_config, train_config)
 
+    if 'sync_bn' in train_config['optimization']:
+        if train_config['optimization']['sync_bn']:
+            from Miscellaneous.torch.distributed import is_dist_available_and_initialized
+            if is_dist_available_and_initialized():
+                model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
+
     model.to(device)
     criterion.to(device)
 

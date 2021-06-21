@@ -12,6 +12,7 @@ data:
 
 backbone:
   type: Alexnet-BN
+  output_layers: [4]
 
 neck:
   type: DualPathXCorr
