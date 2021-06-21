@@ -17,8 +17,9 @@ class SiamFCDataset(torch.utils.data.Dataset):
         self.rng_engine = np.random.Generator(np.random.PCG64(seed))
 
     def __getitem__(self, index):
-        self.dataset_sampler.move_next(self.rng_engine)
-        return self.dataset_sampler.do_sampling(self.rng_engine)
+        return self.dataset_sampler.get_next(self.rng_engine)
+        # self.dataset_sampler.move_next(self.rng_engine)
+        # return self.dataset_sampler.do_sampling(self.rng_engine)
 
     def __len__(self):
         return self.samples_per_epoch
