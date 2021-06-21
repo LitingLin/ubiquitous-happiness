@@ -8,7 +8,7 @@ def get_standard_trainning_dataset_filter():
     from data.types.pixel_definition import PixelDefinition
     filters = [DataCleaning_AnnotationStandard(BoundingBoxFormat.XYXY, PixelCoordinateSystem.Aligned, BoundingBoxCoordinateSystem.Spatial, PixelDefinition.Point),
                DataCleaning_BoundingBox(fit_in_image_size=True, update_validity=True, remove_invalid_objects=True, remove_empty_objects=True),
-               DataCleaning_Integrity()]
+               DataCleaning_Integrity(remove_zero_annotation_objects=True, remove_zero_annotation_image=True, remove_zero_annotation_video_head_tail=True, remove_invalid_image=True)]
     return filters
 
 
