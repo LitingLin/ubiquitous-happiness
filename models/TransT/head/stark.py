@@ -92,16 +92,19 @@ class Corner_Predictor_MLP(nn.Module):
         self.register_buffer('coord_y', indices.repeat((1, self.feat_sz)).view((self.feat_sz * self.feat_sz,)))
 
     def forward(self, x):
-        """ Forward pass with input x. """
+        """
+            Forward pass with input x.
+            x: torch.Tensor
+                (N, L, C)
+        """
         score_map_tl, score_map_br = self.get_score_map(x)
         coorx_tl, coory_tl = self.soft_argmax(score_map_tl)
         coorx_br, coory_br = self.soft_argmax(score_map_br)
         return torch.stack((coorx_tl, coory_tl, coorx_br, coory_br), dim=1)
 
     def get_score_map(self, x):
+        N = x.size(0)
         # top-left branch
-        N, C, H, W = x.shape
-        x = x.flatten(2).permute(1, 2)  # (N, H * W, C)
         score_map_tl = self.tl_mlp(x)
         score_map_tl = score_map_tl.permute(1, 2).reshape(N, H, W)
 
@@ -139,6 +142,14 @@ class StarkHead:
         box = self.localization_branch(x)
         box = box_xyxy_to_cxcywh(box)
         return cls, box
+
+
+class StarkTransformerHead:
+    def __init__(self, feature_map_size, classification_input_dim, classification_hidden_dim,
+                 localization_input_dim, localization_hidden_dim,
+                 enable_classification = True, enable_localization = True):
+        if enable_classification:
+            pass
 
 
 class StarkSHead(nn.Module):

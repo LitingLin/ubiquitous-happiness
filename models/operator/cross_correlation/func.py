@@ -11,14 +11,25 @@ def xcorr(z, x):
     return out
 
 
-def xcorr_depthwise(kernel, x):
+def xcorr_depthwise(z, x):
+    r"""
+    Depthwise cross correlation. e.g. used for template matching in Siamese tracking network
+    Arguments
+    ---------
+    z: torch.Tensor
+        feature_z (N, C, H, W) (e.g. template feature in SOT)
+    x: torch.Tensor
+        feature_x (N, C, H, W) (e.g. search region feature in SOT)
+    Returns
+    -------
+    torch.Tensor
+        cross-correlation result
     """
-        depthwise cross correlation
-    """
-    batch = kernel.size(0)
-    channel = kernel.size(1)
-    x = x.view(1, batch*channel, x.size(2), x.size(3))
-    kernel = kernel.view(batch*channel, 1, kernel.size(2), kernel.size(3))
-    out = F.conv2d(x, kernel, groups=batch*channel)
-    out = out.view(batch, channel, out.size(2), out.size(3))
+    batch = int(z.size(0))
+    channel = int(z.size(1))
+    x = x.view(1, int(batch * channel), int(x.size(2)), int(x.size(3)))
+    z = z.view(batch * channel, 1, int(z.size(2)),
+               int(z.size(3)))
+    out = F.conv2d(x, z, groups=batch * channel)
+    out = out.view(batch, channel, int(out.size(2)), int(out.size(3)))
     return out

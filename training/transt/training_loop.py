@@ -8,13 +8,25 @@ import json
 import datetime
 
 
+def _get_parameters_from_train_config(train_config: dict):
+    if 'version' not in train_config or train_config['version'] < 3:
+        epochs = train_config['train']['epochs']
+        clip_max_norm = train_config['train']['clip_max_norm']
+    else:
+        epochs = train_config['optimization']['epochs']
+        clip_max_norm = 0
+        if 'clip_max_norm' in train_config['optimization']:
+            clip_max_norm = train_config['optimization']['clip_max_norm']
+    return epochs, clip_max_norm
+
+
 def run_training_loop(args, train_config, runner, data_loader_train, data_loader_val):
+    epochs, clip_max_norm = _get_parameters_from_train_config(train_config)
     print("Start training")
     start_time = time.perf_counter()
     with runner:
-        for epoch in range(args.start_epoch, train_config['train']['epochs']):
-            train_stats = train_one_epoch(runner, data_loader_train, epoch,
-                                          train_config['train']['clip_max_norm'])
+        for epoch in range(args.start_epoch, epochs):
+            train_stats = train_one_epoch(runner, data_loader_train, epoch, clip_max_norm)
             test_stats = evaluate(runner, data_loader_val)
 
             log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},

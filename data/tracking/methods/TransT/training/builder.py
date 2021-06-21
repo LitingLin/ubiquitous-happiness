@@ -3,19 +3,24 @@ from data.tracking.methods.TransT.training.collate_fn import transt_collate_fn
 
 def _build_transt_data_processor(network_config: dict, train_config: dict, label_generator):
     from data.tracking.methods.TransT.training.processor import TransTProcessor
-    return TransTProcessor(network_config['data']['template_size'], network_config['data']['search_size'],
-                           network_config['data']['area_factor']['template'],
-                           network_config['data']['area_factor']['search'],
-                           train_config['data']['scale_jitter_factor']['template'],
-                           train_config['data']['scale_jitter_factor']['search'],
-                           train_config['data']['translation_jitter_factor']['template'],
-                           train_config['data']['translation_jitter_factor']['search'],
-                           train_config['data']['gray_scale_probability'], train_config['data']['color_jitter'],
+
+    network_data_config = network_config['data']
+    train_data_augmentation_config = train_config['data']['augmentation']
+
+    return TransTProcessor(network_data_config['template_size'], network_data_config['search_size'],
+                           network_data_config['area_factor']['template'],
+                           network_data_config['area_factor']['search'],
+                           train_data_augmentation_config['scale_jitter_factor']['template'],
+                           train_data_augmentation_config['scale_jitter_factor']['search'],
+                           train_data_augmentation_config['translation_jitter_factor']['template'],
+                           train_data_augmentation_config['translation_jitter_factor']['search'],
+                           train_data_augmentation_config['gray_scale_probability'],
+                           train_data_augmentation_config['color_jitter'],
                            label_generator), transt_collate_fn
 
 
 def build_transt_data_processor(network_config: dict, train_config: dict):
-    if network_config['head']['type'] == 'detr':
+    if network_config['head']['type'] == 'DETR':
         from .label.transt import TransTLabelGenerator
         label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'])
         return _build_transt_data_processor(network_config, train_config, label_generator)

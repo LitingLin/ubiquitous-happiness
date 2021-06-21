@@ -12,7 +12,7 @@ from Miscellaneous.yaml_ops import yaml_load
 from Miscellaneous.git_state import get_git_sha
 from Miscellaneous.torch.distributed import get_rank, init_distributed_mode
 from training.transt.training_loop import run_training_loop
-from training.transt._old.builder import build_training_actor_and_dataloader
+from training.transt.builder import build_training_actor_and_dataloader
 
 
 def get_args_parser():
@@ -27,7 +27,7 @@ def get_args_parser():
     parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
                         help='start epoch')
     parser.add_argument('--num_workers', default=4, type=int)
-    parser.add_argument('--checkpoint_interval', default=100, type=int)
+    parser.add_argument('--checkpoint_interval', default=10, type=int)
 
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int,

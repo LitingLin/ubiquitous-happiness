@@ -16,7 +16,8 @@ data:
 
     train:
       batch_size: 16
-      repeat_times_per_epoch: 2
+      samples_per_epoch: 38000
+      # repeat_times_per_epoch: 2
 
       sequence_sampler:
         type: Siamese
@@ -34,8 +35,7 @@ data:
 
 optimization:
   epochs: 50
-  checkpoint_interval: 10
-  model_initialization: xavier
+  # model_initialization: xavier
   optimizer:
     type: SGD
     lr: 1.e-3
@@ -48,4 +48,4 @@ optimization:
       ultimate_lr: 1.e-5
 
   loss:
-    type: balanced
+    use_template: transt

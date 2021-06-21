@@ -2,14 +2,23 @@ def build_criterion(train_config: dict):
     if 'version' not in train_config:
         from models.TransT.loss._old.builder import parse_old_transt_criterion_parameters
         loss_parameters = parse_old_transt_criterion_parameters(train_config)
-    else:
-        assert train_config['version'] == 2
+    elif train_config['version'] == 2:
         loss_parameters = train_config['train']['loss']
         if 'use_template' in loss_parameters:
             from Miscellaneous.yaml_ops import yaml_load
             from Miscellaneous.repo_root import get_repository_root
             import os
             loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', f"{loss_parameters['use_template']}.yaml"))
+    elif train_config['version'] == 3:
+        loss_parameters = train_config['optimization']['loss']
+        if 'use_template' in loss_parameters:
+            from Miscellaneous.yaml_ops import yaml_load
+            from Miscellaneous.repo_root import get_repository_root
+            import os
+            loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', f"{loss_parameters['use_template']}.yaml"))
+    else:
+        raise NotImplementedError(f"Unknown train config version {train_config['version']}")
+
 
     from .builders.cls_loss import build_cls_loss
     cls_loss, cls_loss_weight = build_cls_loss(loss_parameters)
