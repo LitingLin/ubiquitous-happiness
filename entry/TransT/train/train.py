@@ -12,7 +12,7 @@ from Miscellaneous.yaml_ops import yaml_load
 from Miscellaneous.git_state import get_git_sha
 from Miscellaneous.torch.distributed import get_rank, init_distributed_mode
 from training.transt.training_loop import run_training_loop
-from training.transt.builder import build_training_actor_and_dataloader
+from training.transt._old.builder import build_training_actor_and_dataloader
 
 
 def get_args_parser():

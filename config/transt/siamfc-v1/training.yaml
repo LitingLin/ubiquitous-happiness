@@ -38,31 +38,14 @@ optimization:
   model_initialization: xavier
   optimizer:
     type: SGD
-    initial_lr: 1.e-2
-    ultimate_lr: 1.e-5
+    lr: 1.e-3
+    lr_backbone: 1.e-4
     weight_decay: 5.e-4
     momentum: 0.9
-    layer_wise:
-      lr:
-        conv:
-          weight: 1
-          bias: 2
-        bn:
-          gamma: 2
-          beta: 1
-        head:
-          gain: 0
-          bias: 1
-      weight_decay:
-        conv:
-          weight: 1
-          bias: 0
-        bn:
-          gamma: 0
-          beta: 0
-        head:
-          gain: 1
-          bias: 1
+    nesterov: true
+    lr_scheduler:
+      type: ExponentialLR
+      ultimate_lr: 1.e-5
+
   loss:
     type: balanced
-

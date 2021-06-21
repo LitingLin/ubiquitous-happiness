@@ -1,6 +1,5 @@
 from Dataset.Base.Common.constructor import BaseDatasetConstructorGenerator, BaseImageDatasetConstructor, \
     BaseDatasetImageConstructorGenerator, BaseDatasetImageConstructor
-from Dataset.Base.Common.Operator.bounding_box import set_bounding_box_
 
 
 class ImageClassificationImageConstructorGenerator(BaseDatasetImageConstructorGenerator):

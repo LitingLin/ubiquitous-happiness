@@ -19,12 +19,12 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
         network_config['data']['area_factor']['template'], network_config['data']['area_factor']['search'],
         network_config['data']['template_size'], network_config['data']['search_size'], device, preprocessing_on_device, bounding_box_post_processor)
 
-    if network_config['head']['type'] == 'detr':
+    if 'version' not in network_config or network_config['transformer']['head']['type'] == 'detr':
         from data.tracking.methods.TransT.evaluation.post_processor.transt import TransTTrackingPostProcessing
-        network_post_processor = TransTTrackingPostProcessing(network_config['head']['parameters']['input_size'], evaluation_config['tracking']['window_penalty'], device)
-    elif network_config['head']['type'] == 'exp-1':
+        network_post_processor = TransTTrackingPostProcessing(network_config['data']['feature_size']['search'], evaluation_config['tracking']['window_penalty'], device)
+    elif network_config['transformer']['head']['type'] == 'exp-1':
         from data.tracking.methods.TransT.evaluation.post_processor.exp_1 import TransTExp1TrackingPostProcessing
-        network_post_processor = TransTExp1TrackingPostProcessing(evaluation_config['tracking']['window_penalty'] > 0, evaluation_config['tracking']['with_quality_assessment'], network_config['head']['parameters']['input_size'], device, evaluation_config['tracking']['window_penalty'])
+        network_post_processor = TransTExp1TrackingPostProcessing(evaluation_config['tracking']['window_penalty'] > 0, evaluation_config['tracking']['with_quality_assessment'], network_config['data']['feature_size']['search'], device, evaluation_config['tracking']['window_penalty'])
     else:
-        raise RuntimeError(f"Unknown value {network_config['head']['type']}")
+        raise RuntimeError(f"Unknown value {network_config['transformer']['head']['type']}")
     return data_processor, network_post_processor
