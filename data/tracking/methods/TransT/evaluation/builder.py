@@ -3,6 +3,9 @@ from data.tracking.methods.TransT.evaluation.bounding_box_post_processor import 
 
 
 def build_evaluation_data_processors(network_config, evaluation_config, device):
+    if network_config['version'] < 4:
+        import data.tracking.methods.TransT.evaluation._old.builder
+        return data.tracking.methods.TransT.evaluation._old.builder.build_evaluation_data_processors(network_config, evaluation_config, device)
     preprocessing_on_device = True
     if 'preprocessing_on_device' in evaluation_config['tracking']:
         preprocessing_on_device = evaluation_config['tracking']['preprocessing_on_device']
@@ -19,7 +22,7 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
         network_config['data']['area_factor']['template'], network_config['data']['area_factor']['search'],
         network_config['data']['template_size'], network_config['data']['search_size'], device, preprocessing_on_device, bounding_box_post_processor)
 
-    if network_config['head']['type'] == 'detr':
+    if network_config['head']['type'] == 'DETR':
         from data.tracking.methods.TransT.evaluation.post_processor.transt import TransTTrackingPostProcessing
         network_post_processor = TransTTrackingPostProcessing(network_config['head']['parameters']['input_size'], evaluation_config['tracking']['window_penalty'], device)
     elif network_config['head']['type'] == 'exp-1':
