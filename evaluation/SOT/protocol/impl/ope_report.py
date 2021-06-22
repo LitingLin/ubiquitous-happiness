@@ -49,11 +49,11 @@ def _calculate_evaluation_metrics(predicted_bounding_boxes,
 
     groundtruth_bboxes_validity = bbox_is_valid_vectorized(sequence.get_all_bounding_box())
     if sequence.get_all_bounding_box_validity_flag() is None:
-        assert np.any(groundtruth_bboxes_validity)
+        assert np.all(groundtruth_bboxes_validity)
     else:
         annotated_validity = sequence.get_all_bounding_box_validity_flag()
         assert annotated_validity.dtype == np.bool_
-        assert np.any(np.bitwise_and(groundtruth_bboxes_validity, np.invert(annotated_validity)))
+        assert not np.any(np.bitwise_and(groundtruth_bboxes_validity, np.invert(annotated_validity)))
 
     center_location_errors = calculate_center_location_error_torch_vectorized(predicted_bounding_boxes,
                                                                               sequence.get_all_bounding_box())

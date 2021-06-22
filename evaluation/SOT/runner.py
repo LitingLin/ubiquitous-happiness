@@ -87,4 +87,7 @@ def visualize_tracking_results(tracker_names, result_paths, sequence_name, outpu
 
 
 if __name__ == '__main__':
-    datasets = get_standard_non_public_evaluation_datasets()
+    from evaluation.SOT.sample_tracker import IdentityTracker
+    tracker = IdentityTracker()
+    # datasets = get_standard_non_public_evaluation_datasets()
+    run_standard_evaluation('i', tracker, 'I:\\r')
