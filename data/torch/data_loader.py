@@ -32,7 +32,7 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                      training_do_shuffle=True,
                                      device_tensor_selection_filter=None,
                                      train_worker_init_fn=None, val_worker_init_fn=None,
-                                     collate_fn=None):
+                                     collate_fn=None, persistent_workers=False):
     if distributed:
         sampler_train = DistributedSampler(train_dataset, shuffle=training_do_shuffle)
         sampler_val = DistributedSampler(val_dataset, shuffle=False)
@@ -53,9 +53,9 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
     val_worker_initialization_object = _WorkerInitialization(val_worker_init_fn)
 
     data_loader_train = DataLoader(train_dataset, batch_sampler=batch_sampler_train, worker_init_fn=train_worker_initialization_object,
-                                   num_workers=train_num_workers, collate_fn=collate_fn, pin_memory=pin_memory)
+                                   num_workers=train_num_workers, collate_fn=collate_fn, pin_memory=pin_memory, persistent_workers=persistent_workers)
     data_loader_val = DataLoader(val_dataset, val_batch_size, sampler=sampler_val, worker_init_fn=val_worker_initialization_object,
-                                 drop_last=False, num_workers=val_num_workers, collate_fn=collate_fn, pin_memory=pin_memory)
+                                 drop_last=False, num_workers=val_num_workers, collate_fn=collate_fn, pin_memory=pin_memory, persistent_workers=persistent_workers)
 
     if 'cuda' in device:
         device = torch.device(device)
