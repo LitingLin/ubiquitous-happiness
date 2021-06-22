@@ -1,7 +1,7 @@
 import torch
 from models.TransT.builder import build_transt
 from algorithms.tracker.transt.tracker import TransTTracker
-from data.tracking.methods.TransT.evaluation._old.builder import build_evaluation_data_processors
+from data.tracking.methods.TransT.evaluation.builder import build_evaluation_data_processors
 
 
 def build_transt_tracker(network_config, evaluation_config, weight_path, device):
