@@ -15,3 +15,13 @@ class SiamFCNetwork(nn.Module):
         x = self.backbone(x)
         cls, reg = self.neck(z, x)
         return self.head(cls, reg)
+
+    @torch.no_grad()
+    def template(self, z):
+        return self.backbone(z)
+
+    @torch.no_grad()
+    def track(self, z_feat, x):
+        x = self.backbone(x)
+        cls, reg = self.neck(z_feat, x)
+        return self.head(cls, reg)
