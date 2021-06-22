@@ -16,7 +16,7 @@ data:
 
     train:
       batch_size: 64
-      samples_per_epoch: 32768
+      samples_per_epoch: 65536
 
       sequence_sampler:
         type: "Siamese"
