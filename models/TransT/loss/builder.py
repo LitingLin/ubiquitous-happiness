@@ -1,4 +1,4 @@
-def build_criterion(train_config: dict):
+def build_criterion(network_config, train_config: dict):
     if 'version' not in train_config:
         from models.TransT.loss._old.builder import parse_old_transt_criterion_parameters
         loss_parameters = parse_old_transt_criterion_parameters(train_config)
@@ -10,6 +10,9 @@ def build_criterion(train_config: dict):
             import os
             loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', f"{loss_parameters['use_template']}.yaml"))
     elif train_config['version'] == 3:
+        if network_config['head']['type'] == 'SiamFC':
+            from .siamfc.builder import build_siamfc_loss
+            return build_siamfc_loss(train_config)
         loss_parameters = train_config['optimization']['loss']
         if 'use_template' in loss_parameters:
             from Miscellaneous.yaml_ops import yaml_load

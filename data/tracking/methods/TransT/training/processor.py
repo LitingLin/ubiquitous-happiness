@@ -46,7 +46,8 @@ class TransTProcessor:
                                                         self.search_translation_jitter_factor,
                                                         self.interpolation_mode,
                                                         self.transform)
-        target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = \
-            self.label_generator(x_bbox.tolist(), is_positive)
-        return z_image, x_image, z_context, x_context,\
-               target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix, is_positive
+        labels = self.label_generator(x_bbox.tolist(), is_positive)
+        if isinstance(labels, (list, tuple)):
+            return z_image, x_image, z_context, x_context, is_positive, *labels
+        else:
+            return z_image, x_image, z_context, x_context, is_positive, labels

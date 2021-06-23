@@ -60,11 +60,9 @@ def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None
 def do_siamfc_pair_sampling_positive_only(length: int, frame_range: int, mask: np.ndarray=None, sampling_method: SiamesePairSamplingMethod=SiamesePairSamplingMethod.causal, rng_engine: np.random.Generator=np.random.default_rng()):
     assert frame_range > 0
     sort = False
+    frame_range = frame_range + 1
     if sampling_method == SiamesePairSamplingMethod.causal:
         sort = True
-        frame_range = frame_range + 1
-    elif sampling_method == SiamesePairSamplingMethod.interval:
-        frame_range = 2 * frame_range + 1
     return sampling_multiple_indices_with_range_and_mask(length, mask, 2, frame_range, allow_duplication=False, allow_insufficiency=True, sort=sort, rng_engine=rng_engine)
 
 

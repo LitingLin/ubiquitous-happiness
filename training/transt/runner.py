@@ -42,16 +42,16 @@ class TransTRunner:
         if self.stage_2_data_processor is not None:
             samples = self.stage_2_data_processor(samples, stage_2_data_processing_context)
         outputs = self.model(*samples)
-        loss, loss_value, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, targets)
+        loss, loss_value, loss_stats = self.criterion(outputs, targets)
 
         if not math.isfinite(loss_value):
             print("Loss is {}, stopping training".format(loss_value))
-            print(loss_stats_reduced_unscaled)
+            print(loss_stats)
             sys.exit(1)
 
         self.loss = loss
 
-        return {'loss': loss_value, **loss_stats_reduced_unscaled, **loss_stats_reduced_scaled, 'pos_samples_ratio': torch.sum(is_positives) / len(is_positives)}
+        return {'loss': loss_value, **loss_stats, 'pos_samples_ratio': torch.sum(is_positives) / len(is_positives)}
 
     def _on_epoch_changed(self):
         if self.epoch_changed_event_slots is not None:

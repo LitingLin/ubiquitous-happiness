@@ -31,7 +31,7 @@ data:
       repeat_times_per_epoch: 1
 
       sequence_sampler:
-        type: Siamese
+        type: "Siamese"
         parameters:
           frame_range: 100
           enforce_fine_positive_sample: true
@@ -42,14 +42,14 @@ optimization:
   epochs: 50
   sync_bn: true
   optimizer:
-    type: AdamW
+    type: "AdamW"
     lr: 1.e-3
     lr_backbone: 1.e-4
     weight_decay: 5.e-4
     momentum: 0.9
     lr_scheduler:
-      type: ExponentialLR
+      type: "ExponentialLR"
       ultimate_lr: 1.e-5
 
   loss:
-    use_template: transt
+    use_template: "transt"
