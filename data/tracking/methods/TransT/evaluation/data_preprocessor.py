@@ -11,11 +11,14 @@ def build_evaluation_transform():
 
 
 class TransTEvaluationDataProcessor:
-    def __init__(self, template_area_factor, search_area_factor, template_size, search_size, device, preprocessing_on_device, bounding_box_post_processor):
+    def __init__(self, template_area_factor, search_area_factor, template_size, search_size,
+                 interpolation_mode,
+                 device, preprocessing_on_device, bounding_box_post_processor):
         self.template_area_factor = template_area_factor
         self.search_area_factor = search_area_factor
         self.template_size = template_size
         self.search_size = search_size
+        self.interpolation_mode = interpolation_mode
         self.device = device
         self.preprocessing_on_device = preprocessing_on_device
         self.transform = build_evaluation_transform()
@@ -30,7 +33,7 @@ class TransTEvaluationDataProcessor:
             curation_parameter_device = curation_parameter
         image = image.float() / 255.
 
-        curated_template_image, self.image_mean = do_SiamFC_curation(image, self.template_size, curation_parameter_device)
+        curated_template_image, self.image_mean = do_SiamFC_curation(image, self.template_size, curation_parameter_device, self.interpolation_mode)
         curated_template_image = self.transform(curated_template_image)
 
         if not self.preprocessing_on_device:
@@ -47,7 +50,7 @@ class TransTEvaluationDataProcessor:
 
         image = image.float() / 255.
 
-        curated_search_image, _ = do_SiamFC_curation(image, self.search_size, curation_parameter_device, self.image_mean)
+        curated_search_image, _ = do_SiamFC_curation(image, self.search_size, curation_parameter_device, self.interpolation_mode, self.image_mean)
         curated_search_image = self.transform(curated_search_image)
 
         if not self.preprocessing_on_device:

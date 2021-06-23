@@ -9,7 +9,7 @@ data:
     search: 4.0
   template_size: [128, 128]
   search_size: [256, 256]
-  interpolation_mode: "bilinear"
+  interpolation_mode: "bicubic"
 
 backbone:
   type: "resnet-50-atrous"

@@ -67,9 +67,9 @@ def prepare_SiamFC_curation(bbox, area_factor, output_size):
     return curation_parameter, output_bbox
 
 
-def do_SiamFC_curation(image, output_size, curation_parameter, image_mean=None):
+def do_SiamFC_curation(image, output_size, curation_parameter, interpolation_mode, image_mean=None):
     if image_mean is None:
         image_mean = get_image_mean(image)
-    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, curation_parameter[0], curation_parameter[1], curation_parameter[2], image_mean)
+    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, curation_parameter[0], curation_parameter[1], curation_parameter[2], image_mean, interpolation_mode)
 
     return output_image, image_mean

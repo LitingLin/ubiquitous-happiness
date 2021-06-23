@@ -20,7 +20,9 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
 
     data_processor = TransTEvaluationDataProcessor(
         network_config['data']['area_factor']['template'], network_config['data']['area_factor']['search'],
-        network_config['data']['template_size'], network_config['data']['search_size'], device, preprocessing_on_device, bounding_box_post_processor)
+        network_config['data']['template_size'], network_config['data']['search_size'],
+        network_config['data']['interpolation_mode'],
+        device, preprocessing_on_device, bounding_box_post_processor)
 
     if network_config['head']['type'] == 'DETR':
         from data.tracking.methods.TransT.evaluation.post_processor.transt import TransTTrackingPostProcessing

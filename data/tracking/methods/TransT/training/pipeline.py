@@ -24,7 +24,7 @@ def build_TransT_image_augmentation_transformer(color_jitter=0.4):
 
 
 def TransT_training_data_preprocessing_pipeline(image, bbox, area_factor, output_size, scaling_jitter_factor,
-                                                translation_jitter_factor, transform=None):
+                                                translation_jitter_factor, interpolation_mode, transform=None):
     curation_parameter, bbox = \
         prepare_SiamFC_curation_with_position_augmentation(bbox, area_factor, output_size,
                                                            scaling_jitter_factor, translation_jitter_factor)
@@ -32,7 +32,7 @@ def TransT_training_data_preprocessing_pipeline(image, bbox, area_factor, output
 
     if transform is not None:
         curation_parameter = curation_parameter.to(image.device)
-        image = do_SiamFC_curation(image, output_size, curation_parameter)
+        image = do_SiamFC_curation(image, output_size, curation_parameter, interpolation_mode)
         image = transform(image)
         curation_parameter = None
 

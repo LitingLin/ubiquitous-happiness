@@ -18,6 +18,7 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
                            train_data_augmentation_config['gray_scale_probability'],
                            train_data_augmentation_config['color_jitter'],
                            label_generator,
+                           network_data_config['interpolation_mode'],
                            train_data_augmentation_config['stage_2_on_host_process']), transt_collate_fn
 
 
@@ -41,6 +42,6 @@ def build_stage_2_data_processor(network_config: dict, train_config: dict):
     train_data_augmentation_config = train_config['data']['augmentation']
 
     if train_data_augmentation_config['stage_2_on_host_process']:
-        return TransTStage2DataProcessor(network_data_config['template_size'], network_data_config['search_size'], train_data_augmentation_config['color_jitter'])
+        return TransTStage2DataProcessor(network_data_config['template_size'], network_data_config['search_size'], train_data_augmentation_config['color_jitter'], network_data_config['interpolation_mode'])
     else:
         return None

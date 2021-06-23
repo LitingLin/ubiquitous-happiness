@@ -11,7 +11,7 @@ class TransTProcessor:
                  template_scale_jitter_factor, search_scale_jitter_factor,
                  template_translation_jitter_factor, search_translation_jitter_factor,
                  gray_scale_probability,
-                 color_jitter, label_generator, stage2_on_host_process):
+                 color_jitter, label_generator, interpolation_mode, stage2_on_host_process):
         self.template_size = template_size
         self.search_size = search_size
         self.template_area_factor = template_area_factor
@@ -21,6 +21,7 @@ class TransTProcessor:
         self.template_translation_jitter_factor = template_translation_jitter_factor
         self.search_translation_jitter_factor = search_translation_jitter_factor
         self.gray_scale_probability = gray_scale_probability
+        self.interpolation_mode = interpolation_mode
         if stage2_on_host_process:
             self.transform = None
         else:
@@ -36,12 +37,14 @@ class TransTProcessor:
                                                         self.template_size,
                                                         self.template_scale_jitter_factor,
                                                         self.template_translation_jitter_factor,
+                                                        self.interpolation_mode,
                                                         self.transform)
         x_image, x_bbox, x_context = \
             TransT_training_data_preprocessing_pipeline(x_image, x_bbox, self.search_area_factor,
                                                         self.search_size,
                                                         self.search_scale_jitter_factor,
                                                         self.search_translation_jitter_factor,
+                                                        self.interpolation_mode,
                                                         self.transform)
         target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = \
             self.label_generator(x_bbox.tolist(), is_positive)
