@@ -102,7 +102,7 @@ def SiamFC_collate_fn(data):
         x_image_batch = x_image_list
         context = (torch.stack(z_context_list), torch.stack(x_context_list))
 
-    labels = torch.tensor(labels)
+    labels = torch.stack(labels)
 
     return (z_image_batch, x_image_batch), labels, is_positives, context
 

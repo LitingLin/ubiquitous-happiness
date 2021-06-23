@@ -42,7 +42,7 @@ class SiamFCLabelGenerator:
         self.r_neg = r_neg
         self.total_stride = total_stride
 
-    def __call__(self, is_positive):
+    def __call__(self, _, is_positive):
         if is_positive:
             return create_label(self.size, self.r_pos, self.r_neg, self.total_stride)
         else:
