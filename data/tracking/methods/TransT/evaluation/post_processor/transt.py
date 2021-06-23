@@ -19,7 +19,7 @@ class TransTTrackingPostProcessing:
         pscore = class_score_map * (1 - self.window_penalty) + \
                  self.window * self.window_penalty
 
-        best_idx, confidence_score = torch.max(pscore, 0)
+        confidence_score, best_idx = torch.max(pscore, 0)
 
         bounding_box_regression_map = bounding_box_regression_map.squeeze(0)
         bounding_box = bounding_box_regression_map[best_idx, :]
