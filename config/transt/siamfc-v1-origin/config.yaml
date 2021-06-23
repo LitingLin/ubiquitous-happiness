@@ -1,7 +1,7 @@
 name: "SiamFC-ResNet50-DETR-Head"
 
 version: 4
-type: "SiamFCDualPath"
+type: "SiamFC"
 
 data:
   area_factor:
