@@ -737,6 +737,7 @@ def build_swin_small_patch2_window7_224(load_pretrained=False, output_layers=(3,
 
 
 if __name__ == '__main__':
+    _generate_2d_relative_position_index([5, 6])
     model = build_large_patch4_window7_224_in22k(output_layers=(2,))
     a = model(torch.zeros((1, 3, 512, 512)))
     print(a[0].shape)

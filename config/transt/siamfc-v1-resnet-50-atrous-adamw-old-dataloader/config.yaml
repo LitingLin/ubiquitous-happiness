@@ -1,7 +1,7 @@
 name: "SiamFC-GOT"
 
 version: 4
-type: "SiamFC"
+type: "SiamFCDualPath"
 
 data:
   area_factor:

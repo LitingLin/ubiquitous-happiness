@@ -24,6 +24,9 @@ def build_transt_optimizer(model, train_config):
     elif optimizer_config['type'] == 'AdamW':
         optimizer = torch.optim.AdamW(param_dicts, lr=lr,
                                       weight_decay=weight_decay)
+    elif optimizer_config['type'] == 'SGD-SiamFC-v1':
+        from .special.siamfc_layerwise import build_siamfc_layerwise_optimizer
+        optimizer = build_siamfc_layerwise_optimizer(model, train_config)
     else:
         raise NotImplementedError(f'Unknown lr_scheduler {optimizer_config["type"]}')
 

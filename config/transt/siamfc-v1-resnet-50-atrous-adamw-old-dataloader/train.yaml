@@ -19,7 +19,7 @@ data:
       samples_per_epoch: 32768
 
       sequence_sampler:
-        type: Siamese
+        type: "Siamese"
         parameter:
           frame_range: 100
 

@@ -26,10 +26,13 @@ def build_neck(network_config: dict):
     neck_config = network_config['neck']
     neck_type = neck_config['type']
     if neck_type == 'XCorr':
-        from models.TransT.neck.xcorr import SiamFCXCorr
+        if network_config['type'] == 'SiamFCDualPath':
+            from models.TransT.neck.dual_path.xcorr import SiamFCXCorr
+        else:
+            from models.TransT.neck.xcorr import SiamFCXCorr
         return SiamFCXCorr(**neck_config['parameters'])
     elif neck_type == 'DualPathXCorr':
-        from models.TransT.neck.dual_path_xcorr import SiamFCDualPathXCorr
+        from models.TransT.neck.dual_path.dual_path_xcorr import SiamFCDualPathXCorr
         return SiamFCDualPathXCorr(**neck_config['parameters'])
     else:
         raise NotImplementedError(f"Unknown neck type {neck_type}")
@@ -52,5 +55,11 @@ def build_siamfc(network_config: dict, load_pretrained=True):
     neck = build_neck(network_config)
     head = build_head(network_config)
 
-    from .network import SiamFCNetwork
-    return SiamFCNetwork(backbone, neck, head)
+    from .network import SiamFCNetwork, SiamFCDualPathNetwork
+
+    if network_config['type'] == 'SiamFC':
+        return SiamFCNetwork(backbone, neck, head)
+    elif network_config['type'] == 'SiamFCDualPath':
+        return SiamFCDualPathNetwork(backbone, neck, head)
+    else:
+        raise NotImplementedError(f'Unknown network type {network_config["type"]}')
