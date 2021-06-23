@@ -17,6 +17,6 @@ class TransTTracker(object):
         curated_search_image = self.data_processor.track(image, self.last_frame_object_bbox)
         curated_search_image = curated_search_image.unsqueeze(0)
         net_output = self.net.track(self.z, curated_search_image)
-        bounding_box = self.network_post_processor(net_output)
+        bounding_box, confidence_score = self.network_post_processor(net_output)
         bounding_box_predicted, self.last_frame_object_bbox = self.data_processor.get_bounding_box(bounding_box)
-        return bounding_box_predicted
+        return bounding_box_predicted, confidence_score
