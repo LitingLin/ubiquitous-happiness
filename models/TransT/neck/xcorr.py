@@ -25,4 +25,4 @@ class SiamFCXCorr(nn.Module):
         x = self.x_conv(x)
         # feature matching
         out = xcorr_depthwise(z, x)
-        return out
+        return out, out

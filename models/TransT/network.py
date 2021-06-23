@@ -13,8 +13,7 @@ class TransTTracking(nn.Module):
         self.transformer = transformer
         self.head = head
 
-    def forward(self, input_):
-        z, x = input_
+    def forward(self, z, x):
         z_feat, z_feat_pos = self.backbone(z)
         x_feat, x_feat_pos = self.backbone(x)
 

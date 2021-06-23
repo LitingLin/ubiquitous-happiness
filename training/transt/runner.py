@@ -37,7 +37,7 @@ class TransTRunner:
                 slot.stop()
 
     def forward(self, samples, targets, is_positives):
-        outputs = self.model(samples)
+        outputs = self.model(*samples)
         loss, loss_value, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, targets)
 
         if not math.isfinite(loss_value):

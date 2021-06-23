@@ -9,8 +9,7 @@ class SiamFCNetwork(nn.Module):
         self.neck = neck
         self.head = head
 
-    def forward(self, input_):
-        z, x = input_
+    def forward(self, z, x):
         z = self.backbone(z)
         x = self.backbone(x)
         cls, reg = self.neck(z, x)
