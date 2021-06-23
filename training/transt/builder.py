@@ -3,6 +3,7 @@ from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
 from Miscellaneous.torch.checkpoint import load_checkpoint
+from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 
 
 def setup_optimizer(model, network_config: dict, train_config: dict):
@@ -10,7 +11,11 @@ def setup_optimizer(model, network_config: dict, train_config: dict):
     return build_transt_optimizer(model, train_config)
 
 
-def build_transt_training_runner(args, net_config: dict, train_config: dict, additional_state_objects, training_start_event_slots, training_stop_event_slots, epoch_changed_event_slots, statistics_collectors):
+def build_transt_training_runner(args, net_config: dict, train_config: dict,
+                                 stage_2_data_processor,
+                                 additional_state_objects,
+                                 training_start_event_slots, training_stop_event_slots,
+                                 epoch_changed_event_slots, statistics_collectors):
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
@@ -32,7 +37,11 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, add
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
 
-    return TransTRunner(model, criterion, optimizer, lr_scheduler, additional_state_objects, training_start_event_slots, training_stop_event_slots, epoch_changed_event_slots, statistics_collectors)
+    return TransTRunner(model, criterion, optimizer, lr_scheduler,
+                        stage_2_data_processor,
+                        additional_state_objects,
+                        training_start_event_slots, training_stop_event_slots,
+                        epoch_changed_event_slots, statistics_collectors)
 
 
 def build_training_actor_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
@@ -67,7 +76,9 @@ def build_training_actor_and_dataloader(args, network_config: dict, train_config
     else:
         raise NotImplementedError(f'Unknown dataloader version {train_config["dataloader"]["version"]}')
 
-    runner = build_transt_training_runner(args, network_config, train_config, stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors)
+    stage_2_data_processor = build_stage_2_data_processor(network_config, train_config)
+
+    runner = build_transt_training_runner(args, network_config, train_config, stage_2_data_processor, stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors)
 
     if args.resume:
         model_state_dict, training_state_dict = load_checkpoint(args.resume)

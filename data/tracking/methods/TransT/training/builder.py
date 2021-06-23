@@ -1,4 +1,5 @@
 from data.tracking.methods.TransT.training.collate_fn import transt_collate_fn
+from data.tracking.methods.TransT.training.processor_stage2 import TransTStage2DataProcessor
 
 
 def _build_transt_data_processor(network_config: dict, train_config: dict, label_generator):
@@ -16,7 +17,8 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
                            train_data_augmentation_config['translation_jitter_factor']['search'],
                            train_data_augmentation_config['gray_scale_probability'],
                            train_data_augmentation_config['color_jitter'],
-                           label_generator), transt_collate_fn
+                           label_generator,
+                           train_data_augmentation_config['stage_2_on_host_process']), transt_collate_fn
 
 
 def build_transt_data_processor(network_config: dict, train_config: dict):
@@ -32,3 +34,13 @@ def build_transt_data_processor(network_config: dict, train_config: dict):
         pass
     else:
         raise RuntimeError(f"Unknown {network_config['transformer']['head']['type']}")
+
+
+def build_stage_2_data_processor(network_config: dict, train_config: dict):
+    network_data_config = network_config['data']
+    train_data_augmentation_config = train_config['data']['augmentation']
+
+    if train_data_augmentation_config['stage_2_on_host_process']:
+        return TransTStage2DataProcessor(network_data_config['template_size'], network_data_config['search_size'], train_data_augmentation_config['color_jitter'])
+    else:
+        return None

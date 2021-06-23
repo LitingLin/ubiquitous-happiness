@@ -5,12 +5,14 @@ import math
 
 class TransTRunner:
     def __init__(self, model, criterion, optimizer, lr_scheduler,
+                 stage_2_data_processor=None,
                  additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None,
                  epoch_changed_event_slots=None, statistics_collectors=None, multi_stage_handlers=None):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
+        self.stage_2_data_processor = stage_2_data_processor
         self.epoch = 0
         self.number_of_samples = 0
         self.additional_stateful_objects = additional_stateful_objects
@@ -36,7 +38,9 @@ class TransTRunner:
             for slot in self.stop_training_event_slot:
                 slot.stop()
 
-    def forward(self, samples, targets, is_positives):
+    def forward(self, samples, targets, is_positives, stage_2_data_processing_context):
+        if self.stage_2_data_processor is not None:
+            samples = self.stage_2_data_processor(samples, stage_2_data_processing_context)
         outputs = self.model(*samples)
         loss, loss_value, loss_stats_reduced_unscaled, loss_stats_reduced_scaled = self.criterion(outputs, targets)
 

@@ -6,7 +6,7 @@ from data.operator.bbox.spatial.utility.aligned.image import get_image_center_po
 from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
 from data.operator.image_and_bbox.align_corner.vectorized.pytorch.scale_and_translate import torch_scale_and_translate_align_corners
 from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
-from data.operator.image.pytorch.mean import get_image_mean_chw
+from data.operator.image.pytorch.mean import get_image_mean
 
 
 def get_jittered_scaling_and_translate_factor(bbox, scaling, scaling_jitter_factor, translation_jitter_factor):
@@ -36,7 +36,7 @@ def get_scaling_and_translation_parameters(bbox, area_factor, output_size):
     return scaling, source_center, target_center
 
 
-def jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_factor, translation_jitter_factor):
+def prepare_SiamFC_curation_with_position_augmentation(bbox, area_factor, output_size, scaling_jitter_factor, translation_jitter_factor):
     while True:
         scaling = get_scaling_factor_from_area_factor(bbox, area_factor, output_size)
         scaling, translate = get_jittered_scaling_and_translate_factor(bbox, scaling, scaling_jitter_factor,
@@ -52,43 +52,24 @@ def jittered_center_crop(image, bbox, area_factor, output_size, scaling_jitter_f
             break
     source_center = torch.tensor(source_center)
     output_bbox = torch.tensor(output_bbox)
-    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, scaling, source_center, target_center, get_image_mean_chw(image))
-    return output_image, output_bbox
+    curation_parameter = torch.stack((scaling, source_center, target_center))
+
+    return curation_parameter, output_bbox
 
 
-def do_SiamFC_curation_with_jitter_augmentation_CHW(image, object_bbox, area_factor, output_size, scaling_jitter_factor, translation_jitter_factor, keep_object_in_image=True, image_mean=None):
-    while True:
-        scaling = get_scaling_factor_from_area_factor(object_bbox, area_factor, output_size)
-        scaling, translate = get_jittered_scaling_and_translate_factor(object_bbox, scaling, scaling_jitter_factor,
-                                                                       translation_jitter_factor)
-
-        source_center = bbox_get_center_point(object_bbox)
-        target_center = get_image_center_point(output_size)
-        target_center = (torch.tensor(target_center) - translate)
-
-        output_bbox = bbox_scale_and_translate(object_bbox, scaling, source_center, target_center)
-
-        if not keep_object_in_image or bounding_box_is_intersect_with_image(output_bbox, output_size):
-            break
-
-    source_center = torch.tensor(source_center)
+def prepare_SiamFC_curation(bbox, area_factor, output_size):
+    curation_scaling, curation_source_center_point, curation_target_center_point = get_scaling_and_translation_parameters(bbox, area_factor, output_size)
+    output_bbox = bbox_scale_and_translate(bbox, curation_scaling, curation_source_center_point, curation_target_center_point)
     output_bbox = torch.tensor(output_bbox)
-    if image_mean is None:
-        image_mean = get_image_mean_chw(image)
-    output_image, _ = torch_scale_and_translate_align_corners(image, output_size, scaling, source_center, target_center, image_mean)
-    return output_image, output_bbox, image_mean
-
-
-def do_SiamFC_curation_CHW(image, object_bbox, area_factor, output_size, image_mean=None):
-    curation_scaling, curation_source_center_point, curation_target_center_point = get_scaling_and_translation_parameters(object_bbox, area_factor, output_size)
-    output_bbox = bbox_scale_and_translate(object_bbox, curation_scaling, curation_source_center_point, curation_target_center_point)
-    output_bbox = torch.tensor(output_bbox)
-
-    if image_mean is None:
-        image_mean = get_image_mean_chw(image)
 
     curation_parameter = torch.stack((curation_scaling, curation_source_center_point, curation_target_center_point))
-    curation_parameter = curation_parameter.to(image.device, non_blocking=True)
+
+    return curation_parameter, output_bbox
+
+
+def do_SiamFC_curation(image, output_size, curation_parameter, image_mean=None):
+    if image_mean is None:
+        image_mean = get_image_mean(image)
     output_image, _ = torch_scale_and_translate_align_corners(image, output_size, curation_parameter[0], curation_parameter[1], curation_parameter[2], image_mean)
 
-    return output_image, output_bbox, image_mean, curation_scaling, curation_source_center_point, curation_target_center_point
+    return output_image, image_mean

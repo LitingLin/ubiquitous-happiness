@@ -9,17 +9,17 @@ def torch_scale_and_translate_align_corners(img, output_size, scale, input_cente
                                                  background_color=None, mode='bilinear'):
     """
     Args:
-        img (torch.Tensor): (n, c, h, w)
+        img (torch.Tensor): (n, c, h, w) or (c, h, w)
         output_size (int, int): (2)
-        scale (torch.Tensor): (n, 2)
-        input_center (torch.Tensor): (n, 2)
-        output_center (torch.Tensor): (n, 2)
+        scale (torch.Tensor): (n, 2) or (2)
+        input_center (torch.Tensor): (n, 2) or (2)
+        output_center (torch.Tensor): (n, 2) or (2)
         background_color (torch.Tensor | None): (n, c) or (n, 1) or (c)
         mode (str): interpolate algorithm
     Returns:
         (torch.Tensor, torch.Tensor): tuple containing:
-            output_image(torch.Tensor): (n, c, h, w), curated image
-            image_bbox (torch.Tensor): (2)
+            output_image(torch.Tensor): (n, c, h, w) or (c, h, w), curated image
+            image_bbox (torch.Tensor): (n, 2) or (2)
     """
     assert img.ndim in (3, 4)
     batch_mode = img.ndim == 4

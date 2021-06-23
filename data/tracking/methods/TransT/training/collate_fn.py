@@ -22,22 +22,39 @@ def batch_collate_target_feat_map_indices(target_feat_map_indices_list):
 def transt_collate_fn(data):
     z_image_list = []
     x_image_list = []
+    z_context_list = []
+    x_context_list = []
     target_feat_map_indices_list = []
     target_class_label_vector_list = []
     target_bounding_box_label_matrix_list = []
     is_positives = []
-    for z_image, x_image, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix, is_positive in data:
+    for z_image, x_image, z_context, x_context, \
+        target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix, is_positive in data:
         z_image_list.append(z_image)
         x_image_list.append(x_image)
+        if z_context is not None:
+            z_context_list.append(z_context)
+        if x_context is not None:
+            x_context_list.append(x_context)
         target_feat_map_indices_list.append(target_feat_map_indices)
         target_class_label_vector_list.append(target_class_label_vector)
         if target_bounding_box_label_matrix is not None:
             target_bounding_box_label_matrix_list.append(target_bounding_box_label_matrix)
         is_positives.append(is_positive)
-    z_image_batch = torch.stack(z_image_list)
-    x_image_batch = torch.stack(x_image_list)
 
-    target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, num_boxes_pos = batch_collate_target_feat_map_indices(target_feat_map_indices_list)
+    assert len(z_context_list) == len(x_context_list)
+
+    if len(z_context_list) == 0:
+        z_image_batch = torch.stack(z_image_list)
+        x_image_batch = torch.stack(x_image_list)
+        context = None
+    else:
+        z_image_batch = z_image_list
+        x_image_batch = x_image_list
+        context = (torch.stack(z_context_list), torch.stack(x_context_list))
+
+    target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, num_boxes_pos = \
+        batch_collate_target_feat_map_indices(target_feat_map_indices_list)
     target_class_label_vector_batch = torch.stack(target_class_label_vector_list)
     if len(target_bounding_box_label_matrix_list) != 0:
         target_bounding_box_label_matrix_batch = torch.cat(target_bounding_box_label_matrix_list, dim=0)
@@ -46,4 +63,7 @@ def transt_collate_fn(data):
 
     is_positives = torch.tensor(is_positives)
 
-    return (z_image_batch, x_image_batch), (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, target_class_label_vector_batch, target_bounding_box_label_matrix_batch), is_positives
+    return (z_image_batch, x_image_batch), \
+           (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch,
+            target_class_label_vector_batch, target_bounding_box_label_matrix_batch), \
+           is_positives, context
