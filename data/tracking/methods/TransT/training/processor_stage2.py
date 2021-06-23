@@ -23,6 +23,4 @@ class TransTStage2DataProcessor:
         for index, (x_element, x_context_element) in enumerate(zip(x, x_context)):
             x_batch[index, ...], _ = do_SiamFC_curation(x_element, self.search_size, x_context_element, self.interpolation_mode)
         x_batch = self.transform(x_batch)
-        # x, _ = do_SiamFC_curation(x, self.search_size, x_context)
-        # x = self.transform(x)
         return z_batch, x_batch
