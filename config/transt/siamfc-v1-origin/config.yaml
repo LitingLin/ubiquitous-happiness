@@ -16,14 +16,15 @@ backbone:
   output_layers: [3]
 
 neck:
-  type: "XCorr"
+  type: "SiamFCXCorr"
   parameters:
     input_dim: 1024
     hidden_dim: 256
 
 head:
-  type: "DETR"
+  type: "SiamFC"
   parameters:
-    input_size: [17, 17]
-    input_dim: 256
-    hidden_dim: 256
+    input_size: [15, 15]
+    r_pos: 16
+    r_neg: 0
+    total_stride: 8
