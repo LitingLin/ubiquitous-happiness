@@ -22,7 +22,6 @@ def build_criterion(network_config, train_config: dict):
     else:
         raise NotImplementedError(f"Unknown train config version {train_config['version']}")
 
-
     from .builders.cls_loss import build_cls_loss
     cls_loss, cls_loss_weight = build_cls_loss(loss_parameters)
 

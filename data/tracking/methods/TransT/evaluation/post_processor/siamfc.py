@@ -4,41 +4,43 @@ import torch.nn.functional as F
 
 
 class SiamFCTrackingPostProcessing:
-    def __init__(self, response_sz, response_up, scale_penalty,
-                 enable_gaussian_score_map_penalty, search_feat_size, device, window_penalty_ratio=None):
-        self.upscale_sz = response_sz * response_up
+    def __init__(self, response_up, scale_penalty, window_influence,
+                 search_feat_size, search_size, device):
+        self.response_up = response_up
+        search_feat_w, search_feat_h = search_feat_size
+        self.upscale_size = (search_feat_h * response_up, search_feat_w * response_up)
         self.scale_penalty = scale_penalty
-        self.enable_gaussian_score_map_penalty = enable_gaussian_score_map_penalty
+        self.window_influence = window_influence
         self.search_feat_size = search_feat_size
+        search_w, search_h = search_size
+        self.network_stride = search_h / search_feat_h, search_w / search_feat_w
 
-        if enable_gaussian_score_map_penalty:
-            window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
-            self.window = torch.tensor(window.flatten(), device=device)
-            self.window_penalty_ratio = window_penalty_ratio
+        window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
+        self.window = torch.tensor(window.flatten(), device=device)
 
     def __call__(self, response_map):
         s, c, h, w = response_map.shape
+        assert c == 1
+        assert w == self.search_feat_size[0] and h == self.search_feat_size[1]
+        response_map = response_map.squeeze(1)
 
-        response_map = F.interpolate(response_map, self.upscale_sz, mode='bicubic', align_corners=True)
-        upscaled_h, upscaled_w = self.upscale_sz
+        response_map = F.interpolate(response_map, self.upscale_size, mode='bicubic', align_corners=True)
+        upscaled_h, upscaled_w = self.upscale_size
 
         response_map[:s // 2] *= self.scale_penalty
         response_map[s // 2 + 1:] *= self.scale_penalty
 
         score, best_index = torch.max(response_map.view(-1), -1)
-        best_scale_index = best_index // (c * upscaled_h * upscaled_w)
+        best_scale_index = best_index // (upscaled_h * upscaled_w)
 
+        response = response_map[best_scale_index]
+        response -= response.min()
+        response /= response.sum() + 1e-16
+        response = (1 - self.window_influence) * response + \
+                   self.window_influence * self.window
 
-        class_score_map, bounding_box_regression_map, quality_assessment = network_output
-        class_score_map = class_score_map.squeeze(0)
+        max_response_index = torch.argmax(response)
+        max_response_index = (max_response_index // upscaled_w) / self.response_up * self.network_stride[0],\
+                             (max_response_index % upscaled_w) / self.response_up * self.network_stride[1]
 
-        if self.enable_gaussian_score_map_penalty:
-            # window penalty
-            class_score_map = class_score_map * (1 - self.window_penalty_ratio) + \
-                     self.window * self.window_penalty_ratio
-
-        confidence_score, best_idx = torch.max(class_score_map, 0)
-
-        bounding_box_regression_map = bounding_box_regression_map.squeeze(0)
-        bounding_box = bounding_box_regression_map[best_idx, :]
-        return bounding_box.cpu(), confidence_score.cpu().item()
+        return (best_scale_index, *max_response_index), score.cpu().item()

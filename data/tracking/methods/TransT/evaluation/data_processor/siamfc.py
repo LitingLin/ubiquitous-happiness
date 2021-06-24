@@ -2,6 +2,7 @@ from data.tracking.processor.siamfc_curation import prepare_SiamFC_curation, do_
 import torch
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision import transforms
+from data.operator.point.scale_and_translate import xy_point_scale_and_translate
 
 
 def build_evaluation_transform():
@@ -12,9 +13,9 @@ def build_evaluation_transform():
 
 class SiamFCEvaluationDataProcessor:
     def __init__(self, template_area_factor, search_area_factor, template_size, search_size,
-                 scale_num, scale_step,
+                 scale_num, scale_step, scale_lr,
                  interpolation_mode,
-                 device, preprocessing_on_device, bounding_box_post_processor):
+                 device, preprocessing_on_device):
         self.template_area_factor = template_area_factor
         self.search_area_factor = search_area_factor
         self.template_size = template_size
@@ -23,10 +24,11 @@ class SiamFCEvaluationDataProcessor:
         self.device = device
         self.preprocessing_on_device = preprocessing_on_device
         self.transform = build_evaluation_transform()
-        self.bounding_box_post_processor = bounding_box_post_processor
         self.scale_factors = scale_step ** torch.linspace(-(scale_num // 2), scale_num // 2, scale_num)
+        self.scale_lr = scale_lr
 
     def initialize(self, image, bbox):
+        self.object_wh = bbox[2].item(), bbox[3].item()
         curation_parameter, _ = prepare_SiamFC_curation(bbox, self.template_area_factor, self.template_size)
         if self.preprocessing_on_device:
             image = image.to(self.device, non_blocking=True)
@@ -67,9 +69,16 @@ class SiamFCEvaluationDataProcessor:
         if not self.preprocessing_on_device:
             curated_search_image = curated_search_image.to(self.device, non_blocking=True)
 
-        self.last_frame_image_size = (w, h)
         self.last_frame_curation_parameter = curation_parameter
         return curated_search_image
 
-    def get_bounding_box(self, bbox_normalized_cxcywh):
-        return self.bounding_box_post_processor(bbox_normalized_cxcywh, self.last_frame_image_size, self.last_frame_curation_parameter)
+    def get_bounding_box(self, response_peak_position):
+        scale_index, response_y, response_x = response_peak_position
+
+        curation_parameter = self.last_frame_curation_parameter[scale_index]
+        scaling, input_center, output_center = curation_parameter
+        object_center = xy_point_scale_and_translate((response_x, response_y), 1 / scaling, output_center, input_center)
+        scale = ((1 - self.scale_lr) * 1.0 + self.scale_lr * self.scale_factors[scale_index]).item()
+        self.object_wh = self.object_wh[0] * scale, self.object_wh[1] * scale
+
+        return object_center[0], object_center[1], self.object_wh[0], self.object_wh[1]

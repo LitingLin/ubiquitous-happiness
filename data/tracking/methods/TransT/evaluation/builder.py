@@ -2,6 +2,22 @@ from data.tracking.methods.TransT.evaluation.data_processor.transt import TransT
 from data.tracking.methods.TransT.evaluation.bounding_box_post_processor.transt import TransTBoundingBoxPostProcessor
 
 
+def build_siamfc_evaluation_data_processor(network_config, evaluation_config, device, preprocessing_on_device):
+    from .data_processor.siamfc import SiamFCEvaluationDataProcessor
+    from .post_processor.siamfc import SiamFCTrackingPostProcessing
+    network_data_parameters = network_config['data']
+    evaluation_parameters = evaluation_config['tracking']
+    data_processor = SiamFCEvaluationDataProcessor(
+        network_data_parameters['area_factor']['template'], network_data_parameters['area_factor']['search'],
+        network_data_parameters['template_size'], network_data_parameters['search_size'],
+        evaluation_parameters['scale_num'], evaluation_parameters['scale_step'], evaluation_parameters['scale_lr'],
+        network_data_parameters['interpolation_mode'], device, preprocessing_on_device)
+    network_post_processor = SiamFCTrackingPostProcessing(
+        evaluation_parameters['response_up'], evaluation_parameters['scale_penalty'], evaluation_parameters['window_influence'],
+        network_config['head']['parameters']['size'], network_data_parameters['search_size'], device)
+    return data_processor, network_post_processor
+
+
 def build_evaluation_data_processors(network_config, evaluation_config, device):
     if network_config['version'] < 4:
         import data.tracking.methods.TransT.evaluation._old.builder
@@ -10,6 +26,9 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
     if 'preprocessing_on_device' in evaluation_config['tracking']:
         preprocessing_on_device = evaluation_config['tracking']['preprocessing_on_device']
     print(f'Data preprocessing on Device: {preprocessing_on_device}')
+
+    if network_config['type'].startswith('SiamFC'):
+        return build_siamfc_evaluation_data_processor(network_config, evaluation_config, device, preprocessing_on_device)
 
     if 'bbox_size_limit_in_feat_space' not in evaluation_config['tracking']:
         bbox_size_limit_in_feat_space = False
