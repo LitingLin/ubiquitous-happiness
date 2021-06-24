@@ -31,7 +31,9 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
     os.mkdir(tmp_path)
 
     predicted_bboxes = []
-    times = []
+    inference_times = []
+    data_times = []
+    confidence_scores = []
 
     class _Sequence_Data_Getter:
         def __init__(self, sequence):
@@ -47,27 +49,40 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
     sequence_data_getter = _Sequence_Data_Getter(sequence)
     sequence_data_getter = SimplePrefetcher(sequence_data_getter)
 
+    data_begin = time.perf_counter()
     for index_of_frame, (image, bounding_box) in enumerate(sequence_data_getter):
         begin_time = time.perf_counter()
+        data_time = begin_time - data_begin
         if index_of_frame == 0:
             tracker.initialize(image, bounding_box)
             predicted_bboxes.append(bounding_box)
+            confidence_score = 1
         else:
-            predicted_bbox = tracker.track(image)
+            predicted_bbox, confidence_score = tracker.track(image)
             predicted_bboxes.append(predicted_bbox)
-        times.append(time.perf_counter() - begin_time)
+        end_time = time.perf_counter()
+        inference_times.append(end_time - begin_time)
+        data_times.append(data_time)
+        confidence_scores.append(confidence_score)
+        data_begin = end_time
     predicted_bboxes = np.array(predicted_bboxes)
-    times = np.array(times)
+    inference_times = np.array(inference_times)
+    data_times = np.array(data_times)
+    confidence_scores = np.array(confidence_scores)
+
+    saving_time_begin = time.perf_counter()
     with open(os.path.join(tmp_path, 'bounding_box.p'), 'wb') as f:
         pickle.dump(predicted_bboxes, f)
     np.savetxt(os.path.join(tmp_path, 'bounding_box.txt'), predicted_bboxes, fmt='%.3f', delimiter=',')
     with open(os.path.join(tmp_path, 'time.p'), 'wb') as f:
-        pickle.dump(times, f)
-    np.savetxt(os.path.join(tmp_path, 'time.txt'), times, fmt='%.3f', delimiter=',')
+        pickle.dump(inference_times, f)
+    np.savetxt(os.path.join(tmp_path, 'time.txt'), inference_times, fmt='%.3f', delimiter=',')
 
     os.rename(tmp_path, result_path)
-    process_bar.set_sequence_name(f'{sequence_name}: FPS {1.0 / times.mean()}')
 
+    saving_time = time.perf_counter() - saving_time_begin
+
+    process_bar.set_sequence_name(f'{sequence_name}: FPS {1.0 / inference_times.mean()} confidence {confidence_scores.mean()} data {data_times.mean()} saving {saving_time}')
     process_bar.update()
 
 

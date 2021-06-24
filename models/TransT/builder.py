@@ -17,7 +17,7 @@ def build_transt(network_config, load_pretrained=True):
     elif network_config['version'] == 3 and network_config['type'] == 'XTracker':
         from .variants.swin_cross_tracker import build_swin_transformer_x_tracker
         return build_swin_transformer_x_tracker(network_config, load_pretrained)
-    elif network_config['version'] == 4 and network_config['type'] == 'SiamFC':
+    elif network_config['version'] == 4 and network_config['type'].startswith('SiamFC'):
         from .siamfc.builder import build_siamfc
         return build_siamfc(network_config, load_pretrained)
     else:

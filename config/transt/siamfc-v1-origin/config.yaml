@@ -7,24 +7,20 @@ data:
   area_factor:
     template: 2.0
     search: 4.0
-  template_size: [128, 128]
-  search_size: [256, 256]
+  template_size: [127, 127]
+  search_size: [255, 255]
   interpolation_mode: "bicubic"
 
 backbone:
-  type: "resnet-50-atrous"
-  output_layers: [3]
+  type: "Alexnet-SiamFC-v1"
 
 neck:
-  type: "SiamFCXCorr"
-  parameters:
-    input_dim: 1024
-    hidden_dim: 256
+  type: "SiamFCLinearXCorr"
 
 head:
   type: "SiamFC"
   parameters:
-    input_size: [15, 15]
+    size: [17, 17]
     r_pos: 16
     r_neg: 0
     total_stride: 8

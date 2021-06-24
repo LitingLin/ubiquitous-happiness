@@ -24,9 +24,9 @@ class TransTExp1TrackingPostProcessing:
                      self.window * self.window_penalty_ratio
         if self.with_quality_assessment:
             class_score_map = class_score_map * quality_assessment.squeeze(0)
-        best_idx = torch.argmax(class_score_map)
+
+        confidence_score, best_idx = torch.max(class_score_map, 0)
 
         bounding_box_regression_map = bounding_box_regression_map.squeeze(0)
         bounding_box = bounding_box_regression_map[best_idx, :]
-        bounding_box = bounding_box.cpu()
-        return bounding_box
+        return bounding_box.cpu(), confidence_score.cpu().item()

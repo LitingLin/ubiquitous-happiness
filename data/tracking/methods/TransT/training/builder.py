@@ -35,7 +35,8 @@ def build_transt_data_processor(network_config: dict, train_config: dict):
         pass
     elif network_config['head']['type'] == 'SiamFC':
         from .label.siamfc import SiamFCLabelGenerator
-        label_generator = SiamFCLabelGenerator(network_config['head']['input_size'], network_config['head']['r_pos'], network_config['head']['r_neg'], network_config['head']['total_stride'])
+        head_parameters = network_config['head']['parameters']
+        label_generator = SiamFCLabelGenerator(head_parameters['size'], head_parameters['r_pos'], head_parameters['r_neg'], head_parameters['total_stride'])
         return _build_transt_data_processor(network_config, train_config, label_generator), SiamFC_collate_fn
     else:
         raise RuntimeError(f"Unknown {network_config['transformer']['head']['type']}")

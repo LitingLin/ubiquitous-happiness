@@ -26,5 +26,5 @@ def run_tracker(tracker):
         if next_frame_path is None:
             break
         assert isinstance(next_frame_path, str)
-        predicted_bbox = tracker.track(_decode_image(next_frame_path))
-        vot_object.report(_bbox_convert_to_vot(predicted_bbox))
+        predicted_bbox, confidence_score = tracker.track(_decode_image(next_frame_path))
+        vot_object.report(_bbox_convert_to_vot(predicted_bbox), confidence_score)

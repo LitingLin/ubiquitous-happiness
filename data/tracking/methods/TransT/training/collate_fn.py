@@ -64,7 +64,7 @@ def transt_collate_fn(data):
     else:
         target_bounding_box_label_matrix_batch = None
 
-    is_positives = torch.tensor(is_positives)
+    # is_positives = torch.tensor(is_positives)
 
     return (z_image_batch, x_image_batch), \
            (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch,
@@ -102,7 +102,7 @@ def SiamFC_collate_fn(data):
         x_image_batch = x_image_list
         context = (torch.stack(z_context_list), torch.stack(x_context_list))
 
-    labels = torch.tensor(labels)
+    labels = torch.stack(labels)
 
     return (z_image_batch, x_image_batch), labels, is_positives, context
 
