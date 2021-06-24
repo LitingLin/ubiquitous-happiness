@@ -1,5 +1,5 @@
-from data.tracking.methods.TransT.evaluation.data_preprocessor import TransTEvaluationDataProcessor
-from data.tracking.methods.TransT.evaluation.bounding_box_post_processor import TransTBoundingBoxPostProcessor
+from data.tracking.methods.TransT.evaluation.data_processor.transt import TransTEvaluationDataProcessor
+from data.tracking.methods.TransT.evaluation.bounding_box_post_processor.transt import TransTBoundingBoxPostProcessor
 
 
 def build_evaluation_data_processors(network_config, evaluation_config, device):

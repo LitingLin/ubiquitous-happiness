@@ -6,7 +6,7 @@ from data.operator.bbox.spatial.vectorized.torch.validity import bbox_is_valid_v
 
 
 def torch_scale_and_translate_align_corners(img, output_size, scale, input_center, output_center,
-                                                 background_color=None, mode='bilinear'):
+                                                 background_color=None, mode='bilinear', output_img=None):
     """
     Args:
         img (torch.Tensor): (n, c, h, w) or (c, h, w)
@@ -25,19 +25,35 @@ def torch_scale_and_translate_align_corners(img, output_size, scale, input_cente
     batch_mode = img.ndim == 4
     if not batch_mode:
         img = img.unsqueeze(0)
+    if output_img is not None:
+        if batch_mode:
+            assert output_img.ndim == 4
+        else:
+            assert output_img.ndim in (3, 4)
+            if output_img.ndim == 4:
+                assert output_img.shape[0] == 1
+            else:
+                output_img = output_img.unsqueeze(0)
     n, c, h, w = img.shape
     if background_color is not None:
         if background_color.ndim == 1:
-            output_img = background_color.reshape(1, -1, 1, 1).repeat(n, c // background_color.shape[0], output_size[1],
-                                                                      output_size[0])
+            if output_img is None:
+                output_img = background_color.reshape(1, -1, 1, 1).repeat(
+                    n, c // background_color.shape[0], output_size[1], output_size[0])
+            else:
+                output_img[:] = background_color.reshape(1, -1, 1, 1)
         elif background_color.ndim == 2:
             b_n, b_c = background_color.shape
             assert b_n == n
-            output_img = background_color.reshape(b_n, b_c, 1, 1).repeat(1, c // b_c, output_size[1], output_size[0])
+            if output_img is None:
+                output_img = background_color.reshape(b_n, b_c, 1, 1).repeat(1, c // b_c, output_size[1], output_size[0])
+            else:
+                output_img[:] = background_color.reshape(b_n, b_c, 1, 1)
         else:
             raise RuntimeError(f"Incompatible background_color shape")
     else:
-        output_img = torch.zeros((n, c, output_size[1], output_size[0]), dtype=img.dtype, device=img.device)
+        if output_img is None:
+            output_img = torch.zeros((n, c, output_size[1], output_size[0]), dtype=img.dtype, device=img.device)
 
     output_bbox = bbox_scale_and_translate_vectorized(
         torch.tensor((0, 0, w - 1, h - 1), dtype=torch.float, device=img.device), scale, input_center, output_center)
