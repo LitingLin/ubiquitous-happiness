@@ -33,7 +33,8 @@ class TransTCriterion(nn.Module):
 
         loss_value = losses_reduced_scaled.item()
 
-        return loss_value, loss_dict_reduced_scaled.update(loss_dict_reduced_unscaled)
+        loss_dict_reduced_scaled.update(loss_dict_reduced_unscaled)
+        return loss_value, loss_dict_reduced_scaled
 
     def _criterion(self, predicted, label):
         predicted_class = predicted[0]
