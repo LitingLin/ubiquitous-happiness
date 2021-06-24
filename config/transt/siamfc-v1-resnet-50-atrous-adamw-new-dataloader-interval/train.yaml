@@ -10,6 +10,7 @@ data:
       search: 3
     gray_scale_probability: 0.05
     color_jitter: 0.4
+    stage_2_on_host_process: true
 
   sampler:
     version: 2

@@ -1,9 +1,10 @@
-import torch
 from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
 from Miscellaneous.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
+import torch
+import torch.distributed
 
 
 def setup_optimizer(model, network_config: dict, train_config: dict):
@@ -22,7 +23,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
     criterion = build_criterion(net_config, train_config)
     optimizer, lr_scheduler = setup_optimizer(model, net_config, train_config)
 
-    if 'sync_bn' in train_config['optimization']:
+    if 'sync_bn' in train_config['optimization'] and 'cuda' in device.type:
         if train_config['optimization']['sync_bn']:
             from Miscellaneous.torch.distributed import is_dist_available_and_initialized
             if is_dist_available_and_initialized():
@@ -36,6 +37,14 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
             model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
+
+            from Miscellaneous.torch.distributed import get_rank, get_world_size
+            gathered_objects = [None for _ in range(get_world_size())]
+            torch.distributed.all_gather_object(gathered_objects, dict(model.module.named_parameters()))
+            for i in range(1, get_world_size()):
+                for v1, v2 in zip(gathered_objects[0].values(), gathered_objects[1].values()):
+                    assert torch.equal(v1, v2)
+            del gathered_objects
 
     return TransTRunner(model, criterion, optimizer, lr_scheduler,
                         stage_2_data_processor,

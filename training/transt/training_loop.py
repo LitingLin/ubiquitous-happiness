@@ -6,6 +6,7 @@ from Miscellaneous.torch.checkpoint import dump_checkpoint_from_runner
 import os
 import json
 import datetime
+import gc
 
 
 def _get_parameters_from_train_config(train_config: dict):
@@ -25,6 +26,7 @@ def run_training_loop(args, train_config, runner, data_loader_train, data_loader
     print("Start training")
     start_time = time.perf_counter()
     with runner:
+        gc.collect()
         for epoch in range(args.start_epoch, epochs):
             train_stats = train_one_epoch(runner, data_loader_train, epoch, clip_max_norm)
             test_stats = evaluate(runner, data_loader_val)
