@@ -4,10 +4,10 @@ data:
   augmentation:
     scale_jitter_factor:
       template: 0
-      search: 0.05
+      search: 0
     translation_jitter_factor:
       template: 0
-      search: 4
+      search: 0
     gray_scale_probability: 0.05
     color_jitter: 0.4
     stage_2_on_host_process: ture
