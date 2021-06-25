@@ -7,7 +7,6 @@ import pickle
 import numpy as np
 from Miscellaneous.simple_prefetcher import SimplePrefetcher
 import torchvision.io
-from .ope_report import _calculate_evaluation_metrics
 
 
 def get_sequence_result_path(result_path, sequence, run_time=None):
@@ -66,15 +65,19 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
         data_times.append(data_time)
         confidence_scores.append(confidence_score)
         data_begin = end_time
+
+    saving_time_begin = time.perf_counter()
     predicted_bboxes = np.array(predicted_bboxes)
     inference_times = np.array(inference_times)
     data_times = np.array(data_times)
     confidence_scores = np.array(confidence_scores)
 
-    ao, sr_at_0_5, sr_at_0_75, succ_curve, prec_curve, norm_prec_curve = \
+    from .ope_report import _calculate_evaluation_metrics
+    _, _, _, succ_curve, _, norm_prec_curve = \
         _calculate_evaluation_metrics(predicted_bboxes, sequence)
+    success_score = np.mean(succ_curve)
+    norm_prec = norm_prec_curve[20]
 
-    saving_time_begin = time.perf_counter()
     with open(os.path.join(tmp_path, 'bounding_box.p'), 'wb') as f:
         pickle.dump(predicted_bboxes, f)
     np.savetxt(os.path.join(tmp_path, 'bounding_box.txt'), predicted_bboxes, fmt='%.3f', delimiter=',')
@@ -86,7 +89,10 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
 
     saving_time = time.perf_counter() - saving_time_begin
 
-    process_bar.set_sequence_name(f'{sequence_name}: FPS {1.0 / inference_times.mean():.2f} success {succ_curve:.2f} norm_prec {norm_prec_curve:.2f} confidence {confidence_scores.mean():.2f} data {data_times.mean():.2f} saving {saving_time:.2f}')
+    process_bar.set_sequence_name(f'{sequence_name}: FPS {(1.0 / inference_times.mean()):.2f} '
+                                  f'success {success_score:.2f} norm_prec {norm_prec:.2f} '
+                                  f'confidence {confidence_scores.mean():.2f} '
+                                  f'data {data_times.mean():.2f} saving {saving_time:.2f}')
     process_bar.update()
 
 

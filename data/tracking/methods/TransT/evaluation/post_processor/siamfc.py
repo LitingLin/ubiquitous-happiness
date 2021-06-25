@@ -14,7 +14,7 @@ class SiamFCTrackingPostProcessing:
         self.search_feat_size = search_feat_size
         search_w, search_h = search_size
         hann_window = np.outer(np.hanning(self.upscale_size[0]), np.hanning(self.upscale_size[1]))
-        self.response_map_to_search_image_mapping_ratio = (self.upscale_size[0] - 1) / (search_h - 1), (self.upscale_size[1] - 1) / (search_w - 1)
+        self.response_map_to_search_image_mapping_ratio = (search_h - 1) / (self.upscale_size[0] - 1), (search_w - 1) / (self.upscale_size[1] - 1)
         self.window = torch.tensor(hann_window, dtype=torch.float32, device=device)
 
     def __call__(self, response_map):
