@@ -4,18 +4,23 @@ from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDatas
 from Dataset.DET.Storage.MemoryMapped.dataset import DetectionDataset_MemoryMapped
 from data.tracking.sampler._sampling_algos.stateful.api_gateway.random_sampler import ApiGatewayRandomSampler
 
-from data.tracking.sampler._sampler.sequence.SiamFC.DET import \
-    do_sampling_in_detection_dataset_image, get_one_random_sample_in_detection_dataset_image
+
+from data.tracking.sampler._sampler.sequence.random.DET import \
+    get_one_random_sample_in_detection_dataset_image, \
+    do_sampling_in_detection_dataset_image
+from data.tracking.sampler._sampler.sequence.random.SOT import \
+    get_one_random_sample_in_single_object_tracking_dataset_sequence
+from data.tracking.sampler._sampler.sequence.random.MOT import \
+    get_one_random_sample_in_multiple_object_tracking_dataset_sequence
+
 from data.tracking.sampler._sampler.sequence.SiamFC.SOT import \
     do_positive_sampling_in_single_object_tracking_dataset_sequence, \
     do_sampling_in_single_object_tracking_dataset_sequence, \
-    do_negative_sampling_in_single_object_tracking_dataset_sequence, \
-    get_one_random_sample_in_single_object_tracking_dataset_sequence
+    do_negative_sampling_in_single_object_tracking_dataset_sequence
 from data.tracking.sampler._sampler.sequence.SiamFC.MOT import \
     do_positive_sampling_in_multiple_object_tracking_dataset_sequence, \
     do_sampling_in_multiple_object_tracking_dataset_sequence, \
-    do_negative_sampling_in_multiple_object_tracking_dataset_sequence, \
-    get_one_random_sample_in_multiple_object_tracking_dataset_sequence
+    do_negative_sampling_in_multiple_object_tracking_dataset_sequence
 
 
 from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod

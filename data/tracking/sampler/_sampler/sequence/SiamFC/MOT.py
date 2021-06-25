@@ -1,7 +1,7 @@
 from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDatasetSequence_MemoryMapped
 from ._algo import do_siamfc_pair_sampling_positive_only, do_siamfc_pair_sampling_negative_only, do_siamfc_pair_sampling
 import numpy as np
-from ._dummy_bbox import generate_dummy_bbox_xyxy
+from data.tracking.sampler._sampler.sequence.common._dummy_bbox import generate_dummy_bbox_xyxy
 from data.operator.bbox.validity import bbox_is_valid
 from data.operator.bbox.spatial.utility.aligned.image import bounding_box_is_intersect_with_image
 from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod
@@ -65,18 +65,3 @@ def do_sampling_in_multiple_object_tracking_dataset_sequence(sequence: MultipleO
 
     indices, is_positive = do_siamfc_pair_sampling(len(sequence), frame_range, mask, sampling_method, rng_engine)
     return _data_getter(sequence, track_id, indices, rng_engine), is_positive
-
-
-def get_one_random_sample_in_multiple_object_tracking_dataset_sequence(sequence: MultipleObjectTrackingDatasetSequence_MemoryMapped, rng_engine: np.random.Generator):
-    index_of_frame = rng_engine.integers(0, sequence.get_number_of_frames())
-    frame = sequence[index_of_frame]
-    if len(frame) == 0:
-        return frame.get_image_path(), generate_dummy_bbox_xyxy(frame.get_image_size(), rng_engine)
-    else:
-        index_of_frame_object = rng_engine.integers(0, len(frame))
-        frame_object = frame[index_of_frame_object]
-        bbox_validity = frame_object.get_bounding_box_validity_flag()
-        if bbox_validity is not None and not bbox_validity:
-            return frame.get_image_path(), generate_dummy_bbox_xyxy(frame.get_image_size(), rng_engine)
-        else:
-            return frame.get_image_path(), frame_object.get_bounding_box()

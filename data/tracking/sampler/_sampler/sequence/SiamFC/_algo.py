@@ -1,15 +1,7 @@
 from data.tracking.sampler._sampling_algos.stateless.random import sampling_multiple_indices_with_range_and_mask, sampling, sampling_with_mask
 import numpy as np
 from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod
-
-
-def sample_one_positive(length, mask, rng_engine: np.random.Generator):
-    if mask is None:
-        z_index = sampling(length, rng_engine)
-    else:
-        z_index = sampling_with_mask(mask, rng_engine)
-
-    return z_index
+from data.tracking.sampler._sampler.sequence.common._algo import sample_one_positive
 
 
 def do_siamfc_pair_sampling(length: int, frame_range: int, mask: np.ndarray=None, sampling_method: SiamesePairSamplingMethod=SiamesePairSamplingMethod.causal, rng_engine: np.random.Generator=np.random.default_rng()):
@@ -94,11 +86,3 @@ def do_siamfc_pair_sampling_negative_only(length: int, frame_range: int, mask: n
     candidates = np.arange(0, length)[not_mask]
     x_index = rng_engine.choice(candidates, p=probability)
     return z_index, x_index
-
-
-if __name__ == '__main__':
-    a = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-       1, 1, 1, 1, 1, 1, 1], dtype=np.bool_)
-
-    do_siamfc_pair_sampling(29, 3, a, np.random.default_rng())
-
