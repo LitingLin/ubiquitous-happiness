@@ -19,6 +19,7 @@ class UnNormalize(object):
             # The normalize code -> t.sub_(m).div_(s)
         return tensor
 
+
 def view_float_image(image):
     image = image * 255.
     image = torch.clip(image, 0, 255)
@@ -32,3 +33,9 @@ def view_float_image(image):
 
 
 def view_imagenet_normalized_float_image(image):
+    from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+    transform = UnNormalize(
+        mean=torch.tensor(IMAGENET_DEFAULT_MEAN),
+        std=torch.tensor(IMAGENET_DEFAULT_STD))
+    image = transform(image)
+    view_imagenet_normalized_float_image(image)

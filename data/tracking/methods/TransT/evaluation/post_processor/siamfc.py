@@ -1,9 +1,17 @@
 import torch
 import torch.nn.functional as F
 
+from enum import Enum, auto
+
+
+class NormalizationMethod(Enum):
+    Linear = auto()
+    Sigmoid = auto()
+
 
 class SiamFCTrackingPostProcessing:
     def __init__(self, response_up, scale_penalty, window_influence,
+                 response_map_normalization_method,
                  search_feat_size, search_size, device):
         self.response_up = response_up
         search_feat_w, search_feat_h = search_feat_size
@@ -14,6 +22,7 @@ class SiamFCTrackingPostProcessing:
         search_w, search_h = search_size
         self.hann_window = torch.outer(torch.hann_window(self.upscale_size[0], periodic=False, device=device), torch.hann_window(self.upscale_size[1], periodic=False, device=device))
         self.response_map_to_search_image_mapping_ratio = (search_h - 1) / (self.upscale_size[0] - 1), (search_w - 1) / (self.upscale_size[1] - 1)
+        self.response_map_normalization_method = NormalizationMethod[response_map_normalization_method]
 
     def __call__(self, response_map):
         s, c, h, w = response_map.shape
@@ -31,8 +40,8 @@ class SiamFCTrackingPostProcessing:
         best_scale_index = best_index // (upscaled_h * upscaled_w)
 
         response = response_map[best_scale_index]
-        linear = False
-        if linear:
+
+        if self.response_map_normalization_method == NormalizationMethod.Linear:
             response -= response.min()
             response /= (response.sum() + 1e-16)
         else:

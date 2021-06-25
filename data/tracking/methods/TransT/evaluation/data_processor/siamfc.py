@@ -16,7 +16,7 @@ class SiamFCEvaluationDataProcessor:
     def __init__(self, template_area_factor, search_area_factor, template_size, search_size,
                  scale_num, scale_step, scale_lr,
                  min_size_factor, max_size_factor,
-                 interpolation_mode,
+                 interpolation_mode, do_imagenet_normalization,
                  device, preprocessing_on_device):
         self.template_area_factor = template_area_factor
         self.search_area_factor = search_area_factor
@@ -30,6 +30,7 @@ class SiamFCEvaluationDataProcessor:
         self.scale_lr = scale_lr
         self.min_size_factor = min_size_factor
         self.max_size_factor = max_size_factor
+        self.do_imagenet_normalization = do_imagenet_normalization
 
     def initialize(self, image, bbox):
         self.object_wh = (bbox[2] - bbox[0]).item(), (bbox[3] - bbox[1]).item()
@@ -41,11 +42,16 @@ class SiamFCEvaluationDataProcessor:
             curation_parameter_device = curation_parameter.to(self.device, non_blocking=True)
         else:
             curation_parameter_device = curation_parameter
-        image = image.float() / 255.
+
+        image = image.float()
+        if self.do_imagenet_normalization:
+            image /= 255.
 
         curated_template_image, self.image_mean = do_SiamFC_curation(image, self.template_size, curation_parameter_device, self.interpolation_mode)
         curated_template_image = curated_template_image.unsqueeze(0)
-        curated_template_image = self.transform(curated_template_image)
+
+        if self.do_imagenet_normalization:
+            curated_template_image = self.transform(curated_template_image)
 
         if not self.preprocessing_on_device:
             curated_template_image = curated_template_image.to(self.device, non_blocking=True)
@@ -65,13 +71,17 @@ class SiamFCEvaluationDataProcessor:
         else:
             curation_parameter_device = curation_parameter
 
-        image = image.float() / 255.
+        image = image.float()
+        if self.do_imagenet_normalization:
+            image /= 255.
 
         curated_search_image = torch.empty([scale_steps, c, *self.search_size], dtype=image.dtype, device=image.device)
 
         for i_scale_level in range(scale_steps):
             _, _ = do_SiamFC_curation(image, self.search_size, curation_parameter_device[i_scale_level], self.interpolation_mode, self.image_mean, curated_search_image[i_scale_level, ...])
-        curated_search_image = self.transform(curated_search_image)
+
+        if self.do_imagenet_normalization:
+            curated_search_image = self.transform(curated_search_image)
 
         if not self.preprocessing_on_device:
             curated_search_image = curated_search_image.to(self.device, non_blocking=True)

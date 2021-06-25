@@ -10,7 +10,7 @@ class TransTProcessor:
                  template_area_factor, search_area_factor,
                  template_scale_jitter_factor, search_scale_jitter_factor,
                  template_translation_jitter_factor, search_translation_jitter_factor,
-                 gray_scale_probability,
+                 gray_scale_probability, do_imagenet_normalization,
                  color_jitter, label_generator, interpolation_mode, stage2_on_host_process):
         self.template_size = template_size
         self.search_size = search_size
@@ -22,15 +22,17 @@ class TransTProcessor:
         self.search_translation_jitter_factor = search_translation_jitter_factor
         self.gray_scale_probability = gray_scale_probability
         self.interpolation_mode = interpolation_mode
+        self.do_imagenet_normalization = do_imagenet_normalization
         if stage2_on_host_process:
             self.transform = None
         else:
-            self.transform = build_TransT_image_augmentation_transformer(color_jitter)
+            self.transform = build_TransT_image_augmentation_transformer(color_jitter, do_imagenet_normalization)
         self.gray_scale_transformer = Grayscale(3)
         self.label_generator = label_generator
 
     def __call__(self, z_image, z_bbox, x_image, x_bbox, is_positive):
         z_image, x_image = TransT_training_image_preprocessing(z_image, x_image, self.gray_scale_transformer,
+                                                               self.do_imagenet_normalization,
                                                                self.gray_scale_probability, np.random)
         z_image, z_bbox, z_context = \
             TransT_training_data_preprocessing_pipeline(z_image, z_bbox, self.template_area_factor,
@@ -46,7 +48,12 @@ class TransTProcessor:
                                                         self.search_translation_jitter_factor,
                                                         self.interpolation_mode,
                                                         self.transform)
+
         labels = self.label_generator(x_bbox.tolist(), is_positive)
+
+        z_image = z_image.float()
+        x_image = x_image.float()
+
         if isinstance(labels, (list, tuple)):
             return z_image, x_image, z_context, x_context, is_positive, *labels
         else:

@@ -9,6 +9,7 @@ data:
     search: 4.0
   template_size: [127, 127]
   search_size: [255, 255]
+  imagenet_normalization: false
   interpolation_mode: "bicubic"
 
 backbone:
