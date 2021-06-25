@@ -1,12 +1,13 @@
-import numpy as np
 import torch
 import torch.nn.functional as F
 
 
 class TransTTrackingPostProcessing:
     def __init__(self, search_feat_size, window_penalty, device):
-        window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
-        self.window = torch.tensor(window.flatten(), device=device)
+        # window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
+        self.window = torch.flatten(torch.outer(torch.hann_window(search_feat_size[1], periodic=False, device=device),
+                                                torch.hann_window(search_feat_size[0], periodic=False, device=device)))
+        # self.window = torch.tensor(window.flatten(), device=device)
 
         self.window_penalty = window_penalty
 

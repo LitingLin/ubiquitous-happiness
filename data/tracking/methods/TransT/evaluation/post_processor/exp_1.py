@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 
 
@@ -9,8 +8,10 @@ class TransTExp1TrackingPostProcessing:
         self.search_feat_size = search_feat_size
 
         if enable_gaussian_score_map_penalty:
-            window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
-            self.window = torch.tensor(window.flatten(), device=device)
+            # window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
+            # self.window = torch.tensor(window.flatten(), device=device)
+            self.window = torch.flatten(torch.outer(torch.hann_window(search_feat_size[1], periodic=False, device=device),
+                                                    torch.hann_window(search_feat_size[0], periodic=False, device=device)))
 
             self.window_penalty_ratio = window_penalty_ratio
 

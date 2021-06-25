@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -13,9 +12,8 @@ class SiamFCTrackingPostProcessing:
         self.window_influence = window_influence
         self.search_feat_size = search_feat_size
         search_w, search_h = search_size
-        hann_window = np.outer(np.hanning(self.upscale_size[0]), np.hanning(self.upscale_size[1]))
+        self.hann_window = torch.outer(torch.hann_window(self.upscale_size[0], periodic=False, device=device), torch.hann_window(self.upscale_size[1], periodic=False, device=device))
         self.response_map_to_search_image_mapping_ratio = (search_h - 1) / (self.upscale_size[0] - 1), (search_w - 1) / (self.upscale_size[1] - 1)
-        self.window = torch.tensor(hann_window, dtype=torch.float32, device=device)
 
     def __call__(self, response_map):
         s, c, h, w = response_map.shape
@@ -33,10 +31,14 @@ class SiamFCTrackingPostProcessing:
         best_scale_index = best_index // (upscaled_h * upscaled_w)
 
         response = response_map[best_scale_index]
-        response -= response.min()
-        response /= response.sum() + 1e-16
-        response = (1 - self.window_influence) * response + \
-                   self.window_influence * self.window
+        linear = False
+        if linear:
+            response -= response.min()
+            response /= (response.sum() + 1e-16)
+        else:
+            response = response.sigmoid()
+
+        response = (1 - self.window_influence) * response + self.window_influence * self.hann_window
 
         max_response_index = torch.argmax(response).cpu()
         max_response_index = (max_response_index // upscaled_w) * self.response_map_to_search_image_mapping_ratio[0],\
