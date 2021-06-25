@@ -11,6 +11,7 @@ def build_siamfc_evaluation_data_processor(network_config, evaluation_config, de
         network_data_parameters['area_factor']['template'], network_data_parameters['area_factor']['search'],
         network_data_parameters['template_size'], network_data_parameters['search_size'],
         evaluation_parameters['scale_num'], evaluation_parameters['scale_step'], evaluation_parameters['scale_lr'],
+        evaluation_parameters['min_size_factor'], evaluation_parameters['max_size_factor'],
         network_data_parameters['interpolation_mode'], device, preprocessing_on_device)
     network_post_processor = SiamFCTrackingPostProcessing(
         evaluation_parameters['response_up'], evaluation_parameters['scale_penalty'], evaluation_parameters['window_influence'],

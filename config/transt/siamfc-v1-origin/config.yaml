@@ -1,4 +1,4 @@
-name: "SiamFC-ResNet50-DETR-Head"
+name: "SiamFC-v1"
 
 version: 4
 type: "SiamFC"

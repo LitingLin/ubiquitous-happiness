@@ -15,7 +15,7 @@ class SiamFCTrackingPostProcessing:
         search_w, search_h = search_size
         self.network_stride = search_h / search_feat_h, search_w / search_feat_w
         hann_window = np.outer(np.hanning(self.upscale_size[0]), np.hanning(self.upscale_size[1]))
-        self.window = torch.tensor(hann_window, device=device)
+        self.window = torch.tensor(hann_window, dtype=torch.float32, device=device)
 
     def __call__(self, response_map):
         s, c, h, w = response_map.shape

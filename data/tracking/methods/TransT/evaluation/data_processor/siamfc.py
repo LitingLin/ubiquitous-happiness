@@ -15,6 +15,7 @@ def build_evaluation_transform():
 class SiamFCEvaluationDataProcessor:
     def __init__(self, template_area_factor, search_area_factor, template_size, search_size,
                  scale_num, scale_step, scale_lr,
+                 min_size_factor, max_size_factor,
                  interpolation_mode,
                  device, preprocessing_on_device):
         self.template_area_factor = template_area_factor
@@ -27,9 +28,13 @@ class SiamFCEvaluationDataProcessor:
         self.transform = build_evaluation_transform()
         self.scale_factors = scale_step ** torch.linspace(-(scale_num // 2), scale_num // 2, scale_num)
         self.scale_lr = scale_lr
+        self.min_size_factor = min_size_factor
+        self.max_size_factor = max_size_factor
 
     def initialize(self, image, bbox):
-        self.object_wh = bbox[2].item(), bbox[3].item()
+        self.object_wh = (bbox[2] - bbox[0]).item(), (bbox[3] - bbox[1]).item()
+        self.min_object_wh = (self.object_wh[0] * self.min_size_factor, self.object_wh[1] * self.min_size_factor)
+        self.max_object_wh = (self.object_wh[0] * self.max_size_factor, self.object_wh[1] * self.max_size_factor)
         curation_parameter, _ = prepare_SiamFC_curation(bbox, self.template_area_factor, self.template_size)
         if self.preprocessing_on_device:
             image = image.to(self.device, non_blocking=True)
@@ -50,8 +55,8 @@ class SiamFCEvaluationDataProcessor:
         c, h, w = image.shape
         scale_steps = len(self.scale_factors)
 
-        curation_parameter, _ = prepare_SiamFC_curation(last_frame_bbox, self.search_area_factor, self.search_size)
-        curation_parameter = curation_parameter.unsqueeze(0).repeat(scale_steps, 1, 1)
+        origin_curation_parameter, _ = prepare_SiamFC_curation(last_frame_bbox, self.search_area_factor, self.search_size)
+        curation_parameter = origin_curation_parameter.unsqueeze(0).repeat(scale_steps, 1, 1)
         curation_parameter[:, 0, :] *= self.scale_factors.view(scale_steps, 1)
 
         if self.preprocessing_on_device:
@@ -71,17 +76,18 @@ class SiamFCEvaluationDataProcessor:
         if not self.preprocessing_on_device:
             curated_search_image = curated_search_image.to(self.device, non_blocking=True)
 
-        self.last_frame_curation_parameter = curation_parameter
+        self.last_frame_curation_parameter = origin_curation_parameter
         return curated_search_image
 
     def get_bounding_box(self, response_peak_position):
         scale_index, response_y, response_x = response_peak_position
 
-        curation_parameter = self.last_frame_curation_parameter[scale_index]
+        curation_parameter = self.last_frame_curation_parameter
         scaling, input_center, output_center = curation_parameter
         object_center = xy_point_scale_and_translate((response_x, response_y), 1 / scaling, output_center, input_center)
         scale = ((1 - self.scale_lr) * 1.0 + self.scale_lr * self.scale_factors[scale_index]).item()
-        self.object_wh = self.object_wh[0] * scale, self.object_wh[1] * scale
+        object_wh = self.object_wh[0] * scale, self.object_wh[1] * scale
+        self.object_wh = min(max(object_wh[0], self.min_object_wh[0]), self.max_object_wh[0]), min(max(object_wh[1], self.min_object_wh[1]), self.max_object_wh[1])
 
         bounding_box = object_center[0].item(), object_center[1].item(), self.object_wh[0], self.object_wh[1]
         bounding_box = bbox_cxcywh2xyxy(bounding_box)
