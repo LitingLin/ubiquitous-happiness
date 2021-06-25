@@ -16,6 +16,7 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
                            train_data_augmentation_config['translation_jitter_factor']['template'],
                            train_data_augmentation_config['translation_jitter_factor']['search'],
                            train_data_augmentation_config['gray_scale_probability'],
+                           network_data_config['imagenet_normalization'],
                            train_data_augmentation_config['color_jitter'],
                            label_generator,
                            network_data_config['interpolation_mode'],
