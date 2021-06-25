@@ -1,4 +1,4 @@
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer, QPen, QColor, Qt
+from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer, QPen, QColor, Qt, QPixmap
 from ._sequence_runner import SequenceRunner
 import numpy as np
 from Miscellaneous.qt_numpy_interop import numpy_rgb888_to_qimage
@@ -38,13 +38,14 @@ class InteractiveDatasetsRunner:
                 index_of_datasets[_index] = index_of_dataset
                 index_of_sequences[_index] = index_of_sequence
                 sequence_names.append(sequence.get_name())
+                _index += 1
 
         self.viewer.addList(sequence_names, self._sequence_selected_callback)
         self.datasets = datasets
         self.index_of_datasets = index_of_datasets
         self.index_of_sequences = index_of_sequences
         self.viewer.setTimerInterval(int(round(1000 / 60)))
-        self.viewer.setTimerCallback(self._sequence_selected_callback)
+        self.viewer.setTimerCallback(self._timer_callback)
         groundtruth_color = QColor(255, 0, 0, int(255 * 0.5))
         self.groundtruth_pen = QPen(groundtruth_color)
         self.groundtruth_invalid_pen = QPen(groundtruth_color)
@@ -75,7 +76,7 @@ class InteractiveDatasetsRunner:
             self.viewer.stopTimer()
             return
 
-        qimage = numpy_rgb888_to_qimage(image)
+        qimage = QPixmap(numpy_rgb888_to_qimage(image))
         with self.viewer.getPainter(qimage) as painter:
             if groundtruth_bbox_validity_flag is False:
                 if bbox_is_valid(groundtruth_bbox):

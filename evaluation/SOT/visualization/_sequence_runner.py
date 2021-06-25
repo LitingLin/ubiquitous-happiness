@@ -25,4 +25,4 @@ class SequenceRunner:
         else:
             predicted_bounding_box, _ = self.tracker.track(image)
         self.index += 1
-        return (index, image.permute(1, 2, 0), bbox_xyxy2xywh(groundtruth_bounding_box.tolist()), groundtruth_bounding_box_validity_flag, bbox_xyxy2xywh(predicted_bounding_box))
+        return (index, image.permute(1, 2, 0), groundtruth_bounding_box.tolist(), groundtruth_bounding_box_validity_flag, predicted_bounding_box)

@@ -5,8 +5,8 @@ from enum import Enum, auto
 
 
 class NormalizationMethod(Enum):
-    Linear = auto()
-    Sigmoid = auto()
+    linear = auto()
+    sigmoid = auto()
 
 
 class SiamFCTrackingPostProcessing:
@@ -41,7 +41,7 @@ class SiamFCTrackingPostProcessing:
 
         response = response_map[best_scale_index]
 
-        if self.response_map_normalization_method == NormalizationMethod.Linear:
+        if self.response_map_normalization_method == NormalizationMethod.linear:
             response -= response.min()
             response /= (response.sum() + 1e-16)
         else:
