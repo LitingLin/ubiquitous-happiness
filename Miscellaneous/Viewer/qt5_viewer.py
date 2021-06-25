@@ -34,6 +34,7 @@ class _QtPainter:
     def __enter__(self):
         assert self.image is not None, "set canvas first"
         self.painter = QPainter(self.image)
+        return self
 
     def drawPoint(self, x, y):
         self.painter.drawPoint(QPoint(x, y))

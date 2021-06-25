@@ -8,7 +8,9 @@ from Miscellaneous.torch.print_running_environment import print_running_environm
 from Miscellaneous.yaml_ops import yaml_load
 from Miscellaneous.git_state import get_git_sha
 from algorithms.tracker.transt.builder import build_transt_tracker
-from evaluation.SOT.visualization.runner import visualize_tracking_procedure_on_standard_datasets
+
+# from evaluation.SOT.visualization.runner import visualize_tracking_procedure_on_standard_datasets
+from evaluation.SOT.visualization.interactive import visualize_tracker_on_standard_datasets
 
 
 if __name__ == '__main__':
@@ -36,4 +38,5 @@ if __name__ == '__main__':
     evaluation_config = yaml_load(evaluation_config_path)
 
     tracker = build_transt_tracker(network_config, evaluation_config, args.weight_path, args.device)
-    visualize_tracking_procedure_on_standard_datasets(tracker)
+    sys.exit(visualize_tracker_on_standard_datasets(tracker))
+    # visualize_tracking_procedure_on_standard_datasets(tracker)

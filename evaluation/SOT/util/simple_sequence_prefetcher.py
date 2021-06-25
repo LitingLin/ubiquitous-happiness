@@ -9,7 +9,8 @@ class _Sequence_Data_Getter:
     def __getitem__(self, index: int):
         frame = self.sequence[index]
         return torchvision.io.read_image(frame.get_image_path(),
-                                         torchvision.io.image.ImageReadMode.RGB), frame.get_bounding_box()
+                                         torchvision.io.image.ImageReadMode.RGB), \
+               frame.get_bounding_box(), frame.get_bounding_box_validity_flag()
 
     def __len__(self):
         return len(self.sequence)
