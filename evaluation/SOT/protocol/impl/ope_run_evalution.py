@@ -5,8 +5,7 @@ import shutil
 import time
 import pickle
 import numpy as np
-from Miscellaneous.simple_prefetcher import SimplePrefetcher
-import torchvision.io
+from evaluation.SOT.util.simple_sequence_prefetcher import get_simple_sequence_data_prefetcher
 
 
 def get_sequence_result_path(result_path, sequence, run_time=None):
@@ -35,19 +34,7 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
     data_times = []
     confidence_scores = []
 
-    class _Sequence_Data_Getter:
-        def __init__(self, sequence):
-            self.sequence = sequence
-
-        def __getitem__(self, index: int):
-            frame = self.sequence[index]
-            return torchvision.io.read_image(frame.get_image_path(), torchvision.io.image.ImageReadMode.RGB), frame.get_bounding_box()
-
-        def __len__(self):
-            return len(self.sequence)
-
-    sequence_data_getter = _Sequence_Data_Getter(sequence)
-    sequence_data_getter = SimplePrefetcher(sequence_data_getter)
+    sequence_data_getter = get_simple_sequence_data_prefetcher(sequence)
 
     data_begin = time.perf_counter()
     for index_of_frame, (image, bounding_box) in enumerate(sequence_data_getter):
