@@ -3,6 +3,7 @@ import torch
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision import transforms
 from data.operator.point.scale_and_translate import xy_point_scale_and_translate
+from data.operator.bbox.spatial.cxcywh2xyxy import bbox_cxcywh2xyxy
 
 
 def build_evaluation_transform():
@@ -38,6 +39,7 @@ class SiamFCEvaluationDataProcessor:
         image = image.float() / 255.
 
         curated_template_image, self.image_mean = do_SiamFC_curation(image, self.template_size, curation_parameter_device, self.interpolation_mode)
+        curated_template_image = curated_template_image.unsqueeze(0)
         curated_template_image = self.transform(curated_template_image)
 
         if not self.preprocessing_on_device:
@@ -49,7 +51,7 @@ class SiamFCEvaluationDataProcessor:
         scale_steps = len(self.scale_factors)
 
         curation_parameter, _ = prepare_SiamFC_curation(last_frame_bbox, self.search_area_factor, self.search_size)
-        curation_parameter.unsqueeze(0).repeat(scale_steps, 1, 1)
+        curation_parameter = curation_parameter.unsqueeze(0).repeat(scale_steps, 1, 1)
         curation_parameter[:, 0, :] *= self.scale_factors.view(scale_steps, 1)
 
         if self.preprocessing_on_device:
@@ -63,7 +65,7 @@ class SiamFCEvaluationDataProcessor:
         curated_search_image = torch.empty([scale_steps, c, *self.search_size], dtype=image.dtype, device=image.device)
 
         for i_scale_level in range(scale_steps):
-            _, _ = do_SiamFC_curation(image, self.search_size, curation_parameter_device, self.interpolation_mode, self.image_mean, curated_search_image[i_scale_level, ...])
+            _, _ = do_SiamFC_curation(image, self.search_size, curation_parameter_device[i_scale_level], self.interpolation_mode, self.image_mean, curated_search_image[i_scale_level, ...])
         curated_search_image = self.transform(curated_search_image)
 
         if not self.preprocessing_on_device:
@@ -81,4 +83,7 @@ class SiamFCEvaluationDataProcessor:
         scale = ((1 - self.scale_lr) * 1.0 + self.scale_lr * self.scale_factors[scale_index]).item()
         self.object_wh = self.object_wh[0] * scale, self.object_wh[1] * scale
 
-        return object_center[0], object_center[1], self.object_wh[0], self.object_wh[1]
+        bounding_box = object_center[0].item(), object_center[1].item(), self.object_wh[0], self.object_wh[1]
+        bounding_box = bbox_cxcywh2xyxy(bounding_box)
+
+        return bounding_box, bounding_box

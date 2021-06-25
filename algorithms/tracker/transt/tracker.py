@@ -10,12 +10,10 @@ class TransTTracker(object):
     def initialize(self, image, bbox):
         self.last_frame_object_bbox = bbox
         curated_template_image = self.data_processor.initialize(image, bbox)
-        curated_template_image = curated_template_image.unsqueeze(0)
         self.z = self.net.template(curated_template_image)
 
     def track(self, image):
         curated_search_image = self.data_processor.track(image, self.last_frame_object_bbox)
-        curated_search_image = curated_search_image.unsqueeze(0)
         net_output = self.net.track(self.z, curated_search_image)
         bounding_box, confidence_score = self.network_post_processor(net_output)
         bounding_box_predicted, self.last_frame_object_bbox = self.data_processor.get_bounding_box(bounding_box)

@@ -14,17 +14,16 @@ class SiamFCTrackingPostProcessing:
         self.search_feat_size = search_feat_size
         search_w, search_h = search_size
         self.network_stride = search_h / search_feat_h, search_w / search_feat_w
-
-        window = np.outer(np.hanning(search_feat_size[1]), np.hanning(search_feat_size[0]))
-        self.window = torch.tensor(window.flatten(), device=device)
+        hann_window = np.outer(np.hanning(self.upscale_size[0]), np.hanning(self.upscale_size[1]))
+        self.window = torch.tensor(hann_window, device=device)
 
     def __call__(self, response_map):
         s, c, h, w = response_map.shape
         assert c == 1
         assert w == self.search_feat_size[0] and h == self.search_feat_size[1]
-        response_map = response_map.squeeze(1)
 
         response_map = F.interpolate(response_map, self.upscale_size, mode='bicubic', align_corners=True)
+        response_map = response_map.squeeze(1)
         upscaled_h, upscaled_w = self.upscale_size
 
         response_map[:s // 2] *= self.scale_penalty
@@ -39,8 +38,8 @@ class SiamFCTrackingPostProcessing:
         response = (1 - self.window_influence) * response + \
                    self.window_influence * self.window
 
-        max_response_index = torch.argmax(response)
+        max_response_index = torch.argmax(response).cpu()
         max_response_index = (max_response_index // upscaled_w) / self.response_up * self.network_stride[0],\
                              (max_response_index % upscaled_w) / self.response_up * self.network_stride[1]
 
-        return (best_scale_index, *max_response_index), score.cpu().item()
+        return (best_scale_index.cpu(), *max_response_index), score.cpu().item()
