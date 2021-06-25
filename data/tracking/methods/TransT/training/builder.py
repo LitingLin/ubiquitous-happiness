@@ -48,6 +48,6 @@ def build_stage_2_data_processor(network_config: dict, train_config: dict):
     train_data_augmentation_config = train_config['data']['augmentation']
 
     if train_data_augmentation_config['stage_2_on_host_process']:
-        return TransTStage2DataProcessor(network_data_config['template_size'], network_data_config['search_size'], train_data_augmentation_config['color_jitter'], network_data_config['interpolation_mode'])
+        return TransTStage2DataProcessor(network_data_config['template_size'], network_data_config['search_size'], train_data_augmentation_config['color_jitter'], network_data_config['interpolation_mode'], network_data_config['imagenet_normalization'])
     else:
         return None
