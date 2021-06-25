@@ -18,7 +18,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run tracker on several datasets.')
     parser.add_argument('config_name', type=str, help='Config name')
     parser.add_argument('weight_path', type=str, help='Path to network weight')
-    parser.add_argument('output_path', type=str, help="Path to save results.")
     parser.add_argument('--evaluation-config-path', type=str, help='Path to evaluation config path.')
     parser.add_argument('--device', type=str, default='cuda:0', help="Pytorch device string.")
     args = parser.parse_args()

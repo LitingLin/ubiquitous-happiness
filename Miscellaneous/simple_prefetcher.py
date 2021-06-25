@@ -12,9 +12,16 @@ class _SimplePrefetcherIterator:
         self.low_limit_condition = threading.Condition(threading.Lock())
         self.produced_condition = threading.Condition(threading.Lock())
         self.end_flag = False
+        self.thread_exit_flag = False
         self.thread = threading.Thread(target=self.worker, daemon=True)
         self.thread.start()
         self.exp = None
+
+    def __del__(self):
+        if self.thread.is_alive():
+            self.thread_exit_flag = True
+            self.low_limit_condition.notify()
+            self.thread.join()
 
     def __next__(self):
         if len(self.queue) == 0:
@@ -51,9 +58,12 @@ class _SimplePrefetcherIterator:
         try:
             iterator = iter(self.iterable)
             while True:
+                if self.thread_exit_flag:
+                    return
                 if len(self.queue) >= self.high_limit:
                     with self.low_limit_condition:
                         self.low_limit_condition.wait()
+                        continue
                 try:
                     item = next(iterator)
                     self.queue.append(item)

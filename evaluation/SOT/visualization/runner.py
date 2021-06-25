@@ -2,6 +2,7 @@ from Viewer.viewer import SimpleViewer
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDatasetSequence_MemoryMapped
 from evaluation.SOT.util.simple_sequence_prefetcher import get_simple_sequence_data_prefetcher
 from tqdm import tqdm
+from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
 
 
 class SequenceRunner:
@@ -19,17 +20,18 @@ class SequenceRunner:
         image, groundtruth_bounding_box = next(self.sequence_data_iter)
         if self.index == 0:
             self.tracker.initialize(image, groundtruth_bounding_box)
-            predicted_bounding_box = groundtruth_bounding_box
+            predicted_bounding_box = groundtruth_bounding_box.tolist()
         else:
             predicted_bounding_box, _ = self.tracker.track(image)
         self.index += 1
-        return (image, groundtruth_bounding_box, predicted_bounding_box)
+        return (image.permute(1, 2, 0), bbox_xyxy2xywh(groundtruth_bounding_box.tolist()), bbox_xyxy2xywh(predicted_bounding_box))
 
 
 class VisibleTrackerRunner:
     def __init__(self, tracker):
         self.tracker = tracker
         self.viewer = SimpleViewer()
+        # self.viewer.switch_backend()
 
     def run(self, sequence: SingleObjectTrackingDatasetSequence_MemoryMapped):
         assert isinstance(sequence, SingleObjectTrackingDatasetSequence_MemoryMapped)
@@ -45,6 +47,9 @@ class VisibleTrackerRunner:
                 if index_of_frame != 0:
                     self.viewer.drawBoundingBox(predicted_bounding_box, (0, 1, 0))
                 self.viewer.update()
+                # self.viewer.waitKey()
+                self.viewer.pause(0.0001)
+                process_bar.update()
 
         self.viewer.waitKey()
 
