@@ -90,7 +90,7 @@ def _get_optimizer_learnable_params(model, optimizer_config):
                 _generate_params_dict(neck.adjust_bn.bias, neck_bn_beta_lr_ratio, neck_bn_beta_weight_decay_ratio))
         return optimizer_params
     else:
-        return {'params': model.parameters()}
+        return model.parameters()
 
 
 def build_siamfc_layerwise_optimizer(model, train_config):

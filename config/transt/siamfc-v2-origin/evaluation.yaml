@@ -1,0 +1,10 @@
+tracking:
+  min_size_factor: 0.2
+  max_size_factor: 5
+  scale_num: 3
+  scale_step: 1.0470
+  scale_lr: 0.68
+  scale_penalty: 0.9825
+  window_influence: 0.175
+  response_up: 8
+  response_norm: linear

@@ -23,6 +23,9 @@ def build_backbone(network_config: dict, load_pretrained=True):
     elif backbone_type == 'Alexnet-SiamFC-v1':
         from models.backbone.siamfc.alexnet import AlexNetV1
         backbone = AlexNetV1()
+    elif backbone_type == 'Alexnet-SiamFC-v2':
+        from models.backbone.siamfc.alexnet import AlexNetV2
+        backbone = AlexNetV2()
     else:
         raise NotImplementedError(f"Unknown backbone type {backbone_type}")
     return backbone

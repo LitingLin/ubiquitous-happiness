@@ -1,0 +1,78 @@
+version: 3
+
+data:
+  augmentation:
+    scale_jitter_factor:
+      template: 0
+      search: 0
+    translation_jitter_factor:
+      template: 0
+      search: 0
+    gray_scale_probability: 0.05
+    color_jitter: 0.4
+    stage_2_on_host_process: ture
+
+  sampler:
+    version: 2
+
+    train:
+      batch_size: 64
+      samples_per_epoch: 65536
+
+      sequence_sampler:
+        type: "Siamese"
+        parameters:
+          frame_range: 100
+          enforce_fine_positive_sample: true
+          enable_adaptive_frame_range: true
+          sampling_method: "causal"
+
+    val:
+      batch_size: 64
+      repeat_times_per_epoch: 1
+
+      sequence_sampler:
+        type: "Siamese"
+        parameters:
+          frame_range: 100
+          enforce_fine_positive_sample: true
+          enable_adaptive_frame_range: true
+          sampling_method: "causal"
+
+optimization:
+  epochs: 50
+  sync_bn: true
+  optimizer:
+    type: "SGD-SiamFC-v1"
+    lr: 1.e-2
+    weight_decay: 5.e-4
+    momentum: 0.9
+    layer_wise:
+      lr:
+        backbone:
+          conv:
+            weight: 1
+            bias: 2
+          bn:
+            gamma: 2
+            beta: 1
+        neck:
+          gamma: 2
+          beta: 1
+      weight_decay:
+        backbone:
+          conv:
+            weight: 1
+            bias: 0
+          bn:
+            gamma: 0
+            beta: 0
+        neck:
+          gamma: 0
+          beta: 0
+    lr_scheduler:
+      type: "ExponentialLR"
+      ultimate_lr: 1.e-5
+
+  loss:
+    type: "Balanced"
