@@ -9,7 +9,8 @@ from Miscellaneous.torch.distributed import is_main_process, is_dist_available_a
 
 
 class WandbLogger:
-    def __init__(self, project_name: str, config: dict, only_log_on_main_process):
+    def __init__(self, id_, project_name: str, config: dict, only_log_on_main_process):
+        self.id = id_
         self.project_name = project_name
         config = flatten_dict(config)
         config['git_version'] = get_git_status()
@@ -27,7 +28,7 @@ class WandbLogger:
         if self.only_log_on_main_process and not is_main_process():
             return
         configs = {'project': self.project_name, 'entity': 'llt', 'tags': self.tags, 'config': flatten_dict(self.config),
-                   'force': True}
+                   'force': True, 'job_type': 'train', 'id': self.id}
         if is_dist_available_and_initialized():
             configs['group'] = 'ddp'
         wandb.init(**configs)
