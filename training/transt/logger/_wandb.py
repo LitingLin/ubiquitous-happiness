@@ -9,14 +9,33 @@ from Miscellaneous.torch.distributed import is_main_process, is_dist_available_a
 
 
 class WandbLogger:
-    def __init__(self, id_, project_name: str, config: dict, only_log_on_main_process):
+    def __init__(self, id_, project_name: str, config: dict,
+                 initial_step: int, log_freq: int,
+                 only_log_on_main_process: bool,
+                 watch_model_freq: int,
+                 watch_model_parameters=False, watch_model_gradients=False,
+                 ):
         self.id = id_
         self.project_name = project_name
         config = flatten_dict(config)
         config['git_version'] = get_git_status()
         self.tags = config['tags']
         self.config = config
+        self.step = initial_step
+        self.log_freq = log_freq
         self.only_log_on_main_process = only_log_on_main_process
+
+        if watch_model_parameters and watch_model_gradients:
+            watch_model = 'all'
+        elif watch_model_parameters:
+            watch_model = 'parameters'
+        elif watch_model_gradients:
+            watch_model = 'gradients'
+        else:
+            watch_model = None
+
+        self.watch_model = watch_model
+        self.watch_model_freq = watch_model_freq
 
     def __enter__(self):
         self.start()
@@ -33,27 +52,29 @@ class WandbLogger:
             configs['group'] = 'ddp'
         wandb.init(**configs)
 
-    def log_train(self, epoch, batch, forward_stats, backward_stats):
+    def log_train(self, epoch, forward_stats, backward_stats):
         if self.only_log_on_main_process and not is_main_process():
             return
 
-        log = {'epoch': epoch, 'batch': batch, **forward_stats, **backward_stats}
-
-        wandb.log(log)
+        if self.step % self.log_freq == 0:
+            log = {'epoch': epoch, 'batch': self.step, **forward_stats, **backward_stats}
+            wandb.log(log, step=self.step)
+        self.step += 1
 
     def log_test(self, epoch, summary):
         if self.only_log_on_main_process and not is_main_process():
             return
 
-        summary = {'test_' + k: v for k, v in summary.items()}
-        summary['epoch'] = epoch
+        if self.step % self.log_freq == 0:
+            summary = {'test_' + k: v for k, v in summary.items()}
+            summary['epoch'] = epoch
 
-        wandb.log(summary)
+            wandb.log(summary, step=self.step)
 
     def watch(self, model):
         if self.only_log_on_main_process and not is_main_process():
             return
-        wandb.watch(model)
+        wandb.watch(model, log=self.watch_model, log_freq=self.watch_model_freq)
 
     def stop(self):
         if self.only_log_on_main_process and not is_main_process():

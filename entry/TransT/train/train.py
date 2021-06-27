@@ -34,6 +34,13 @@ def get_args_parser():
                         help='number of distributed processes')
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     parser.add_argument('--persistent_data_workers', action='store_true', help='make the workers of dataloader persistent')
+    parser.add_argument('--watch_model_parameters', action='store_true',
+                        help='watch the parameters of model using wandb')
+    parser.add_argument('--watch_model_gradients', action='store_true',
+                        help='watch the gradients of model using wandb')
+    parser.add_argument('--watch_model_freq', default=1000, type=int,
+                        help='model watching frequency')
+    parser.add_argument('--logging_interval', default=10, type=int)
     return parser
 
 

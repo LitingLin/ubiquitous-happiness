@@ -118,6 +118,8 @@ def build_training_runner_logger_and_dataloader(args, network_config: dict, trai
         model_state_dict, training_state_dict = load_checkpoint(args.resume)
         runner.load_state_dict(model_state_dict, training_state_dict)
 
-    logger = build_logger(args, network_config, train_config)
+    begin_step = len(data_loader_train) * runner.get_epoch()
+
+    logger = build_logger(args, network_config, train_config, begin_step)
 
     return n_epochs, runner, logger, data_loader_train, data_loader_val

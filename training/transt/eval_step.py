@@ -4,14 +4,14 @@ import gc
 
 
 @torch.no_grad()
-def evaluate(runner, logger, data_loader):
+def evaluate(runner, logger, data_loader, logging_interval):
     runner.eval()
 
     metric_logger = MetricLogger(delimiter="  ")
     header = 'Test:'
 
     gc.collect()
-    for data in metric_logger.log_every(data_loader, 10, header):
+    for data in metric_logger.log_every(data_loader, logging_interval, header):
         with torch.no_grad():
             forward_stats = runner.forward(*data)
 
