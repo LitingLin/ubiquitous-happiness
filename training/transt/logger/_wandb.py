@@ -37,7 +37,7 @@ class WandbLogger:
         if self.only_log_on_main_process and not is_main_process():
             return
 
-        log = {'batch': batch, **forward_stats, **backward_stats}
+        log = {'epoch': epoch, 'batch': batch, **forward_stats, **backward_stats}
 
         wandb.log(log, step=epoch)
 
@@ -46,6 +46,7 @@ class WandbLogger:
             return
 
         summary = {'test_' + k: v for k, v in summary.items()}
+        summary['epoch'] = epoch
 
         wandb.log(summary, step=epoch)
 
