@@ -29,7 +29,7 @@ class WandbLogger:
             return
         configs = {'project': self.project_name, 'entity': 'llt', 'tags': self.tags, 'config': flatten_dict(self.config),
                    'force': True, 'job_type': 'train', 'id': self.id}
-        if is_dist_available_and_initialized():
+        if not self.only_log_on_main_process and is_dist_available_and_initialized():
             configs['group'] = 'ddp'
         wandb.init(**configs)
 
