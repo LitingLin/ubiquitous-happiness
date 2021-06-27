@@ -1,18 +1,21 @@
 from Miscellaneous.torch.metric_logger import MetricLogger
 from Miscellaneous.torch.smoothed_value import SmoothedValue
 from typing import Iterable
+import gc
 
 
-def train_one_epoch(runner, data_loader: Iterable, epoch: int, max_norm: float = 0):
+def train_one_epoch(runner, logger, data_loader: Iterable):
     runner.train()
     metric_logger = MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', SmoothedValue(window_size=1, fmt='{value:.6f}'))
-    header = 'Epoch: [{}]'.format(epoch)
+    header = 'Epoch: [{}]'.format(runner.get_epoch())
     print_freq = 10
 
-    for data in metric_logger.log_every(data_loader, print_freq, header):
+    gc.collect()
+    for i_batch, data in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         forward_stats = runner.forward(*data)
-        backward_stats = runner.backward(max_norm)
+        backward_stats = runner.backward()
+        logger.log(runner.get_epoch(), i_batch, forward_stats, backward_stats)
 
         metric_logger.update(**forward_stats)
         metric_logger.update(**backward_stats)

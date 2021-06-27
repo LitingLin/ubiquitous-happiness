@@ -1,5 +1,6 @@
 import torch
 from Miscellaneous.torch.metric_logger import MetricLogger
+import gc
 
 
 @torch.no_grad()
@@ -9,6 +10,7 @@ def evaluate(runner, data_loader):
     metric_logger = MetricLogger(delimiter="  ")
     header = 'Test:'
 
+    gc.collect()
     for data in metric_logger.log_every(data_loader, 10, header):
         with torch.no_grad():
             forward_stats = runner.forward(*data)

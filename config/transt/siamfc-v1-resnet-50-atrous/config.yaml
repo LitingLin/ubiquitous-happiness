@@ -1,4 +1,6 @@
 name: "SiamFC-GOT"
+tags:
+  - "SiamFC"
 
 version: 4
 type: "SiamFCDualPath"

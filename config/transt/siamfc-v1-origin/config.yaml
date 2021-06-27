@@ -1,4 +1,6 @@
 name: "SiamFC-v1"
+tags:
+  - "SiamFC"
 
 version: 4
 type: "SiamFC"

@@ -5,6 +5,7 @@ import math
 
 class TransTRunner:
     def __init__(self, model, criterion, optimizer, lr_scheduler,
+                 grad_max_norm=None,
                  stage_2_data_processor=None,
                  additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None,
                  epoch_changed_event_slots=None, statistics_collectors=None, multi_stage_handlers=None,
@@ -13,6 +14,7 @@ class TransTRunner:
         self.criterion = criterion
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
+        self.grad_max_norm = grad_max_norm
         self.stage_2_data_processor = stage_2_data_processor
         self.epoch = 0
         self.number_of_samples = 0
@@ -77,11 +79,11 @@ class TransTRunner:
     def get_epoch(self):
         return self.epoch
 
-    def backward(self, max_norm):
+    def backward(self):
         self.optimizer.zero_grad()
         self.loss.backward()
-        if max_norm > 0:
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm)
+        if self.grad_max_norm is not None:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_max_norm)
         self.optimizer.step()
         del self.loss
         self.loss = None

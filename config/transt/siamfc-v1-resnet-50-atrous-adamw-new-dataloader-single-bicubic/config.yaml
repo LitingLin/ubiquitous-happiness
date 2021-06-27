@@ -1,4 +1,6 @@
 name: "SiamFC-ResNet50-DETR-Head"
+tags:
+  - "SiamFC"
 
 version: 4
 type: "SiamFCDualPath"

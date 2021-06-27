@@ -12,7 +12,7 @@ from Miscellaneous.yaml_ops import yaml_load
 from Miscellaneous.git_status import get_git_status_message
 from Miscellaneous.torch.distributed import get_rank, init_distributed_mode
 from training.transt.training_loop import run_training_loop
-from training.transt.builder import build_training_actor_and_dataloader
+from training.transt.builder import build_training_runner_logger_and_dataloader
 
 
 def get_args_parser():
@@ -55,8 +55,8 @@ def main(args):
     network_config = yaml_load(network_config_path)
     train_config = yaml_load(train_config_path)
 
-    actor, train_data_loader, val_data_loader = build_training_actor_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
-    run_training_loop(args, train_config, actor, train_data_loader, val_data_loader)
+    n_epochs, runner, logger, train_data_loader, val_data_loader = build_training_runner_logger_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+    run_training_loop(args, n_epochs, runner, logger, train_data_loader, val_data_loader)
 
 
 if __name__ == '__main__':
