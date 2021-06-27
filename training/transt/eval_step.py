@@ -4,7 +4,7 @@ import gc
 
 
 @torch.no_grad()
-def evaluate(runner, data_loader):
+def evaluate(runner, logger, data_loader):
     runner.eval()
 
     metric_logger = MetricLogger(delimiter="  ")
@@ -19,4 +19,6 @@ def evaluate(runner, data_loader):
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
+    stats = {k: meter.global_avg for k, meter in metric_logger.meters.items()}
+    logger.log_test(runner.get_epoch(), stats)
+    return stats

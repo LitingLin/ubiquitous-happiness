@@ -28,7 +28,7 @@ def run_training_loop(args, n_epochs, runner, logger, data_loader_train, data_lo
         logger.watch(runner.model)
         for epoch in range(start_epoch, n_epochs):
             train_stats = train_one_epoch(runner, logger, data_loader_train)
-            test_stats = evaluate(runner, data_loader_val)
+            test_stats = evaluate(runner, logger, data_loader_val)
 
             runner.move_to_next_epoch()
 

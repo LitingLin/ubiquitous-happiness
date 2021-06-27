@@ -33,13 +33,21 @@ class WandbLogger:
             configs['group'] = 'ddp'
         wandb.init(**configs)
 
-    def log(self, epoch, batch, forward_stats, backward_stats):
+    def log_train(self, epoch, batch, forward_stats, backward_stats):
         if self.only_log_on_main_process and not is_main_process():
             return
 
         log = {'batch': batch, **forward_stats, **backward_stats}
 
         wandb.log(log, step=epoch)
+
+    def log_test(self, epoch, summary):
+        if self.only_log_on_main_process and not is_main_process():
+            return
+
+        summary = {'test_' + k: v for k, v in summary.items()}
+
+        wandb.log(summary, step=epoch)
 
     def watch(self, model):
         if self.only_log_on_main_process and not is_main_process():

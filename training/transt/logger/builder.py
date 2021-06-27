@@ -4,7 +4,7 @@ from datetime import datetime
 
 def build_logger(args, network_config, train_config):
     config_name = args.config_name
-    logger_id = f'{config_name}-{datetime.now().strftime("%Y.%m.%d-%H.%M.%S")}'
+    logger_id = f'{config_name}-{datetime.now().strftime("%Y.%m.%d-%H.%M.%S-%f")}'
     network_config = copy.deepcopy(network_config)
     assert 'train' not in network_config
     network_config['train'] = copy.deepcopy(train_config)

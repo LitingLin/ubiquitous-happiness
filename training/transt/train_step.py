@@ -15,7 +15,7 @@ def train_one_epoch(runner, logger, data_loader: Iterable):
     for i_batch, data in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         forward_stats = runner.forward(*data)
         backward_stats = runner.backward()
-        logger.log(runner.get_epoch(), i_batch, forward_stats, backward_stats)
+        logger.log_train(runner.get_epoch(), i_batch, forward_stats, backward_stats)
 
         metric_logger.update(**forward_stats)
         metric_logger.update(**backward_stats)
