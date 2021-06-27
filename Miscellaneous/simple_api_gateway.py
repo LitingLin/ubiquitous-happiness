@@ -87,8 +87,8 @@ class ServerLauncher:
                 if self.process.exitcode is None:
                     self.process.kill()
                     print('Timeout when waiting for server process to exit. Killed.')
-            self.process.close()
-            del self.process
+                self.process.close()
+                del self.process
             self.stopped = True
 
 
