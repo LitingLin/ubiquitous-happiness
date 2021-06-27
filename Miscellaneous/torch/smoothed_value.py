@@ -1,6 +1,6 @@
 import torch
 import torch.distributed as dist
-from Miscellaneous.torch.distributed import is_dist_available_and_initialized
+from Miscellaneous.torch.distributed import is_dist_available_and_initialized, get_backend
 from collections import deque
 
 
@@ -28,8 +28,10 @@ class SmoothedValue(object):
         """
         if not is_dist_available_and_initialized():
             return
-        # t = torch.tensor([self.count, self.total], dtype=torch.float64, device='cuda')
-        t = torch.tensor([self.count, self.total], dtype=torch.float64)
+        if get_backend() == 'nccl':
+            t = torch.tensor([self.count, self.total], dtype=torch.float64, device='cuda')
+        else:
+            t = torch.tensor([self.count, self.total], dtype=torch.float64)
         # dist.barrier()
         dist.all_reduce(t)
         t = t.tolist()

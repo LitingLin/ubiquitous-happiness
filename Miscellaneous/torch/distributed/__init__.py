@@ -23,6 +23,12 @@ def get_rank():
     return dist.get_rank()
 
 
+def get_backend():
+    if not is_dist_available_and_initialized():
+        return None
+    return dist.get_backend()
+
+
 def is_main_process():
     return get_rank() == 0
 
