@@ -6,7 +6,7 @@ config_path = os.path.join(root_path, 'config', 'transt')
 
 from Miscellaneous.torch.print_running_environment import print_running_environment
 from Miscellaneous.yaml_ops import yaml_load
-from Miscellaneous.git_state import get_git_sha
+from Miscellaneous.git_status import get_git_status_message
 from algorithms.tracker.transt.builder import build_transt_tracker
 from evaluation.SOT.runner import run_standard_evaluation, run_standard_report_generation, run_standard_non_public_dataset_evaluation
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     if args.evaluation_config_path is not None:
         evaluation_config_path = args.evaluation_config_path
 
-    print(f"git:\n  {get_git_sha()}\n")
+    print(f"git: {get_git_status_message()}")
     print_running_environment(args)
     print(args)
 

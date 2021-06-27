@@ -76,14 +76,19 @@ class ServerLauncher:
                 raise Exception('Unexpected value')
         self.stopped = False
 
-    def stop(self, wait_for_stop=False):
+    def stop(self, wait_for_stop=False, waiting_timeout=5):
         if self.stopped is False:
             socket = zmq.Context.instance().socket(zmq.REQ)
             socket.connect(self.socket_address)
             socket.send_pyobj('shutdown')
             socket.close()
             if wait_for_stop:
-                self.process.join()
+                self.process.join(waiting_timeout)
+                if self.process.exitcode is None:
+                    self.process.kill()
+                    print('Timeout when waiting for server process to exit. Killed.')
+            self.process.close()
+            del self.process
             self.stopped = True
 
 

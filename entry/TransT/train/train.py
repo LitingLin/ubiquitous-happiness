@@ -9,7 +9,7 @@ from pathlib import Path
 from workarounds.all import apply_all_workarounds
 from Miscellaneous.torch.print_running_environment import print_running_environment
 from Miscellaneous.yaml_ops import yaml_load
-from Miscellaneous.git_state import get_git_sha
+from Miscellaneous.git_status import get_git_status_message
 from Miscellaneous.torch.distributed import get_rank, init_distributed_mode
 from training.transt.training_loop import run_training_loop
 from training.transt.builder import build_training_actor_and_dataloader
@@ -43,7 +43,7 @@ def main(args):
     apply_all_workarounds(seed)
 
     init_distributed_mode(args)
-    print(f"git:\n  {get_git_sha()}\n")
+    print(f"git: {get_git_status_message()}")
     print_running_environment(args)
 
     print(args)

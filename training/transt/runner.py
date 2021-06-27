@@ -7,7 +7,8 @@ class TransTRunner:
     def __init__(self, model, criterion, optimizer, lr_scheduler,
                  stage_2_data_processor=None,
                  additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None,
-                 epoch_changed_event_slots=None, statistics_collectors=None, multi_stage_handlers=None):
+                 epoch_changed_event_slots=None, statistics_collectors=None, multi_stage_handlers=None,
+                 ):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer

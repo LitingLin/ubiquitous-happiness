@@ -33,14 +33,14 @@ if __name__ == '__main__':
 
     from Miscellaneous.torch.print_running_environment import print_running_environment
     from Miscellaneous.yaml_ops import yaml_load
-    from Miscellaneous.git_state import get_git_sha
+    from Miscellaneous.git_status import get_git_status_message
     from evaluation.SOT.protocol.vot.prepare_workspace import prepare_vot_workspace
     from evaluation.SOT.protocol.vot.stack import VOTStack
     from evaluation.SOT.protocol.vot.vot_launcher import launch_vot_evaluation, launch_vot_analysis, launch_vot_pack
 
     import subprocess
 
-    print(f"git:\n  {get_git_sha()}\n")
+    print(f"git: {get_git_status_message()}")
     print_running_environment(args)
     print(args)
 
