@@ -39,7 +39,7 @@ class WandbLogger:
 
         log = {'epoch': epoch, 'batch': batch, **forward_stats, **backward_stats}
 
-        wandb.log(log, step=epoch)
+        wandb.log(log)
 
     def log_test(self, epoch, summary):
         if self.only_log_on_main_process and not is_main_process():
@@ -48,7 +48,7 @@ class WandbLogger:
         summary = {'test_' + k: v for k, v in summary.items()}
         summary['epoch'] = epoch
 
-        wandb.log(summary, step=epoch)
+        wandb.log(summary)
 
     def watch(self, model):
         if self.only_log_on_main_process and not is_main_process():
