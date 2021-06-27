@@ -11,4 +11,4 @@ class LoggerWrapper:
     def before_run(self, project_name: str, tags: list, config: dict, ):
         config = flatten_dict(config)
         config['git_version'] = get_git_status()
-        wandb.init(project=project_name, tags=tags, config=flatten_dict(config), force=True)
+        wandb.init(project=project_name, entity='llt', tags=tags, config=flatten_dict(config), force=True)
