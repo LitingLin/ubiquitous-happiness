@@ -10,9 +10,16 @@ def build_logger(args, network_config, train_config, initial_step):
     network_config['train'] = copy.deepcopy(train_config)
     assert 'running_vars' not in network_config
     network_config['running_vars'] = vars(args)
+    tensorboard_root_path = None
+    if args.enable_profile:
+        tensorboard_root_path = args.profile_logging_path
 
-
-    from ._wandb import WandbLogger
-    return WandbLogger(logger_id, 'transt', network_config, initial_step, args.logging_interval,
-                       True, args.watch_model_freq,
-                       args.watch_model_parameters, args.watch_model_gradients)
+    from ._wandb import WandbLogger, has_wandb
+    if has_wandb:
+        return WandbLogger(logger_id, 'transt', network_config, initial_step, args.logging_interval,
+                           True, args.watch_model_freq,
+                           args.watch_model_parameters, args.watch_model_gradients,
+                           tensorboard_root_path)
+    else:
+        from .dummy import DummyLogger
+        return DummyLogger()

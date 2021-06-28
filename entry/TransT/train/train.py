@@ -41,6 +41,8 @@ def get_args_parser():
     parser.add_argument('--watch_model_freq', default=1000, type=int,
                         help='model watching frequency')
     parser.add_argument('--logging_interval', default=10, type=int)
+    parser.add_argument('--enable_profile', action='store_true', help='enable profiling')
+    parser.add_argument('--profile_logging_path', default='', help='logging path of profiling, cannot be empty when enabled')
     return parser
 
 
@@ -62,8 +64,8 @@ def main(args):
     network_config = yaml_load(network_config_path)
     train_config = yaml_load(train_config_path)
 
-    n_epochs, runner, logger, train_data_loader, val_data_loader = build_training_runner_logger_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
-    run_training_loop(args, n_epochs, runner, logger, train_data_loader, val_data_loader)
+    n_epochs, runner, logger, profiler, train_data_loader, val_data_loader = build_training_runner_logger_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+    run_training_loop(args, n_epochs, runner, logger, profiler, train_data_loader, val_data_loader)
 
 
 if __name__ == '__main__':

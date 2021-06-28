@@ -20,17 +20,18 @@ def _get_parameters_from_train_config(train_config: dict):
     return epochs, clip_max_norm
 
 
-def run_training_loop(args, n_epochs, runner, logger, data_loader_train, data_loader_val):
+def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_train, data_loader_val):
     print("Start training")
     start_epoch = runner.get_epoch()
     start_time = time.perf_counter()
-    with logger, runner:
+    with logger, profiler, runner:
         logger.watch(runner.get_model())
         for epoch in range(start_epoch, n_epochs):
             train_stats = train_one_epoch(runner, logger, data_loader_train, args.logging_interval)
             test_stats = evaluate(runner, logger, data_loader_val, args.logging_interval)
 
             runner.move_to_next_epoch()
+            profiler.step()
 
             if args.output_dir is not None:
                 dump_checkpoint_from_runner(epoch, args.output_dir, runner, 10, args.checkpoint_interval)

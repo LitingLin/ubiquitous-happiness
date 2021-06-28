@@ -4,6 +4,7 @@ from models.TransT.loss.builder import build_criterion
 from Miscellaneous.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 from training.transt.logger.builder import build_logger
+from training.transt.profiler.builder import build_profiler
 import torch
 import torch.distributed
 
@@ -121,5 +122,6 @@ def build_training_runner_logger_and_dataloader(args, network_config: dict, trai
     begin_step = len(data_loader_train) * runner.get_epoch()
 
     logger = build_logger(args, network_config, train_config, begin_step)
+    profiler = build_profiler(args)
 
-    return n_epochs, runner, logger, data_loader_train, data_loader_val
+    return n_epochs, runner, logger, profiler, data_loader_train, data_loader_val

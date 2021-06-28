@@ -14,10 +14,13 @@ class WandbLogger:
                  only_log_on_main_process: bool,
                  watch_model_freq: int,
                  watch_model_parameters=False, watch_model_gradients=False,
+                 tensorboard_root_path=None
                  ):
         if not has_wandb:
             print('Install wandb to enable remote logging')
             return
+        if tensorboard_root_path is not None:
+            wandb.tensorboard.patch(pytorch=True, tensorboardX=False, root_logdir=tensorboard_root_path)
         self.id = id_
         self.project_name = project_name
         config = flatten_dict(config)
@@ -47,7 +50,7 @@ class WandbLogger:
         self.stop()
 
     def _is_disabled(self):
-        return not has_wandb or (self.only_log_on_main_process and not is_main_process())
+        return self.only_log_on_main_process and not is_main_process()
 
     def start(self):
         if self._is_disabled():
