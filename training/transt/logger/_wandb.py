@@ -15,6 +15,9 @@ class WandbLogger:
                  watch_model_freq: int,
                  watch_model_parameters=False, watch_model_gradients=False,
                  ):
+        if not has_wandb:
+            print('Install wandb to enable remote logging')
+            return
         self.id = id_
         self.project_name = project_name
         config = flatten_dict(config)
@@ -43,8 +46,11 @@ class WandbLogger:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
 
+    def _is_disabled(self):
+        return not has_wandb or (self.only_log_on_main_process and not is_main_process())
+
     def start(self):
-        if self.only_log_on_main_process and not is_main_process():
+        if self._is_disabled():
             return
         configs = {'project': self.project_name, 'entity': 'llt', 'tags': self.tags, 'config': flatten_dict(self.config),
                    'force': True, 'job_type': 'train', 'id': self.id}
@@ -53,7 +59,7 @@ class WandbLogger:
         wandb.init(**configs)
 
     def log_train(self, epoch, forward_stats, backward_stats):
-        if self.only_log_on_main_process and not is_main_process():
+        if self._is_disabled():
             return
 
         if self.step % self.log_freq == 0:
@@ -62,7 +68,7 @@ class WandbLogger:
         self.step += 1
 
     def log_test(self, epoch, summary):
-        if self.only_log_on_main_process and not is_main_process():
+        if self._is_disabled():
             return
 
         if self.step % self.log_freq == 0:
@@ -72,11 +78,11 @@ class WandbLogger:
             wandb.log(summary, step=self.step)
 
     def watch(self, model):
-        if self.only_log_on_main_process and not is_main_process():
+        if self._is_disabled():
             return
         wandb.watch(model, log=self.watch_model, log_freq=self.watch_model_freq)
 
     def stop(self):
-        if self.only_log_on_main_process and not is_main_process():
+        if self._is_disabled():
             return
         wandb.finish()

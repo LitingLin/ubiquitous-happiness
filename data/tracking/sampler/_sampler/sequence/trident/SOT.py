@@ -32,3 +32,10 @@ def do_trident_sampling(length: int, frame_range: int, mask: np.ndarray=None, rn
     else:
         is_positive = 1
     return (z_index, x_index), is_positive
+
+
+def do_trident_positive_sampling(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
+    pass
+
+def do_trident_negative_sampling(length: int, frame_range: int, mask: np.ndarray=None, rng_engine: np.random.Generator=np.random.default_rng()):
+    pass
