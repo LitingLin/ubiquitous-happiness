@@ -40,24 +40,24 @@ def draw_object(painter, bounding_box_accessor, bounding_box_validity_flag_acces
         pen = QPen(color)
         if bounding_box_validity_flag is False:
             pen.setStyle(Qt.DashDotDotLine)
-        painter.setPen(pen)
+        painter.set_pen(pen)
         bounding_box_format: BoundingBoxFormat = context_accessor.get_bounding_box_format()
         if bounding_box_format != BoundingBoxFormat.Polygon:
             bounding_box = bbox_transform(bounding_box, bounding_box_format, BoundingBoxFormat.XYWH,
                            context_accessor.get_pixel_coordinate_system(), PixelCoordinateSystem.Aligned,
                            context_accessor.get_bounding_box_coordinate_system(), BoundingBoxCoordinateSystem.Rasterized,
                            PixelDefinition.Point)
-            painter.drawRect(bounding_box)
+            painter.draw_rect(bounding_box)
         else:
             bounding_box = bbox_transform(bounding_box, bounding_box_format, BoundingBoxFormat.Polygon,
                            context_accessor.get_pixel_coordinate_system(), PixelCoordinateSystem.Aligned,
                            context_accessor.get_bounding_box_coordinate_system(), BoundingBoxCoordinateSystem.Rasterized,
                            PixelDefinition.Point)
-            painter.drawPolygon(bounding_box)
+            painter.draw_polygon(bounding_box)
 
         label_string = []
         if object_id_accessor is not None and ((not hasattr(object_id_accessor, 'has_id') and hasattr(object_id_accessor, 'get_id')) or object_id_accessor.has_id()):
             label_string.append(str(object_id_accessor.get_id()))
         if not (category_id is None or category_id_color_map is None or category_id_name_map is None):
             label_string.append(category_id_name_map[category_id])
-        painter.drawLabel('-'.join(label_string), (bounding_box[0], bounding_box[1]), color)
+        painter.draw_label('-'.join(label_string), (bounding_box[0], bounding_box[1]), color)

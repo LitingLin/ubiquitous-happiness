@@ -1,6 +1,6 @@
 from Dataset.Base.Image.dataset import ImageDataset
 from Dataset.Base.Common.Viewer.qt5_viewer import draw_object
-from Miscellaneous.Viewer.old_qt5_viewer import Qt5Viewer
+from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
 from PyQt5.QtGui import QPixmap, QColor
 import random
 
@@ -22,19 +22,22 @@ class ImageDatasetQt5Viewer:
         for index in range(len(self.dataset)):
             image_names.append(str(index))
 
-        self.viewer.addList(image_names, self._imageSelectedCallback)
+        self.viewer.get_content_region().new_list(image_names, self._imageSelectedCallback)
 
     def _imageSelectedCallback(self, index: int):
+        if index < 0:
+            return
         image = self.dataset[index]
         pixmap = QPixmap()
         assert pixmap.load(image.get_image_path())
-        painter = self.viewer.getPainter(pixmap)
+        canvas = self.viewer.get_canvas()
+        canvas.create_from_qpixmap(pixmap)
         if len(image) > 0:
-            with painter:
+            with canvas.get_painter() as painter:
                 for object_ in image:
                     draw_object(painter, object_, None, object_, None, self.category_id_color_map,
                                 self.dataset, self.dataset)
         painter.update()
 
     def run(self):
-        return self.viewer.runEventLoop()
+        return self.viewer.run_event_loop()

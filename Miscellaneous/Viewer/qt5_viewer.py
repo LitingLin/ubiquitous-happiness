@@ -4,21 +4,21 @@ from PyQt5.QtGui import QResizeEvent, QPixmap, QPainter, QPen, QPolygon, QPolygo
 from typing import List
 
 # https://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
-class _QLabel_autoFitToWidgetSize(QLabel):
+class _QLabel_auto_scaled_pixmap(QLabel):
     def __init__(self, *args):
-        super(_QLabel_autoFitToWidgetSize, self).__init__(*args)
+        super(_QLabel_auto_scaled_pixmap, self).__init__(*args)
         self.setMinimumSize(1,1)
         self.setScaledContents(False)
         self.unscaled_pixmap = None
 
     def setPixmap(self, qPixmap: QPixmap):
         self.unscaled_pixmap = qPixmap
-        super(_QLabel_autoFitToWidgetSize, self).setPixmap(self._get_scaled_pixmap())
+        super(_QLabel_auto_scaled_pixmap, self).setPixmap(self._get_scaled_pixmap())
 
     def resizeEvent(self, qResizeEvent: QResizeEvent):
         super().resizeEvent(qResizeEvent)
         if self.unscaled_pixmap is not None:
-            super(_QLabel_autoFitToWidgetSize, self).setPixmap(self._get_scaled_pixmap())
+            super(_QLabel_auto_scaled_pixmap, self).setPixmap(self._get_scaled_pixmap())
 
     def _get_scaled_pixmap(self):
         width = self.width()
@@ -33,6 +33,7 @@ class _QLabel_autoFitToWidgetSize(QLabel):
             h = (float(self.unscaled_pixmap.height()) * w) / self.unscaled_pixmap.width()
         return QSize(w, h)
 
+
 def _create_canvas(parent_layout, n_vertical_canvas, n_horizontal_canvas):
     canvas_layout = QGridLayout()
 
@@ -40,7 +41,7 @@ def _create_canvas(parent_layout, n_vertical_canvas, n_horizontal_canvas):
 
     for i_row in range(n_vertical_canvas):
         for i_col in range(n_horizontal_canvas):
-            canvas = _QLabel_autoFitToWidgetSize()
+            canvas = _QLabel_auto_scaled_pixmap()
             size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
             size_policy.setHorizontalStretch(1)
             size_policy.setVerticalStretch(1)
@@ -163,36 +164,7 @@ class _Canvas:
         self.label.fitPixmapToWidgetSize()
 
 
-class _Button:
-    def __init__(self, parent_layout):
-        self.button = QPushButton()
-        parent_layout.addWidget(self.button)
-
-    def set_callback(self, callback):
-        self.button.clicked.connect(callback)
-
-    def set_text(self, text: str):
-        self.button.setText(text)
-
-class _QListWidget
-
-class _List:
-    def __init__(self, parent_layout):
-        self.list = QListWidget()
-        self.list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        self.callback_proxies = []
-        parent_layout.addWidget(self.list)
-
-    def set_contents(self, items):
-        for item in items:
-            list_item = QListWidgetItem(item, self.list)
-            list_item.
-
-    def set_callback(self):
-        pass
-
-
-class _RegionManager:
+class _LayoutWidgetCreator:
     def __init__(self, layout):
         self.layout = layout
 
@@ -200,11 +172,18 @@ class _RegionManager:
         button = QPushButton()
         if text is not None:
             button.setText(text)
-        parent_layout.addWidget(self.button)
+        if callback is not None:
+            button.clicked.connect(callback)
+        self.layout.addWidget(button)
 
-        return _Button(self.layout)
-
-    def new_list(self):
+    def new_list(self, string_list, callback):
+        listWidget = QListWidget()
+        listWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        if string_list is not None:
+            for string in string_list:
+                QListWidgetItem(string, listWidget)
+        if callback is not None:
+            listWidget.currentRowChanged.connect(callback)
 
 
 class Qt5Viewer:
@@ -216,16 +195,21 @@ class Qt5Viewer:
         window.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
         window.setWindowTitle('Viewer')
 
-        mainLayout = QVBoxLayout()
-        window.setLayout(mainLayout)
+        main_layout = QVBoxLayout()
+        window.setLayout(main_layout)
+        content_widget_layout = QHBoxLayout()
 
-        mainLayout = QVBoxLayout()
-        window.setLayout(mainLayout)
-        contentLayout = QHBoxLayout()
-
-        self.canvas_labels = _create_canvas(contentLayout, n_vertical_canvas, n_horizontal_canvas)
+        self.canvas_labels = _create_canvas(content_widget_layout, n_vertical_canvas, n_horizontal_canvas)
         self.n_vertical_canvas = n_vertical_canvas
         self.n_horizontal_canvas = n_horizontal_canvas
+
+        main_layout.addLayout(content_widget_layout)
+
+        control_widget_layout = QVBoxLayout()
+        content_widget_layout.addLayout(control_widget_layout)
+
+        self.content_widget_layout = content_widget_layout
+        self.control_widget_layout = control_widget_layout
 
         self.window = window
         self.app = app
@@ -248,7 +232,7 @@ class Qt5Viewer:
         self.window.close()
 
     def get_content_region(self):
-        pass
+        return _LayoutWidgetCreator(self.content_widget_layout)
 
     def get_control_region(self):
-        pass
+        return _LayoutWidgetCreator(self.control_widget_layout)

@@ -5,4 +5,3 @@ pip install opencv-python-headless
 pip install timm
 conda install wandb -c conda-forge
 conda install -c fvcore -c iopath -c conda-forge fvcore
-
