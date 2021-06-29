@@ -32,7 +32,8 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                      training_do_shuffle=True,
                                      device_tensor_selection_filter=None,
                                      train_worker_init_fn=None, val_worker_init_fn=None,
-                                     collate_fn=None, persistent_workers=False):
+                                     collate_fn=None, persistent_workers=False,
+                                     pin_memory=False):
     if distributed:
         sampler_train = DistributedSampler(train_dataset, shuffle=training_do_shuffle)
         sampler_val = DistributedSampler(val_dataset, shuffle=False)
@@ -47,7 +48,7 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
     batch_sampler_train = torch.utils.data.BatchSampler(
         sampler_train, train_batch_size, drop_last=True)
 
-    pin_memory = 'cuda' in device
+    pin_memory = pin_memory and 'cuda' in device
 
     train_worker_initialization_object = _WorkerInitialization(train_worker_init_fn)
     val_worker_initialization_object = _WorkerInitialization(val_worker_init_fn)

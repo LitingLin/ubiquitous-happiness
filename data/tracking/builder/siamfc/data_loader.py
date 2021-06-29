@@ -22,6 +22,6 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
                                                                           False,
                                                                           device_tensor_selection_filter,
                                                                           train_worker_init_fn, val_worker_init_fn,
-                                                                          collate_fn)
+                                                                          collate_fn, args.pin_memory)
 
     return (train_dataset, val_dataset), (train_data_loader, val_data_loader), epoch_changed_event_signal_slots

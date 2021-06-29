@@ -43,6 +43,7 @@ def get_args_parser():
     parser.add_argument('--logging_interval', default=10, type=int)
     parser.add_argument('--enable_profile', action='store_true', help='enable profiling')
     parser.add_argument('--profile_logging_path', default='', help='logging path of profiling, cannot be empty when enabled')
+    parser.add_argument('--pin_memory', action='store_true', help='move tensors to pinned memory before transferring to GPU')
     return parser
 
 
