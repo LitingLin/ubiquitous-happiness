@@ -65,8 +65,9 @@ def main(args):
     network_config = yaml_load(network_config_path)
     train_config = yaml_load(train_config_path)
 
-    n_epochs, runner, logger, profiler, train_data_loader, val_data_loader = build_training_runner_logger_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
-    run_training_loop(args, n_epochs, runner, logger, profiler, train_data_loader, val_data_loader)
+    n_epochs, runner, logger, profiler, train_data_loader, val_data_loader, pseudo_data_generator = \
+        build_training_runner_logger_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
+    run_training_loop(args, n_epochs, runner, logger, profiler, train_data_loader, val_data_loader, pseudo_data_generator)
 
 
 if __name__ == '__main__':

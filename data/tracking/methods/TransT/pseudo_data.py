@@ -7,6 +7,12 @@ class TransTPseudoDataGenerator:
         self.search_size = search_size
         self.device = device
 
-    def get(self, batch):
+    def get_train(self, batch):
         return torch.empty((batch, 3, *self.template_size), device=self.device), \
             torch.empty((batch, 3, *self.search_size), device=self.device)
+
+
+def build_pseudo_data_generator(args, network_config: dict):
+    device = torch.device(args.device)
+    network_data_config = network_config['data']
+    return TransTPseudoDataGenerator(network_data_config['template_size'], network_data_config['search_size'], device)

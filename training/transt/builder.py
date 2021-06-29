@@ -5,6 +5,7 @@ from Miscellaneous.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 from training.transt.logger.builder import build_logger
 from training.transt.profiler.builder import build_profiler
+from data.tracking.methods.TransT.pseudo_data import build_pseudo_data_generator
 import torch
 import torch.distributed
 
@@ -124,4 +125,6 @@ def build_training_runner_logger_and_dataloader(args, network_config: dict, trai
     logger = build_logger(args, network_config, train_config, begin_step)
     profiler = build_profiler(args)
 
-    return n_epochs, runner, logger, profiler, data_loader_train, data_loader_val
+    pseudo_data_generator = build_pseudo_data_generator(args, network_config)
+
+    return n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, pseudo_data_generator
