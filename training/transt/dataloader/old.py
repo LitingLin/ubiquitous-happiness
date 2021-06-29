@@ -20,6 +20,6 @@ def build_old_dataloader(args, network_config: dict, train_config: dict, train_d
                                                                           epoch_changed_event_signal_slots,
                                                                           True,
                                                                           TensorFilteringByIndices((0, 1)),
-                                                                          collate_fn=collate_fn)
+                                                                          collate_fn=collate_fn, pin_memory=args.pin_memory)
 
     return (train_dataset, val_dataset), (data_loader_train, data_loader_val), epoch_changed_event_signal_slots
