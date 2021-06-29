@@ -96,7 +96,7 @@ class InteractiveDatasetsRunner:
                 if bbox_is_valid(predicted_bbox):
                     painter.set_pen(self.predicted_pen)
                     painter.draw_rect(self.bbox_transformer(predicted_bbox))
-            painter.update()
+        canvas.update()
 
 
 def visualize_tracker_on_standard_datasets(tracker):

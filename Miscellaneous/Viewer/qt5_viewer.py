@@ -13,12 +13,15 @@ class _QLabel_auto_scaled_pixmap(QLabel):
 
     def setPixmap(self, qPixmap: QPixmap):
         self.unscaled_pixmap = qPixmap
-        super(_QLabel_auto_scaled_pixmap, self).setPixmap(self._get_scaled_pixmap())
+        self.redraw_scaled_pixmap()
 
     def resizeEvent(self, qResizeEvent: QResizeEvent):
         super().resizeEvent(qResizeEvent)
         if self.unscaled_pixmap is not None:
-            super(_QLabel_auto_scaled_pixmap, self).setPixmap(self._get_scaled_pixmap())
+            self.redraw_scaled_pixmap()
+
+    def redraw_scaled_pixmap(self):
+        super(_QLabel_auto_scaled_pixmap, self).setPixmap(self._get_scaled_pixmap())
 
     def _get_scaled_pixmap(self):
         width = self.width()
@@ -161,7 +164,6 @@ class _Canvas:
 
     def update(self):
         self.label.setPixmap(self.image)
-        self.label.fitPixmapToWidgetSize()
 
 
 class _LayoutWidgetCreator:

@@ -29,4 +29,4 @@ class SequenceRunner:
         if self.image_transform is not None:
             image = self.image_transform(image)
 
-        return (index, image.permute(1, 2, 0), groundtruth_bounding_box.tolist(), groundtruth_bounding_box_validity_flag, predicted_bounding_box)
+        return (index, image, groundtruth_bounding_box.tolist(), groundtruth_bounding_box_validity_flag, predicted_bounding_box)
