@@ -1,6 +1,6 @@
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped, SingleObjectTrackingDatasetSequence_MemoryMapped
 from Dataset.Base.Common.Viewer.qt5_viewer import draw_object
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
+from Miscellaneous.Viewer.old_qt5_viewer import Qt5Viewer
 from PyQt5.QtGui import QPixmap, QColor
 import random
 from Miscellaneous.simple_prefetcher import SimplePrefetcher

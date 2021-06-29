@@ -1,48 +1,95 @@
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QLabel, QListWidget, QListWidgetItem
-from PyQt5.QtCore import QTimer, Qt, pyqtSlot, QObject, QPoint, QPointF, QRect, QRectF
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QLabel, QListWidget, QListWidgetItem, QGridLayout
+from PyQt5.QtCore import QTimer, Qt, pyqtSlot, QObject, QPoint, QPointF, QRect, QRectF, QSize
 from PyQt5.QtGui import QResizeEvent, QPixmap, QPainter, QPen, QPolygon, QPolygonF, QBrush, QColor
 from typing import List
 
-
+# https://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
 class _QLabel_autoFitToWidgetSize(QLabel):
+    def __init__(self, *args):
+        super(_QLabel_autoFitToWidgetSize, self).__init__(*args)
+        self.setMinimumSize(1,1)
+        self.setScaledContents(False)
+        self.unscaled_pixmap = None
+
+    def setPixmap(self, qPixmap: QPixmap):
+        self.unscaled_pixmap = qPixmap
+        super(_QLabel_autoFitToWidgetSize, self).setPixmap(self._get_scaled_pixmap())
+
     def resizeEvent(self, qResizeEvent: QResizeEvent):
         super().resizeEvent(qResizeEvent)
-        self.fitPixmapToWidgetSize()
+        if self.unscaled_pixmap is not None:
+            super(_QLabel_autoFitToWidgetSize, self).setPixmap(self._get_scaled_pixmap())
 
-    def fitPixmapToWidgetSize(self):
-        p = self.pixmap()
-        if p is not None:
-            width = self.width()
-            height = self.height()
-            self.setPixmap(p.scaled(width, height, Qt.KeepAspectRatio))
+    def _get_scaled_pixmap(self):
+        width = self.width()
+        height = self.height()
+        return self.unscaled_pixmap.scaled(width, height, Qt.KeepAspectRatio)
+
+    def sizeHint(self):
+        w = self.width()
+        if self.unscaled_pixmap is None:
+            h = self.height()
+        else:
+            h = (float(self.unscaled_pixmap.height()) * w) / self.unscaled_pixmap.width()
+        return QSize(w, h)
+
+def _create_canvas(parent_layout, n_vertical_canvas, n_horizontal_canvas):
+    canvas_layout = QGridLayout()
+
+    canvases = []
+
+    for i_row in range(n_vertical_canvas):
+        for i_col in range(n_horizontal_canvas):
+            canvas = _QLabel_autoFitToWidgetSize()
+            size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+            size_policy.setHorizontalStretch(1)
+            size_policy.setVerticalStretch(1)
+            canvas.setSizePolicy(size_policy)
+            canvas_layout.addWidget(canvas, i_row, i_col)
+            canvases.append(canvas)
+
+    parent_layout.addLayout(canvas_layout)
+
+    return canvases
 
 
-class _QtPainter:
-    def __init__(self, label: _QLabel_autoFitToWidgetSize, image: QPixmap=None, width: int=None, height: int=None):
-        self.label = label
-        if image is not None:
-            self.image = image
-        elif width is not None and height is not None:
-            self.image = QPixmap(width, height)
+class _Timer:
+    def __init__(self, parent):
+        timer = QTimer(parent)
+        timer.timeout.connect(self._on_timeout)
+        self.timer = timer
+        self.callback = None
 
-    def setCanvas(self, image: QPixmap):
-        self.image = image
+    def set_interval(self, msec: int):
+        self.timer.setInterval(msec)
 
-    def setEmptyCanvas(self, width: int, height: int):
-        self.image = QPixmap(width, height)
+    def set_callback(self, callback):
+        self.callback = callback
+
+    def start(self):
+        self.timer.start()
+
+    def stop(self):
+        self.timer.stop()
+
+    def _on_timeout(self):
+        self.callback()
+
+
+class _CanvasPainter:
+    def __init__(self, image: QPixmap):
+        self.painter = QPainter(image)
 
     def __enter__(self):
-        assert self.image is not None, "set canvas first"
-        self.painter = QPainter(self.image)
         return self
 
-    def drawPoint(self, x, y):
+    def draw_point(self, x, y):
         self.painter.drawPoint(QPoint(x, y))
 
-    def setPen(self, pen: QPen):
+    def set_pen(self, pen: QPen):
         self.painter.setPen(pen)
 
-    def drawLabel(self, text: str, position: List[int], color: QColor):
+    def draw_label(self, text: str, position: List[int], color: QColor):
         assert len(position) == 2
         fontMetrics = self.painter.fontMetrics()
         rendered_object_info_size = fontMetrics.tightBoundingRect(text)
@@ -54,22 +101,22 @@ class _QtPainter:
         self.painter.drawText(QPointF(position[0], position[1]), text)
         self.painter.setPen(pen)
 
-    def drawPolygon(self, polygon: List):
-        self.painter.drawPolygon(_QtPainter._listToPolygon(polygon))
+    def draw_polygon(self, polygon: List):
+        self.painter.drawPolygon(_CanvasPainter._list_to_polygon(polygon))
 
-    def drawRect(self, rect: List):
+    def draw_rect(self, rect: List):
         assert len(rect) == 4
-        self.painter.drawRect(_QtPainter._listToRect(rect))
+        self.painter.drawRect(_CanvasPainter._list_to_rect(rect))
 
     @staticmethod
-    def _listToRect(rect: List):
+    def _list_to_rect(rect: List):
         if all([isinstance(v, int) for v in rect]):
             return QRect(rect[0], rect[1], rect[2], rect[3])
         else:
             return QRectF(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3]))
 
     @staticmethod
-    def _listToPolygon(polygon: List):
+    def _list_to_polygon(polygon: List):
         assert len(polygon) % 2 == 0
         pointList = []
         if all([isinstance(v, int) for v in polygon]):
@@ -89,17 +136,79 @@ class _QtPainter:
 
         return pointList
 
+    def end_draw(self):
+        self.painter.end()
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.painter.end()
 
+
+class _Canvas:
+    def __init__(self, label):
+        self.label = label
+        self.image = None
+
+    def create_from_qpixmap(self, qpixmap):
+        self.image = qpixmap
+
+    def create_empty(self, width: int, height: int):
+        self.image = QPixmap(width, height)
+
+    def get_painter(self):
+        assert self.image is not None, "create canvas first"
+        return _CanvasPainter(self.image)
+
     def update(self):
-        assert self.image is not None, 'you need to set canvas'
         self.label.setPixmap(self.image)
         self.label.fitPixmapToWidgetSize()
 
 
+class _Button:
+    def __init__(self, parent_layout):
+        self.button = QPushButton()
+        parent_layout.addWidget(self.button)
+
+    def set_callback(self, callback):
+        self.button.clicked.connect(callback)
+
+    def set_text(self, text: str):
+        self.button.setText(text)
+
+class _QListWidget
+
+class _List:
+    def __init__(self, parent_layout):
+        self.list = QListWidget()
+        self.list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.callback_proxies = []
+        parent_layout.addWidget(self.list)
+
+    def set_contents(self, items):
+        for item in items:
+            list_item = QListWidgetItem(item, self.list)
+            list_item.
+
+    def set_callback(self):
+        pass
+
+
+class _RegionManager:
+    def __init__(self, layout):
+        self.layout = layout
+
+    def new_button(self, text: str, callback):
+        button = QPushButton()
+        if text is not None:
+            button.setText(text)
+        parent_layout.addWidget(self.button)
+
+        return _Button(self.layout)
+
+    def new_list(self):
+
+
 class Qt5Viewer:
-    def __init__(self, argv=[]):
+    def __init__(self, argv=(), n_vertical_canvas=1, n_horizontal_canvas=1):
         app = QApplication(argv)
 
         window = QDialog()
@@ -109,91 +218,37 @@ class Qt5Viewer:
 
         mainLayout = QVBoxLayout()
         window.setLayout(mainLayout)
+
+        mainLayout = QVBoxLayout()
+        window.setLayout(mainLayout)
         contentLayout = QHBoxLayout()
 
-        canvasLabel = _QLabel_autoFitToWidgetSize()
-        canvasLabel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        contentLayout.addWidget(canvasLabel)
+        self.canvas_labels = _create_canvas(contentLayout, n_vertical_canvas, n_horizontal_canvas)
+        self.n_vertical_canvas = n_vertical_canvas
+        self.n_horizontal_canvas = n_horizontal_canvas
 
-        mainLayout.addLayout(contentLayout)
-
-        customLayout = QVBoxLayout()
-        contentLayout.addLayout(customLayout)
-
-        self.canvasLabel = canvasLabel
-        self.contentLayout = contentLayout
-        self.app = app
         self.window = window
-        self.customLayout = customLayout
-        self.stuffs = []
-        self.timer = QTimer()
-        self.timer.timeout.connect(self._onTimerTimeOut)
+        self.app = app
 
-    def setWindowTitle(self, title: str):
+    def set_title(self, title: str):
         self.window.setWindowTitle(title)
 
-    def runEventLoop(self):
+    def run_event_loop(self):
         self.window.show()
         return self.app.exec_()
 
-    def startTimer(self):
-        self.timer.start()
+    def new_timer(self):
+        return _Timer(self.window)
 
-    def stopTimer(self):
-        self.timer.stop()
-
-    def setTimerInterval(self, msec: int):
-        self.timer.setInterval(msec)
-
-    def setTimerCallback(self, callback):
-        self.callback = callback
-
-    def addButton(self, text=None, callback=None):
-        button = QPushButton()
-        if text is not None:
-            button.setText(text)
-        if callback is not None:
-            button.clicked.connect(callback)
-        self.customLayout.addWidget(button)
-        return button
-
-    def addList(self, list:List[str]=None, callback=None):
-        listWidget = QListWidget()
-        listWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        if list is not None:
-            for v in list:
-                QListWidgetItem(v, listWidget)
-        if callback is not None:
-            class Proxy:
-                def __init__(self, listWidget: QListWidget, callback):
-                    self.listWidget = listWidget
-                    self.callback = callback
-
-                def setSelectionChangedCallback(self, callback):
-                    self.callback = callback
-
-                def onCallback(self):
-                    indices = self.listWidget.selectedIndexes()
-                    if len(indices) == 0:
-                        return
-
-                    self.callback(indices[0].row())
-            proxy = Proxy(listWidget, callback)
-            listWidget.itemSelectionChanged.connect(proxy.onCallback)
-            self.stuffs.append(proxy)
-        self.contentLayout.addWidget(listWidget)
-
-    def getPainter(self, canvas: QPixmap = None, width: int=None, height: int=None):
-        return _QtPainter(self.canvasLabel, canvas, width, height)
-
-    def _onTimerTimeOut(self):
-        self.callback()
+    def get_canvas(self, index_of_vertical=0, index_of_horizontal=0):
+        index = index_of_vertical * self.n_horizontal_canvas + index_of_horizontal
+        return _Canvas(self.canvas_labels[index])
 
     def close(self):
         self.window.close()
 
-    def addLabel(self, text: str):
-        label = QLabel()
-        label.setText(text)
-        self.customLayout.addWidget(label)
-        return label
+    def get_content_region(self):
+        pass
+
+    def get_control_region(self):
+        pass

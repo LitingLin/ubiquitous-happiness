@@ -1,6 +1,6 @@
 from Dataset.Base.Video.dataset import VideoDataset, VideoDatasetSequence, VideoDatasetFrame
 from Dataset.Base.Common.Viewer.qt5_viewer import draw_object
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
+from Miscellaneous.Viewer.old_qt5_viewer import Qt5Viewer
 from PyQt5.QtGui import QPixmap, QColor
 from Miscellaneous.simple_prefetcher import SimplePrefetcher
 import random

@@ -1,6 +1,6 @@
 from Dataset.CLS.Storage.MemoryMapped.dataset import ImageClassificationDataset_MemoryMapped
 from Dataset.Base.Common.Viewer.qt5_viewer import draw_object
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
+from Miscellaneous.Viewer.old_qt5_viewer import Qt5Viewer
 from PyQt5.QtGui import QPixmap, QColor
 import random
 

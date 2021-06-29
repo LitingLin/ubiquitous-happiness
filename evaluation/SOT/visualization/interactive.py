@@ -1,4 +1,4 @@
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer, QPen, QColor, Qt, QPixmap
+from Miscellaneous.Viewer.old_qt5_viewer import Qt5Viewer, QPen, QColor, Qt, QPixmap
 from ._sequence_runner import SequenceRunner
 import numpy as np
 from Miscellaneous.qt_numpy_interop import numpy_rgb888_to_qimage
