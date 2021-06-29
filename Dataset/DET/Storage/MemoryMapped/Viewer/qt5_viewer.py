@@ -25,6 +25,8 @@ class DetectionDatasetQt5Viewer:
         self.viewer.get_content_region().new_list(image_names, self._imageSelectedCallback)
 
     def _imageSelectedCallback(self, index: int):
+        if index < 0:
+            return
         image = self.dataset[index]
         pixmap = QPixmap()
         assert pixmap.load(image.get_image_path())

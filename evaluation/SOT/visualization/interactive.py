@@ -64,6 +64,8 @@ class InteractiveDatasetsRunner:
         return self.viewer.run_event_loop()
 
     def _sequence_selected_callback(self, index):
+        if index < 0:
+            return
         index_of_dataset = self.index_of_datasets[index]
         index_of_sequence = self.index_of_sequences[index]
         dataset = self.datasets[index_of_dataset]

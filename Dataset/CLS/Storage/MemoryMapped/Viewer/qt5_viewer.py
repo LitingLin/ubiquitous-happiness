@@ -15,6 +15,8 @@ class CLSDatasetQt5Viewer:
         self.label = self.viewer.get_control_region().new_label()
 
     def _imageSelectedCallback(self, index: int):
+        if index < 0:
+            return
         image = self.dataset[index]
         pixmap = QPixmap()
         assert pixmap.load(image.get_image_path())

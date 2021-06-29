@@ -45,6 +45,8 @@ class MOTDatasetQt5Viewer:
         self.timer.set_callback(self._timerTimeoutCallback)
 
     def _sequenceSelectedCallback(self, index: int):
+        if index < 0:
+            return
         self.sequence = SimplePrefetcher(_DatasetSequenceImageLoader(self.dataset[index]))
         self._stopTimer()
         self._startTimer()
