@@ -1,6 +1,6 @@
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped, SingleObjectTrackingDatasetSequence_MemoryMapped
 from Dataset.Base.Common.Viewer.qt5_viewer import draw_object
-from Miscellaneous.Viewer.old_qt5_viewer import Qt5Viewer
+from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
 from PyQt5.QtGui import QPixmap, QColor
 import random
 from Miscellaneous.simple_prefetcher import SimplePrefetcher
@@ -27,7 +27,7 @@ class SOTDatasetQt5Viewer:
     def __init__(self, dataset: SingleObjectTrackingDataset_MemoryMapped):
         self.dataset = dataset
         self.viewer = Qt5Viewer()
-        self.viewer.setWindowTitle(self.dataset.get_name())
+        self.viewer.set_title(self.dataset.get_name())
 
         if self.dataset.has_category_id_name_map():
             self.category_id_color_map = {}
@@ -41,8 +41,9 @@ class SOTDatasetQt5Viewer:
         for sequence in self.dataset:
             sequence_names.append(sequence.get_name())
 
-        self.viewer.addList(sequence_names, self._sequenceSelectedCallback)
-        self.viewer.setTimerCallback(self._timerTimeoutCallback)
+        self.viewer.get_content_region().new_list(sequence_names, self._sequenceSelectedCallback)
+        self.timer = self.viewer.new_timer()
+        self.timer.set_callback(self._timerTimeoutCallback)
 
     def _sequenceSelectedCallback(self, index: int):
         self.sequence = SimplePrefetcher(DatasetSequenceImageLoader(self.dataset[index]))
@@ -51,7 +52,7 @@ class SOTDatasetQt5Viewer:
 
     def _startTimer(self):
         self.sequence_iter = iter(self.sequence)
-        self.viewer.startTimer()
+        self.timer.start()
 
     def _timerTimeoutCallback(self):
         try:
@@ -59,14 +60,15 @@ class SOTDatasetQt5Viewer:
         except StopIteration:
             self._stopTimer()
             return
-        painter = self.viewer.getPainter(image)
+        canvas = self.viewer.get_canvas()
+        canvas.set_background(image)
 
-        with painter:
+        with canvas.get_painter() as painter:
             draw_object(painter, frame, frame, self.sequence.iterable.sequence, None, self.category_id_color_map, self.dataset, self.dataset)
         painter.update()
 
     def _stopTimer(self):
-        self.viewer.stopTimer()
+        self.timer.stop()
 
     def run(self):
-        return self.viewer.runEventLoop()
+        return self.viewer.run_event_loop()

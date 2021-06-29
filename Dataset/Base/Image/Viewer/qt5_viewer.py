@@ -31,7 +31,7 @@ class ImageDatasetQt5Viewer:
         pixmap = QPixmap()
         assert pixmap.load(image.get_image_path())
         canvas = self.viewer.get_canvas()
-        canvas.create_from_qpixmap(pixmap)
+        canvas.set_background(pixmap)
         if len(image) > 0:
             with canvas.get_painter() as painter:
                 for object_ in image:

@@ -149,8 +149,8 @@ class _Canvas:
         self.label = label
         self.image = None
 
-    def create_from_qpixmap(self, qpixmap):
-        self.image = qpixmap
+    def set_background(self, qPixmap: QPixmap):
+        self.image = qPixmap
 
     def create_empty(self, width: int, height: int):
         self.image = QPixmap(width, height)
@@ -168,6 +168,13 @@ class _LayoutWidgetCreator:
     def __init__(self, layout):
         self.layout = layout
 
+    def new_label(self, text: str):
+        label = QLabel()
+        if text is not None:
+            label.setText(text)
+        self.layout.addWidget(label)
+        return label
+
     def new_button(self, text: str, callback):
         button = QPushButton()
         if text is not None:
@@ -175,6 +182,7 @@ class _LayoutWidgetCreator:
         if callback is not None:
             button.clicked.connect(callback)
         self.layout.addWidget(button)
+        return button
 
     def new_list(self, string_list, callback):
         listWidget = QListWidget()
@@ -184,10 +192,12 @@ class _LayoutWidgetCreator:
                 QListWidgetItem(string, listWidget)
         if callback is not None:
             listWidget.currentRowChanged.connect(callback)
+        self.layout.addWidget(listWidget)
+        return listWidget
 
 
 class Qt5Viewer:
-    def __init__(self, argv=(), n_vertical_canvas=1, n_horizontal_canvas=1):
+    def __init__(self, argv=[], n_vertical_canvas=1, n_horizontal_canvas=1):
         app = QApplication(argv)
 
         window = QDialog()
