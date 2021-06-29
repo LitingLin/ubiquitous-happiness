@@ -36,7 +36,7 @@ class DetectionDatasetQt5Viewer:
                 for object_ in image:
                     draw_object(painter, object_, object_, object_, None, self.category_id_color_map,
                                 self.dataset, self.dataset)
-        painter.update()
+        canvas.update()
 
     def run(self):
         return self.viewer.run_event_loop()

@@ -65,7 +65,7 @@ class SOTDatasetQt5Viewer:
 
         with canvas.get_painter() as painter:
             draw_object(painter, frame, frame, self.sequence.iterable.sequence, None, self.category_id_color_map, self.dataset, self.dataset)
-        painter.update()
+        canvas.update()
 
     def _stopTimer(self):
         self.timer.stop()
