@@ -11,8 +11,6 @@ def build_logger(args, network_config, train_config, initial_step):
     assert 'running_vars' not in network_config
     network_config['running_vars'] = vars(args)
     tensorboard_root_path = None
-    if args.enable_profile:
-        tensorboard_root_path = args.profile_logging_path
 
     from ._wandb import WandbLogger, has_wandb
     if has_wandb:

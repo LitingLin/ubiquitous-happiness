@@ -1,0 +1,29 @@
+name: "SiamFC-v1"
+tags:
+  - "SiamFC"
+
+version: 4
+type: "SiamFC"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [127, 127]
+  search_size: [255, 255]
+  imagenet_normalization: false
+  interpolation_mode: "bicubic"
+
+backbone:
+  type: "Alexnet-SiamFC-v1"
+
+neck:
+  type: "SiamFCLinearXCorr"
+
+head:
+  type: "SiamFC"
+  parameters:
+    size: [17, 17]
+    r_pos: 16
+    r_neg: 0
+    total_stride: 8
