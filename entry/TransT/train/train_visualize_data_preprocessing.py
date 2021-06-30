@@ -52,12 +52,15 @@ def main(args):
     train_config['data']['sampler'][visualization_target]['batch_size'] = args.batch_size
     train_config['data']['with_raw_data'] = True
 
-    _, (data_loader_train, data_loader_val), _, stage_2_data_processor = \
+    _, (data_loader_train, data_loader_val), (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors), stage_2_data_processor = \
         build_training_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
     if visualization_target == 'train':
         data_loader = data_loader_train
     else:
         data_loader = data_loader_val
+    if training_start_event_signal_slots is not None:
+        for signal in training_start_event_signal_slots:
+            signal.start()
     viewer = build_data_preprocessing_viewer(data_loader, stage_2_data_processor, network_config, train_config, visualization_target)
     return viewer.run()
 

@@ -212,7 +212,7 @@ class _SubPlot:
         self.informative_widgets = []
         self.canvas_widgets = []
 
-    def create_label(self, text):
+    def create_label(self, text=None):
         label = QLabel()
         if text is not None:
             label.setText(text)

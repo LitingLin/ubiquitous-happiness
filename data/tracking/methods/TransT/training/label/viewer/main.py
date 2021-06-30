@@ -21,12 +21,16 @@ class _DataWrapper:
 
 
 class _VisualizerDataPrefetcher:
-    def __init__(self, data_loader):
+    def __init__(self, data_loader, enable_prefetch = True):
         self.data_loader = data_loader
+        self.enable_prefetch = enable_prefetch
         self._begin()
 
     def _begin(self):
-        self.data_loader_iter = iter(SimplePrefetcher(self.data_loader))
+        data_loader = self.data_loader
+        if self.enable_prefetch:
+            data_loader = SimplePrefetcher(data_loader)
+        self.data_loader_iter = iter(data_loader)
 
     def get_next(self):
         try:
@@ -46,6 +50,7 @@ class DataPreprocessingVisualizer:
         self.viewer.get_control_region().new_integer_spin_box('interval(ms): ', 1, 1000, int(1000 / 30), self._set_new_timer_interval)
         self.viewer.get_control_region().new_button('start', self._start_button_clicked)
         self.viewer.get_control_region().new_button('stop', self._stop_button_clicked)
+        self.viewer.get_control_region().new_button('step', self._on_timer_timeout)
 
         self.data_loader = _VisualizerDataPrefetcher(_DataWrapper(data_loader, stage_2_data_processor, visualizer_data_adaptor))
 

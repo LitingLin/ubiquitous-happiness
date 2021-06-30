@@ -29,8 +29,6 @@ class TransTDataPreprocessingVisualizer:
                 subplot.create_canvas()
                 subplot.create_canvas()
                 subplot.create_label()
-        self.process_label = viewer.get_control_region().new_label()
-        self.data_label = viewer.get_control_region().new_label()
         self.viewer = viewer
         return viewer
 
@@ -49,20 +47,24 @@ class TransTDataPreprocessingVisualizer:
 
         recovered_bbox = []
 
+        if self.imagenet_normalized:
+            imagenet_denormalize(z_image_batch, True)
+            imagenet_denormalize(x_image_batch, True)
+
         assert N == self.batch_size
         if target_feat_map_indices_batch_id_vector is not None:
             label = torch.ones([N, x_C, *self.label_size], dtype=torch.float, device=target_feat_map_indices_batch_id_vector.device)
             label = label.view(N, x_C, -1)
             label[target_feat_map_indices_batch_id_vector, :, target_feat_map_indices_batch] = 0.5
             label = label.view(N, x_C, *self.label_size)
-            label = F.interpolate(label, (x_H, x_W), mode='bicubic', align_corners=True)
+            label = F.interpolate(label, (x_H, x_W))
             x_image_batch = x_image_batch * label
 
             assert torch.all(target_class_label_vector_batch[target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch] == 0)
 
             min_index = 0
             for batch in range(N):
-                indices = torch.where(target_feat_map_indices_batch_id_vector == batch)
+                indices = torch.nonzero(target_feat_map_indices_batch_id_vector == batch).flatten()
                 if len(indices) == 0:
                     recovered_bbox.append(None)
                     continue
@@ -78,12 +80,11 @@ class TransTDataPreprocessingVisualizer:
         else:
             recovered_bbox = [None] * N
 
-        if self.imagenet_normalized:
-            imagenet_denormalize(z_image_batch, True)
-            imagenet_denormalize(x_image_batch, True)
-
         z_image_batch = z_image_batch.permute(0, 2, 3, 1)  # N, C, H, W => N, H, W, C
         x_image_batch = x_image_batch.permute(0, 2, 3, 1)  # N, C, H, W => N, H, W, C
+
+        z_image_batch = z_image_batch.round_().clip_(0, 255).to(torch.uint8)
+        x_image_batch = x_image_batch.round_().clip_(0, 255).to(torch.uint8)
 
         for z_image, x_image in zip(z_image_batch, x_image_batch):
             z_qimages.append(QPixmap(numpy_rgb888_to_qimage(z_image.cpu().numpy())))
@@ -137,9 +138,10 @@ class TransTDataPreprocessingVisualizer:
 
             canvas = subplot.get_canvas(3)
             canvas.set_background(x_curated)
-            with canvas.get_painter() as painter:
-                painter.set_pen(self.bbox_pen)
-                painter.draw_rect(bbox_xyxy2xywh(x_curated_bbox))
+            if x_curated_bbox is not None:
+                with canvas.get_painter() as painter:
+                    painter.set_pen(self.bbox_pen)
+                    painter.draw_rect(bbox_xyxy2xywh(x_curated_bbox))
             canvas.update()
 
             label = subplot.get_informative_widget(0)

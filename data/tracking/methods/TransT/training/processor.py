@@ -37,7 +37,7 @@ class TransTProcessor:
         collate_miscellany = True
         if self.with_raw_data:
             miscellany['z'] = z_image
-            miscellany['x'] = z_bbox
+            miscellany['x'] = x_image
             miscellany['z_bbox'] = z_bbox
             miscellany['x_bbox'] = x_bbox
             collate_miscellany = False

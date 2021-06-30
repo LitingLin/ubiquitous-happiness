@@ -22,7 +22,7 @@ data:
 
       sequence_sampler:
         type: "Siamese"
-        parameter:
+        parameters:
           frame_range: 100
           enforce_fine_positive_sample: false
           enable_adaptive_frame_range: true
@@ -36,7 +36,7 @@ data:
 
       sequence_sampler:
         type: "Siamese"
-        parameter:
+        parameters:
           frame_range: 100
           enforce_fine_positive_sample: false
           enable_adaptive_frame_range: true
