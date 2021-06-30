@@ -1,6 +1,6 @@
 import torch
 import torch.distributed
-from Miscellaneous.torch.distributed import is_dist_available_and_initialized, get_world_size, get_rank
+from miscellanies.torch.distributed import is_dist_available_and_initialized, get_world_size, get_rank
 
 
 class BatchValueStorage_DistributedAware:

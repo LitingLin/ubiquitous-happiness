@@ -2,8 +2,8 @@ import torch
 import torch.distributed
 
 from torch import nn
-from Miscellaneous.torch.distributed import get_world_size, is_dist_available_and_initialized
-from Miscellaneous.torch.distributed.reduce_dict import reduce_dict
+from miscellanies.torch.distributed import get_world_size, is_dist_available_and_initialized
+from miscellanies.torch.distributed.reduce_dict import reduce_dict
 from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcywh_to_xyxy
 
 

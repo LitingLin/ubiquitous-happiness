@@ -132,7 +132,7 @@ class VideoDatasetSequenceManipulator:
 
     def get_sequence_frame_size(self, allow_estimation = True):
         assert len(self.sequence['frames']) != 0
-        from Miscellaneous.most_frequent import get_most_frequent_items_from_list
+        from miscellanies.most_frequent import get_most_frequent_items_from_list
         sizes = []
         for frame in self.sequence['frames']:
             sizes.append(frame['size'])

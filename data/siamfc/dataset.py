@@ -4,7 +4,7 @@ import copy
 import numpy as np
 from torch.utils.data import Dataset
 from data.distributed.dataset import build_dataset_from_config_distributed_awareness
-from Miscellaneous.torch.distributed import is_main_process
+from miscellanies.torch.distributed import is_main_process
 from torchvision.transforms import ToTensor
 import torchvision.io
 from data.siamfc.sampler import SOTDatasetSiamFCSampler, DetectionDatasetSiamFCSampler, MOTDatasetSiamFCSampler

@@ -1,7 +1,7 @@
 from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
 from Dataset.SOT.Seed.TrackingNet import TrackingNet_Seed
 import numpy as np
-from Miscellaneous.Numpy.dtype import try_get_int_array
+from miscellanies.Numpy.dtype import try_get_int_array
 
 if __name__ == '__main__':
     datasets = SingleObjectTrackingDatasetFactory([TrackingNet_Seed()]).construct()

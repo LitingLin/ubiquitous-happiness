@@ -1,6 +1,6 @@
 import os
 import hashlib
-from Miscellaneous.slugify import slugify
+from miscellanies.slugify import slugify
 
 _cache_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..', 'cache'))
 

@@ -1,6 +1,6 @@
 from .stack import VOTStack
-from Miscellaneous.yaml_ops import yaml_dump
-from Miscellaneous.repo_root import get_repository_root
+from miscellanies.yaml_ops import yaml_dump
+from miscellanies.repo_root import get_repository_root
 from Dataset.Config.path import get_path_from_config
 import os
 

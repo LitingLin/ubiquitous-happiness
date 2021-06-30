@@ -1,7 +1,7 @@
 from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
-from Miscellaneous.torch.checkpoint import load_checkpoint
+from miscellanies.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 from training.transt.logger.builder import build_logger
 from training.transt.profiler.builder import build_profiler
@@ -46,7 +46,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
 
     if 'sync_bn' in train_config['optimization'] and 'cuda' in device.type:
         if train_config['optimization']['sync_bn']:
-            from Miscellaneous.torch.distributed import is_dist_available_and_initialized
+            from miscellanies.torch.distributed import is_dist_available_and_initialized
             if is_dist_available_and_initialized():
                 model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
 
@@ -59,7 +59,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
 
-            from Miscellaneous.torch.distributed import get_rank, get_world_size
+            from miscellanies.torch.distributed import get_rank, get_world_size
             gathered_objects = [None for _ in range(get_world_size())]
             torch.distributed.all_gather_object(gathered_objects, dict(model.module.named_parameters()))
             for i in range(1, get_world_size()):
@@ -77,7 +77,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
                         epoch_changed_event_slots, statistics_collectors)
 
 
-def build_training_runner_logger_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
+def build_training_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
                                          val_dataset_config_path: str):
     if 'version' not in train_config or train_config['version'] < 3:
         import training.transt._old.builder
@@ -111,7 +111,19 @@ def build_training_runner_logger_and_dataloader(args, network_config: dict, trai
         raise NotImplementedError(f'Unknown dataloader version {train_config["dataloader"]["version"]}')
 
     stage_2_data_processor = build_stage_2_data_processor(network_config, train_config)
+    return (train_dataset, val_dataset),\
+        (data_loader_train, data_loader_val),\
+        (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors), \
+        stage_2_data_processor
 
+
+def build_training_runner_logger_and_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
+                                         val_dataset_config_path: str):
+    (train_dataset, val_dataset), \
+    (data_loader_train, data_loader_val), \
+    (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots,
+     statistics_collectors), \
+    stage_2_data_processor = build_training_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
     runner = build_transt_training_runner(args, network_config, train_config, stage_2_data_processor, stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors)
 
     n_epochs = _get_n_epochs(train_config)

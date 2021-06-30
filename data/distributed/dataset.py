@@ -1,5 +1,5 @@
 from Dataset.EasyBuilder.YAML.builder import build_datasets_from_yaml
-from Miscellaneous.torch.distributed import is_dist_available_and_initialized, is_main_process
+from miscellanies.torch.distributed import is_dist_available_and_initialized, is_main_process
 import torch.distributed
 
 

@@ -1,5 +1,5 @@
 import torch
-from Miscellaneous.torch.metric_logger import MetricLogger
+from miscellanies.torch.metric_logger import MetricLogger
 import gc
 
 

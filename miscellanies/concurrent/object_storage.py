@@ -2,8 +2,8 @@ import ctypes
 import multiprocessing
 import multiprocessing.sharedctypes
 import pickle
-from Miscellaneous.Numpy.from_ctypes import make_nd_array
-from Miscellaneous.Numpy.to_ctypes import memmove_to_ctypes
+from miscellanies.Numpy.from_ctypes import make_nd_array
+from miscellanies.Numpy.to_ctypes import memmove_to_ctypes
 import numpy as np
 
 

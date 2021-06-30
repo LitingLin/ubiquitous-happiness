@@ -1,7 +1,7 @@
 import numpy as np
 from data.randomness_control.iterable_dataset import IterableDatasetOrchestrator
 from .dataset import build_siamfc_sampling_dataset
-from Miscellaneous.torch.distributed import get_world_size, get_rank
+from miscellanies.torch.distributed import get_world_size, get_rank
 import torch.utils.data.dataloader
 from data.performance.cuda_prefetcher import CUDAPrefetcher
 from data.randomness_control.ordered_batch_sampler import OrderedBatchSampler

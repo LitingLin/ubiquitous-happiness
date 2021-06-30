@@ -4,7 +4,7 @@ from models.loss.siamfc.builder import build_siamfc_loss
 import torch
 from torch import optim
 import numpy as np
-from Miscellaneous.nullable_get import nullable_get
+from miscellanies.nullable_get import nullable_get
 from models.backbone.siamfc.alexnet import *
 from models.head.siamfc.siamfc import *
 from .actor import SiamFCTrainingActor

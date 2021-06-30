@@ -1,9 +1,9 @@
 import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
-from Miscellaneous.Parser.ini import parse_ini_file
-from Miscellaneous.Parser.txt import load_numpy_array_from_txt
-from Miscellaneous.Numpy.dtype import try_get_int_array
+from miscellanies.Parser.ini import parse_ini_file
+from miscellanies.Parser.txt import load_numpy_array_from_txt
+from miscellanies.Numpy.dtype import try_get_int_array
 import ast
 
 _category_names = ['JetLev-Flyer',

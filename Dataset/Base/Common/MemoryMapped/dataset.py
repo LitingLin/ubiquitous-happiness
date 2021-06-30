@@ -156,7 +156,7 @@ class MemoryMappedDataset:
 
     def get_unique_id(self):
         import hashlib
-        from Miscellaneous.slugify import slugify
+        from miscellanies.slugify import slugify
 
         m = hashlib.md5()
         m.update(bytes(self.get_name(), encoding='utf-8'))

@@ -1,7 +1,7 @@
 import os
-from Miscellaneous.repo_root import get_repository_root
+from miscellanies.repo_root import get_repository_root
 from algorithms.tracker.transt.builder import build_transt_tracker
-from Miscellaneous.yaml_ops import yaml_load
+from miscellanies.yaml_ops import yaml_load
 import shlex
 _cache = {}
 

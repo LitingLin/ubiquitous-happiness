@@ -1,7 +1,7 @@
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer, QPen, QColor, Qt, QPixmap
+from miscellanies.Viewer.qt5_viewer import Qt5Viewer, QPen, QColor, Qt, QPixmap
 from evaluation.SOT.visualization._sequence_runner import SequenceRunner
 import numpy as np
-from Miscellaneous.qt_numpy_interop import numpy_rgb888_to_qimage
+from miscellanies.qt_numpy_interop import numpy_rgb888_to_qimage
 from data.operator.bbox.validity import bbox_is_valid
 
 

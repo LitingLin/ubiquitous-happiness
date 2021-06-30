@@ -49,7 +49,7 @@ def dump_checkpoint(epoch, output_path, model_state_dict, training_state_dict, l
 
 def _get_state_from_runner_with_barrier(runner):
     import torch.distributed
-    from Miscellaneous.torch.distributed import is_dist_available_and_initialized
+    from miscellanies.torch.distributed import is_dist_available_and_initialized
 
     model_state_dict, training_state_dict = runner.state_dict()
     if is_dist_available_and_initialized():
@@ -58,7 +58,7 @@ def _get_state_from_runner_with_barrier(runner):
 
 
 def dump_checkpoint_from_runner(epoch, output_path, runner, latest_checkpoint_interval, backup_checkpoint_interval):
-    from Miscellaneous.torch.distributed import is_main_process
+    from miscellanies.torch.distributed import is_main_process
 
     saved_checkpoint_path = None
     if (epoch + 1) % latest_checkpoint_interval == 0:

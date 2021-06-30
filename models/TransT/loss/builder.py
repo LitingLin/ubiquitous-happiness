@@ -5,8 +5,8 @@ def build_criterion(network_config, train_config: dict):
     elif train_config['version'] == 2:
         loss_parameters = train_config['train']['loss']
         if 'use_template' in loss_parameters:
-            from Miscellaneous.yaml_ops import yaml_load
-            from Miscellaneous.repo_root import get_repository_root
+            from miscellanies.yaml_ops import yaml_load
+            from miscellanies.repo_root import get_repository_root
             import os
             loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', f"{loss_parameters['use_template']}.yaml"))
     elif train_config['version'] == 3:
@@ -15,8 +15,8 @@ def build_criterion(network_config, train_config: dict):
             return build_siamfc_loss(train_config)
         loss_parameters = train_config['optimization']['loss']
         if 'use_template' in loss_parameters:
-            from Miscellaneous.yaml_ops import yaml_load
-            from Miscellaneous.repo_root import get_repository_root
+            from miscellanies.yaml_ops import yaml_load
+            from miscellanies.repo_root import get_repository_root
             import os
             loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', f"{loss_parameters['use_template']}.yaml"))
     else:

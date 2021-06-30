@@ -3,7 +3,7 @@ from data.tracking.sampler.SiamFC.stateful.api_sampler import SOTTrackingSiamese
 from data.tracking.sampler._sampling_algos.stateful.api_gateway.random_sampler import ApiGatewayRandomSamplerServer
 from data.tracking.dataset.siamfc.dataset import SiamFCDataset, siamfc_dataset_worker_init_fn
 from data.tracking.processor.siamfc.image_decoding import SiamFCImageDecodingProcessor
-from Miscellaneous.torch.distributed import is_main_process
+from miscellanies.torch.distributed import is_main_process
 import numpy as np
 import copy
 from data.tracking.sampler.SiamFC.type import SiamesePairSamplingMethod

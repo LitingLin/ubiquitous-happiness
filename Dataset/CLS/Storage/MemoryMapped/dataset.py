@@ -1,5 +1,5 @@
 from Dataset.Base.Engine.memory_mapped import ListMemoryMapped
-from Miscellaneous.platform_style_path import join_path
+from miscellanies.platform_style_path import join_path
 from Dataset.Base.Common.MemoryMapped.dataset import LazyAttributesLoader, DummyAttributesLoader, MemoryMappedDataset
 
 

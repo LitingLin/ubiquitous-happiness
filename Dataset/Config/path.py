@@ -1,4 +1,4 @@
-from Miscellaneous.yaml_ops import yaml_load
+from miscellanies.yaml_ops import yaml_load
 import os
 
 

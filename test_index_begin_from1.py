@@ -2,7 +2,7 @@ from Dataset.SOT.factory import SingleObjectTrackingDatasetFactory
 from Dataset.SOT.Seed.GOT10k import GOT10k_Seed
 from Dataset.Type.data_split import DataSplit
 import numpy as np
-from Miscellaneous.Numpy.dtype import try_get_int_array
+from miscellanies.Numpy.dtype import try_get_int_array
 
 if __name__ == '__main__':
     datasets = SingleObjectTrackingDatasetFactory([GOT10k_Seed(data_split=DataSplit.Validation)]).construct()

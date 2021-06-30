@@ -1,5 +1,5 @@
-from Miscellaneous.torch.metric_logger import MetricLogger
-from Miscellaneous.torch.smoothed_value import SmoothedValue
+from miscellanies.torch.metric_logger import MetricLogger
+from miscellanies.torch.smoothed_value import SmoothedValue
 from typing import Iterable
 import gc
 

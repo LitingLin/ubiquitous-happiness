@@ -11,7 +11,8 @@ class TransTProcessor:
                  template_scale_jitter_factor, search_scale_jitter_factor,
                  template_translation_jitter_factor, search_translation_jitter_factor,
                  gray_scale_probability, do_imagenet_normalization,
-                 color_jitter, label_generator, interpolation_mode, stage2_on_host_process):
+                 color_jitter, label_generator, interpolation_mode, stage2_on_host_process,
+                 return_raw_data):
         self.template_size = template_size
         self.search_size = search_size
         self.template_area_factor = template_area_factor
@@ -29,8 +30,16 @@ class TransTProcessor:
             self.transform = build_TransT_image_augmentation_transformer(color_jitter, do_imagenet_normalization)
         self.gray_scale_transformer = Grayscale(3)
         self.label_generator = label_generator
+        self.return_raw_data = return_raw_data
 
     def __call__(self, z_image, z_bbox, x_image, x_bbox, is_positive):
+        miscellany = {}
+        if self.return_raw_data:
+            miscellany['z'] = z_image
+            miscellany['x'] = z_bbox
+            miscellany['z_bbox'] = z_bbox
+            miscellany['x_bbox'] = x_bbox
+        miscellany['is_positive_sample'] = is_positive
         z_image, x_image = TransT_training_image_preprocessing(z_image, x_image, self.gray_scale_transformer,
                                                                self.do_imagenet_normalization,
                                                                self.gray_scale_probability, np.random)
@@ -55,6 +64,6 @@ class TransTProcessor:
         x_image = x_image.float()
 
         if isinstance(labels, (list, tuple)):
-            return z_image, x_image, z_context, x_context, is_positive, *labels
+            return z_image, x_image, z_context, x_context, miscellany, *labels
         else:
-            return z_image, x_image, z_context, x_context, is_positive, labels
+            return z_image, x_image, z_context, x_context, miscellany, labels

@@ -1,5 +1,5 @@
 from Dataset.CLS.Storage.MemoryMapped.dataset import ImageClassificationDataset_MemoryMapped
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
+from miscellanies.Viewer.qt5_viewer import Qt5Viewer
 from PyQt5.QtGui import QPixmap
 
 

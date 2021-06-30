@@ -3,9 +3,9 @@ try:
     has_wandb = True
 except ImportError:
     has_wandb = False
-from Miscellaneous.flatten_dict import flatten_dict
-from Miscellaneous.git_status import get_git_status
-from Miscellaneous.torch.distributed import is_main_process, is_dist_available_and_initialized
+from miscellanies.flatten_dict import flatten_dict
+from miscellanies.git_status import get_git_status
+from miscellanies.torch.distributed import is_main_process, is_dist_available_and_initialized
 
 
 class WandbLogger:

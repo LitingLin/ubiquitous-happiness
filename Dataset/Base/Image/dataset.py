@@ -1,7 +1,7 @@
 import os
 from Dataset.Type.specialized_dataset import SpecializedImageDatasetType
 from Dataset.Base.Common.dataset import _BaseDataset, _BaseDatasetObject
-from Miscellaneous.platform_style_path import join_path
+from miscellanies.platform_style_path import join_path
 
 __version__ = 1
 

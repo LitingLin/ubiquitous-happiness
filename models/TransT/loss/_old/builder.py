@@ -1,6 +1,6 @@
 def parse_old_transt_criterion_parameters(train_config: dict):
-    from Miscellaneous.yaml_ops import yaml_load
-    from Miscellaneous.repo_root import get_repository_root
+    from miscellanies.yaml_ops import yaml_load
+    from miscellanies.repo_root import get_repository_root
     import os
     new_loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', 'transt.yaml'))
     loss_parameters = train_config['train']['loss']

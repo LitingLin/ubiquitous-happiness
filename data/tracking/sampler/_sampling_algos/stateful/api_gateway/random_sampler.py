@@ -1,4 +1,4 @@
-from Miscellaneous.simple_api_gateway import ServerLauncher, Client
+from miscellanies.simple_api_gateway import ServerLauncher, Client
 from data.tracking.sampler._sampling_algos.stateful.api_gateway._server import ApiGatewayRandomSamplerServerHandler
 
 

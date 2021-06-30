@@ -1,6 +1,6 @@
 import torch
 import torch.distributed as dist
-from Miscellaneous.torch.distributed import is_dist_available_and_initialized, get_backend
+from miscellanies.torch.distributed import is_dist_available_and_initialized, get_backend
 from collections import deque
 
 

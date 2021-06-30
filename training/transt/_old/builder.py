@@ -2,7 +2,7 @@ import torch
 from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
 from models.TransT.loss.builder import build_criterion
-from Miscellaneous.torch.checkpoint import load_checkpoint
+from miscellanies.torch.checkpoint import load_checkpoint
 
 
 def _setup_optimizer(model, train_config):

@@ -1,7 +1,7 @@
 import time
 from .train_step import train_step
 from .eval_step import evaluate_step
-from Miscellaneous.torch.checkpoint import dump_checkpoint_from_runner
+from miscellanies.torch.checkpoint import dump_checkpoint_from_runner
 import datetime
 from fvcore.nn import FlopCountAnalysis, flop_count_table
 

@@ -3,7 +3,7 @@ import multiprocessing.sharedctypes
 import ctypes
 import time
 
-from Miscellaneous.type_limits import c_type_limits
+from miscellanies.type_limits import c_type_limits
 ulonglong_max = c_type_limits(ctypes.c_ulonglong)[1]
 
 

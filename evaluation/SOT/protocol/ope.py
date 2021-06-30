@@ -77,7 +77,7 @@ def generate_multiple_tracker_one_pass_evaluation_report(search_paths, datasets:
 
 
 def pack_OPE_result_and_report(tracker_name, output_path):
-    from Miscellaneous.pack_directory import make_tarfile
+    from miscellanies.pack_directory import make_tarfile
     import os
     make_tarfile(os.path.join(output_path, f'{tracker_name}.tar.xz'), os.path.join(output_path, 'ope', tracker_name))
 

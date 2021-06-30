@@ -1,5 +1,5 @@
 import os
-from Miscellaneous.platform_style_path import join_path
+from miscellanies.platform_style_path import join_path
 from data.types.bounding_box_format import BoundingBoxFormat
 from .manipulator import VideoDatasetManipulator
 from Dataset.Type.specialized_dataset import SpecializedVideoDatasetType

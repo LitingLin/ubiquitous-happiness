@@ -2,9 +2,9 @@ import torch
 import torch.distributed
 import torch.utils.data
 import numpy as np
-from Miscellaneous.concurrent.object_storage import SharedMemory_ObjectStorage
-from Miscellaneous.concurrent.resource_scheduler import ResourceScheduler_MultiProcessingAwareness, ResourceSchedulerGuard
-from Miscellaneous.torch.distributed import is_dist_available_and_initialized
+from miscellanies.concurrent.object_storage import SharedMemory_ObjectStorage
+from miscellanies.concurrent.resource_scheduler import ResourceScheduler_MultiProcessingAwareness, ResourceSchedulerGuard
+from miscellanies.torch.distributed import is_dist_available_and_initialized
 
 
 class _WorkerSchedulerConstraint:

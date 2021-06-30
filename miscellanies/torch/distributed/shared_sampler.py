@@ -1,5 +1,5 @@
 import multiprocessing.shared_memory
-from Miscellaneous.torch.distributed import is_dist_available_and_initialized, get_rank
+from miscellanies.torch.distributed import is_dist_available_and_initialized, get_rank
 
 
 class RandomSamplerWithoutReplacement_DistributedAwareness:

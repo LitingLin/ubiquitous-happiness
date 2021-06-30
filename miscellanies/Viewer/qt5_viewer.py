@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QLabel, QListWidget, QListWidgetItem, QGridLayout
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QSizePolicy, QLabel, QListWidget, QListWidgetItem, QGridLayout, QSpinBox
 from PyQt5.QtCore import QTimer, Qt, pyqtSlot, QObject, QPoint, QPointF, QRect, QRectF, QSize
-from PyQt5.QtGui import QResizeEvent, QPixmap, QPainter, QPen, QPolygon, QPolygonF, QBrush, QColor
+from PyQt5.QtGui import QResizeEvent, QPixmap, QPainter, QPen, QPolygon, QPolygonF, QBrush, QColor, QIntValidator
 from typing import List
 
 # https://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
@@ -177,6 +177,25 @@ class _LayoutWidgetCreator:
         self.layout.addWidget(listWidget)
         return listWidget
 
+    def new_integer_spin_box(self, informative_text, min_value, max_value, default_value, callback):
+        layout = QHBoxLayout()
+        if informative_text is not None:
+            label = QLabel()
+            label.setText(informative_text)
+            layout.addWidget(label)
+        spin_box = QSpinBox()
+        if min_value is not None:
+            spin_box.setMinimum(min_value)
+        if max_value is not None:
+            spin_box.setMaximum(max_value)
+        if default_value is not None:
+            spin_box.setValue(default_value)
+        if callback is not None:
+            spin_box.valueChanged.connect(callback)
+        layout.addWidget(spin_box)
+
+        self.layout.addLayout(layout)
+        return spin_box
 
 class _SubPlot:
     def __init__(self, parent_layout: QGridLayout, i_row, i_col):
@@ -224,7 +243,7 @@ class _SubPlot:
         self.canvas_widgets.append(canvas)
         return canvas
 
-    def get_canvas(self, index: int = 0):
+    def get_canvas(self, index: int = 0) -> _Canvas:
         return self.canvas_widgets[index]
 
     def get_informative_widget(self, index: int):

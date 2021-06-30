@@ -4,9 +4,9 @@ root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 
 sys.path.append(root_path)
 config_path = os.path.join(root_path, 'config', 'transt')
 
-from Miscellaneous.torch.print_running_environment import print_running_environment
-from Miscellaneous.yaml_ops import yaml_load
-from Miscellaneous.git_status import get_git_status_message
+from miscellanies.torch.print_running_environment import print_running_environment
+from miscellanies.yaml_ops import yaml_load
+from miscellanies.git_status import get_git_status_message
 from algorithms.tracker.transt.builder import build_transt_tracker
 
 # from evaluation.SOT.visualization.runner import visualize_tracking_procedure_on_standard_datasets

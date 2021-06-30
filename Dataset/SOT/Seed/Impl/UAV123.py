@@ -2,7 +2,7 @@ import os
 from Dataset.Type.data_split import DataSplit
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
 import numpy as np
-from Miscellaneous.Numpy.dtype import try_get_int_array
+from miscellanies.Numpy.dtype import try_get_int_array
 
 
 _uav123_sequence_info_list = [

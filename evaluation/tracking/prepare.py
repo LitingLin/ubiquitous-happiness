@@ -1,6 +1,6 @@
 from Dataset.SOT.Storage.MemoryMapped.dataset import SingleObjectTrackingDataset_MemoryMapped
 from typing import List
-from Miscellaneous.most_frequent import get_most_frequent_item_from_list
+from miscellanies.most_frequent import get_most_frequent_item_from_list
 
 
 def prepare_sequences(datasets: List[SingleObjectTrackingDataset_MemoryMapped], remove_duplicate_sequences_by_name=True, sort_by_sequence_frame_size=True):

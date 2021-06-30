@@ -1,5 +1,6 @@
 import torch
 import torch.utils.data
+from torch.utils.data.dataloader import default_collate
 
 
 def batch_collate_target_feat_map_indices(target_feat_map_indices_list):
@@ -28,10 +29,8 @@ def transt_collate_fn(data):
     target_feat_map_indices_list = []
     target_class_label_vector_list = []
     target_bounding_box_label_matrix_list = []
-    is_positives = torch.empty([len(data)], dtype=torch.bool)
-    if torch.utils.data.get_worker_info() is not None:
-        is_positives.share_memory_()
-    for index, (z_image, x_image, z_context, x_context, is_positive,
+    miscellanies = []
+    for index, (z_image, x_image, z_context, x_context, miscellany,
         target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix) in enumerate(data):
         z_image_list.append(z_image)
         x_image_list.append(x_image)
@@ -39,7 +38,7 @@ def transt_collate_fn(data):
             z_context_list.append(z_context)
         if x_context is not None:
             x_context_list.append(x_context)
-        is_positives[index] = is_positive
+        miscellanies.append(miscellany)
         target_feat_map_indices_list.append(target_feat_map_indices)
         target_class_label_vector_list.append(target_class_label_vector)
         if target_bounding_box_label_matrix is not None:
@@ -64,10 +63,12 @@ def transt_collate_fn(data):
     else:
         target_bounding_box_label_matrix_batch = None
 
+    miscellanies = default_collate(miscellanies)
+
     return (z_image_batch, x_image_batch), \
            (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch,
             target_class_label_vector_batch, target_bounding_box_label_matrix_batch), \
-           is_positives, context
+           miscellanies, context
 
 
 def SiamFC_collate_fn(data):
@@ -75,19 +76,18 @@ def SiamFC_collate_fn(data):
     x_image_list = []
     z_context_list = []
     x_context_list = []
-    is_positives = torch.empty([len(data)], dtype=torch.bool)
     labels = []
-    if torch.utils.data.get_worker_info() is not None:
-        is_positives.share_memory_()
-    for index, (z_image, x_image, z_context, x_context, is_positive, label) in enumerate(data):
+    miscellanies = []
+
+    for index, (z_image, x_image, z_context, x_context, miscellany, label) in enumerate(data):
         z_image_list.append(z_image)
         x_image_list.append(x_image)
         if z_context is not None:
             z_context_list.append(z_context)
         if x_context is not None:
             x_context_list.append(x_context)
-        is_positives[index] = is_positive
         labels.append(label)
+        miscellanies.append(miscellany)
 
     assert len(z_context_list) == len(x_context_list)
 
@@ -102,4 +102,6 @@ def SiamFC_collate_fn(data):
 
     labels = torch.stack(labels)
 
-    return (z_image_batch, x_image_batch), labels, is_positives, context
+    miscellanies = default_collate(miscellanies)
+
+    return (z_image_batch, x_image_batch), labels, miscellanies, context

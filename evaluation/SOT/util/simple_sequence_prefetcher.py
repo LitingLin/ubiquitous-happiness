@@ -1,4 +1,4 @@
-from Miscellaneous.simple_prefetcher import SimplePrefetcher
+from miscellanies.simple_prefetcher import SimplePrefetcher
 import torchvision.io
 
 

@@ -1,6 +1,6 @@
 import torch
 import torch.distributed as dist
-from Miscellaneous.torch.distributed import get_world_size
+from miscellanies.torch.distributed import get_world_size
 
 
 def reduce_dict(input_dict, average=True):

@@ -2,7 +2,7 @@ from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_transl
 from data.operator.bbox.half_pixel_offset.validity import is_bbox_validity
 from data.operator.bbox.intersection import bbox_compute_intersection
 import tensorflow as tf
-from Miscellaneous.qt_numpy_interop import numpy_rgb888_to_qimage
+from miscellanies.qt_numpy_interop import numpy_rgb888_to_qimage
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont, QPixmap
 from PyQt5.QtCore import QRectF, Qt
 import numpy as np

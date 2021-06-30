@@ -2,7 +2,7 @@ import os
 from Dataset.Type.data_split import DataSplit
 import re
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
-from Miscellaneous.platform_style_path import get_platform_style_path
+from miscellanies.platform_style_path import get_platform_style_path
 
 
 def _get_sequence_info_list(split: str):

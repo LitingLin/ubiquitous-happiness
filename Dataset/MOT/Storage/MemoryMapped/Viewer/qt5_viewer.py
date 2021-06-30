@@ -1,9 +1,9 @@
 from Dataset.MOT.Storage.MemoryMapped.dataset import MultipleObjectTrackingDataset_MemoryMapped, \
     MultipleObjectTrackingDatasetSequence_MemoryMapped, MultipleObjectTrackingDatasetFrame_MemoryMapped
-from Miscellaneous.Viewer.qt5_viewer import Qt5Viewer
+from miscellanies.Viewer.qt5_viewer import Qt5Viewer
 from Dataset.Base.Common.Viewer.qt5_viewer import draw_object
 from PyQt5.QtGui import QPixmap, QColor
-from Miscellaneous.simple_prefetcher import SimplePrefetcher
+from miscellanies.simple_prefetcher import SimplePrefetcher
 import random
 
 __all__ = ['MOTDatasetQt5Viewer']

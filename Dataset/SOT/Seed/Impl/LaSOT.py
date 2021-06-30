@@ -1,7 +1,7 @@
 from Dataset.Type.data_split import DataSplit
 import os
 from Dataset.SOT.Constructor.base import SingleObjectTrackingDatasetConstructor
-from Miscellaneous.natural_keys import natural_keys
+from miscellanies.natural_keys import natural_keys
 import numpy as np
 
 
