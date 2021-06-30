@@ -41,3 +41,6 @@ def imagenet_denormalize(tensor: Tensor, inplace: bool = False):
     tensor *= 255.
     return tensor
 
+
+def tensor_list_to_cpu(tensor_list):
+    return tuple(tensor.cpu() if tensor is not None else None for tensor in tensor_list)
