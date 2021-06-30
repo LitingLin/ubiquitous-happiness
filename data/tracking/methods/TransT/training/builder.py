@@ -7,6 +7,9 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
 
     network_data_config = network_config['data']
     train_data_augmentation_config = train_config['data']['augmentation']
+    with_raw_data = False
+    if 'with_raw_data' in train_config['data']:
+        with_raw_data = train_config['data']['with_raw_data']
 
     return TransTProcessor(network_data_config['template_size'], network_data_config['search_size'],
                            network_data_config['area_factor']['template'],
@@ -20,7 +23,7 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
                            train_data_augmentation_config['color_jitter'],
                            label_generator,
                            network_data_config['interpolation_mode'],
-                           train_data_augmentation_config['stage_2_on_host_process'])
+                           train_data_augmentation_config['stage_2_on_host_process'], with_raw_data)
 
 
 def build_transt_data_processor(network_config: dict, train_config: dict):

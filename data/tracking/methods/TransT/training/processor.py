@@ -12,7 +12,7 @@ class TransTProcessor:
                  template_translation_jitter_factor, search_translation_jitter_factor,
                  gray_scale_probability, do_imagenet_normalization,
                  color_jitter, label_generator, interpolation_mode, stage2_on_host_process,
-                 return_raw_data):
+                 with_raw_data):
         self.template_size = template_size
         self.search_size = search_size
         self.template_area_factor = template_area_factor
@@ -30,11 +30,11 @@ class TransTProcessor:
             self.transform = build_TransT_image_augmentation_transformer(color_jitter, do_imagenet_normalization)
         self.gray_scale_transformer = Grayscale(3)
         self.label_generator = label_generator
-        self.return_raw_data = return_raw_data
+        self.with_raw_data = with_raw_data
 
     def __call__(self, z_image, z_bbox, x_image, x_bbox, is_positive):
         miscellany = {}
-        if self.return_raw_data:
+        if self.with_raw_data:
             miscellany['z'] = z_image
             miscellany['x'] = z_bbox
             miscellany['z_bbox'] = z_bbox
