@@ -27,7 +27,7 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
 
 
 def build_transt_data_processor(network_config: dict, train_config: dict):
-    if network_config['head']['type'] == 'DETR':
+    if network_config['head']['type'] == 'TransT':
         from .label.transt import TransTLabelGenerator
         label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'])
         return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn

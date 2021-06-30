@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 from miscellanies.Viewer.qt5_viewer import Qt5Viewer, QPixmap, QPen, QColor
 from ._common import imagenet_denormalize, tensor_list_to_cpu
@@ -12,6 +13,7 @@ from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
 class TransTDataPreprocessingVisualizer:
     def __init__(self, network_config: dict, train_config: dict, visualization_target):
         self.batch_size = train_config['data']['sampler'][visualization_target]['batch_size']
+        self.label_size = network_config['head']['parameters']['input_size']
         self.n_vertical_subplots = math.floor(math.sqrt(self.batch_size))
         self.n_horizontal_subplots = math.ceil(self.batch_size / self.n_vertical_subplots)
         self.imagenet_normalized = network_config['data']['imagenet_normalization']
@@ -49,9 +51,12 @@ class TransTDataPreprocessingVisualizer:
 
         assert N == self.batch_size
         if target_feat_map_indices_batch_id_vector is not None:
-            x_image_batch = x_image_batch.view(N, x_C, -1)
-            x_image_batch[target_feat_map_indices_batch_id_vector, :, target_feat_map_indices_batch] *= 0.5
-            x_image_batch = x_image_batch.view(N, x_C, x_H, x_W)
+            label = torch.ones([N, x_C, *self.label_size], dtype=torch.float, device=target_feat_map_indices_batch_id_vector.device)
+            label = label.view(N, x_C, -1)
+            label[target_feat_map_indices_batch_id_vector, :, target_feat_map_indices_batch] = 0.5
+            label = label.view(N, x_C, *self.label_size)
+            label = F.interpolate(label, (x_H, x_W), mode='bicubic', align_corners=True)
+            x_image_batch = x_image_batch * label
 
             assert torch.all(target_class_label_vector_batch[target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch] == 0)
 

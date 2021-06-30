@@ -1,0 +1,37 @@
+name: "TransT-Swin"
+tags:
+  - "TransT"
+  - "Swin-Transformer"
+
+version: 4
+
+type: "TransT"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [112, 112]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_base_patch4_window7_224_in22k"
+
+
+transformer:
+  position_embedding: "sine"
+  hidden_dim: 256
+  dropout: 0.1
+  nheads: 8
+  dim_feedforward: 2048
+  featurefusion_layers: 4
+  activation: "relu"
+
+head:
+  type: TransT
+  parameters:
+    input_size: [7, 7]
