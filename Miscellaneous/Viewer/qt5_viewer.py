@@ -182,11 +182,6 @@ class _SubPlot:
     def __init__(self, parent_layout: QGridLayout, i_row, i_col):
         vertical_layout = QVBoxLayout()
 
-        size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        size_policy.setHorizontalStretch(1)
-        size_policy.setVerticalStretch(1)
-        vertical_layout.setSizePolicy(size_policy)
-
         informative_widgets_layout = QHBoxLayout()
         canvas_widgets_layout = QHBoxLayout()
         vertical_layout.addLayout(informative_widgets_layout)
@@ -217,7 +212,13 @@ class _SubPlot:
         return button
 
     def create_canvas(self):
-        label = QLabel()
+        label = _QLabel_auto_scaled_pixmap()
+
+        size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        size_policy.setHorizontalStretch(1)
+        size_policy.setVerticalStretch(1)
+        label.setSizePolicy(size_policy)
+
         canvas = _Canvas(label)
         self.canvas_widgets_layout.addWidget(label)
         self.canvas_widgets.append(canvas)
@@ -239,7 +240,7 @@ def _create_subplots(parent_layout, n_vertical_subplots, n_horizontal_subplots):
         for i_col in range(n_horizontal_subplots):
             subplots.append(_SubPlot(subplots_layout, i_row, i_col))
 
-    parent_layout.addLayout(subplots_layout)
+    parent_layout.addLayout(subplots_layout, 90)
 
     return subplots
 
@@ -261,7 +262,7 @@ class Qt5Viewer:
         self.n_vertical_subplots = n_vertical_subplots
         self.n_horizontal_subplots = n_horizontal_subplots
 
-        main_layout.addLayout(content_widget_layout)
+        main_layout.addLayout(content_widget_layout, 10)
 
         control_widget_layout = QVBoxLayout()
         content_widget_layout.addLayout(control_widget_layout)
