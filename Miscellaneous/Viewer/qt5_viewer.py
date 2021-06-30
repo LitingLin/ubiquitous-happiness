@@ -37,26 +37,6 @@ class _QLabel_auto_scaled_pixmap(QLabel):
         return QSize(w, h)
 
 
-def _create_canvas(parent_layout, n_vertical_canvas, n_horizontal_canvas):
-    canvas_layout = QGridLayout()
-
-    canvases = []
-
-    for i_row in range(n_vertical_canvas):
-        for i_col in range(n_horizontal_canvas):
-            canvas = _QLabel_auto_scaled_pixmap()
-            size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-            size_policy.setHorizontalStretch(1)
-            size_policy.setVerticalStretch(1)
-            canvas.setSizePolicy(size_policy)
-            canvas_layout.addWidget(canvas, i_row, i_col)
-            canvases.append(canvas)
-
-    parent_layout.addLayout(canvas_layout)
-
-    return canvases
-
-
 class _Timer:
     def __init__(self, parent):
         timer = QTimer(parent)
@@ -198,8 +178,74 @@ class _LayoutWidgetCreator:
         return listWidget
 
 
+class _SubPlot:
+    def __init__(self, parent_layout: QGridLayout, i_row, i_col):
+        vertical_layout = QVBoxLayout()
+
+        size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        size_policy.setHorizontalStretch(1)
+        size_policy.setVerticalStretch(1)
+        vertical_layout.setSizePolicy(size_policy)
+
+        informative_widgets_layout = QHBoxLayout()
+        canvas_widgets_layout = QHBoxLayout()
+        vertical_layout.addLayout(informative_widgets_layout)
+        vertical_layout.addLayout(canvas_widgets_layout)
+
+        parent_layout.addLayout(vertical_layout, i_row, i_col)
+        self.informative_widgets_layout = informative_widgets_layout
+        self.canvas_widgets_layout = canvas_widgets_layout
+        self.informative_widgets = []
+        self.canvas_widgets = []
+
+    def create_label(self, text):
+        label = QLabel()
+        if text is not None:
+            label.setText(text)
+        self.informative_widgets_layout.addWidget(label)
+        self.informative_widgets.append(label)
+        return label
+
+    def create_button(self, text, callback):
+        button = QPushButton()
+        if text is not None:
+            button.setText(text)
+        if callback is not None:
+            button.clicked.connect(callback)
+        self.informative_widgets_layout.addWidget(button)
+        self.informative_widgets.append(button)
+        return button
+
+    def create_canvas(self):
+        label = QLabel()
+        canvas = _Canvas(label)
+        self.canvas_widgets_layout.addWidget(label)
+        self.canvas_widgets.append(canvas)
+        return canvas
+
+    def get_canvas(self, index: int = 0):
+        return self.canvas_widgets[index]
+
+    def get_informative_widget(self, index: int):
+        return self.informative_widgets[index]
+
+
+def _create_subplots(parent_layout, n_vertical_subplots, n_horizontal_subplots):
+    subplots_layout = QGridLayout()
+
+    subplots = []
+
+    for i_row in range(n_vertical_subplots):
+        for i_col in range(n_horizontal_subplots):
+            subplots.append(_SubPlot(subplots_layout, i_row, i_col))
+
+    parent_layout.addLayout(subplots_layout)
+
+    return subplots
+
+
 class Qt5Viewer:
-    def __init__(self, argv=[], n_vertical_canvas=1, n_horizontal_canvas=1):
+    def __init__(self, argv=[], n_vertical_subplots=1, n_horizontal_subplots=1, ):
         app = QApplication(argv)
 
         window = QDialog()
@@ -211,9 +257,9 @@ class Qt5Viewer:
         window.setLayout(main_layout)
         content_widget_layout = QHBoxLayout()
 
-        self.canvas_labels = _create_canvas(content_widget_layout, n_vertical_canvas, n_horizontal_canvas)
-        self.n_vertical_canvas = n_vertical_canvas
-        self.n_horizontal_canvas = n_horizontal_canvas
+        self.subplots = _create_subplots(content_widget_layout, n_vertical_subplots, n_horizontal_subplots)
+        self.n_vertical_subplots = n_vertical_subplots
+        self.n_horizontal_subplots = n_horizontal_subplots
 
         main_layout.addLayout(content_widget_layout)
 
@@ -236,9 +282,9 @@ class Qt5Viewer:
     def new_timer(self):
         return _Timer(self.window)
 
-    def get_canvas(self, index_of_vertical=0, index_of_horizontal=0):
-        index = index_of_vertical * self.n_horizontal_canvas + index_of_horizontal
-        return _Canvas(self.canvas_labels[index])
+    def get_subplot(self, index_of_vertical=0, index_of_horizontal=0):
+        index = index_of_vertical * self.n_horizontal_subplots + index_of_horizontal
+        return self.subplots[index]
 
     def close(self):
         self.window.close()

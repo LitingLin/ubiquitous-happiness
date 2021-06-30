@@ -4,7 +4,7 @@ from typing import Iterable
 import gc
 
 
-def train_one_epoch(runner, logger, data_loader: Iterable, logging_interval):
+def train_step(runner, logger, data_loader: Iterable, logging_interval):
     runner.train()
     metric_logger = MetricLogger(delimiter="  ")
     metric_logger.add_meter('lr', SmoothedValue(window_size=1, fmt='{value:.6f}'))

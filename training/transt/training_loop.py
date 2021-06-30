@@ -1,6 +1,6 @@
 import time
-from .train_step import train_one_epoch
-from .eval_step import evaluate
+from .train_step import train_step
+from .eval_step import evaluate_step
 from Miscellaneous.torch.checkpoint import dump_checkpoint_from_runner
 import datetime
 from fvcore.nn import FlopCountAnalysis, flop_count_table
@@ -15,8 +15,8 @@ def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_trai
         start_time = time.perf_counter()
         with profiler, runner:
             for epoch in range(start_epoch, n_epochs):
-                train_one_epoch(runner, logger, data_loader_train, args.logging_interval)
-                evaluate(runner, logger, data_loader_val, args.logging_interval)
+                train_step(runner, logger, data_loader_train, args.logging_interval)
+                evaluate_step(runner, logger, data_loader_val, args.logging_interval)
 
                 runner.move_to_next_epoch()
                 profiler.step()

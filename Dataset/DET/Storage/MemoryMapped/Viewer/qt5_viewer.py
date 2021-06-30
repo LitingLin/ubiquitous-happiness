@@ -9,6 +9,7 @@ class DetectionDatasetQt5Viewer:
     def __init__(self, dataset: DetectionDataset_MemoryMapped):
         self.dataset = dataset
         self.viewer = Qt5Viewer()
+        self.canvas = self.viewer.get_subplot().create_canvas()
 
         if self.dataset.has_category_id_name_map():
             self.category_id_color_map = {}
@@ -30,7 +31,7 @@ class DetectionDatasetQt5Viewer:
         image = self.dataset[index]
         pixmap = QPixmap()
         assert pixmap.load(image.get_image_path())
-        canvas = self.viewer.get_canvas()
+        canvas = self.canvas
         canvas.set_background(pixmap)
 
         if len(image) > 0:

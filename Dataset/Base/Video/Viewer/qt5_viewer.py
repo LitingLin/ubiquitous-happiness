@@ -27,6 +27,7 @@ class VideoDatasetViewer:
     def __init__(self, dataset: VideoDataset):
         self.dataset = dataset
         self.viewer = Qt5Viewer()
+        self.canvas = self.viewer.get_subplot().create_canvas()
 
         if self.dataset.has_category_id_name_map():
             self.category_id_color_map = {}
@@ -63,7 +64,7 @@ class VideoDatasetViewer:
             return
         frame: VideoDatasetFrame = frame
         sequence: VideoDatasetSequence = sequence
-        canvas = self.viewer.get_canvas()
+        canvas = self.canvas
         canvas.set_background(image)
 
         with canvas.get_painter() as painter:

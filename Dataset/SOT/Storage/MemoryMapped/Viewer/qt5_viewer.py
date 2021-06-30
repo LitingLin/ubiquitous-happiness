@@ -28,6 +28,7 @@ class SOTDatasetQt5Viewer:
         self.dataset = dataset
         self.viewer = Qt5Viewer()
         self.viewer.set_title(self.dataset.get_name())
+        self.canvas = self.viewer.get_subplot().create_canvas()
 
         if self.dataset.has_category_id_name_map():
             self.category_id_color_map = {}
@@ -62,7 +63,7 @@ class SOTDatasetQt5Viewer:
         except StopIteration:
             self._stopTimer()
             return
-        canvas = self.viewer.get_canvas()
+        canvas = self.canvas
         canvas.set_background(image)
 
         with canvas.get_painter() as painter:

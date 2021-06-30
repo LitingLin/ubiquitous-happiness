@@ -4,7 +4,7 @@ import gc
 
 
 @torch.no_grad()
-def evaluate(runner, logger, data_loader, logging_interval):
+def evaluate_step(runner, logger, data_loader, logging_interval):
     runner.eval()
 
     metric_logger = MetricLogger(delimiter="  ")

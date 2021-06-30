@@ -27,6 +27,7 @@ class MOTDatasetQt5Viewer:
     def __init__(self, dataset: MultipleObjectTrackingDataset_MemoryMapped):
         self.dataset = dataset
         self.viewer = Qt5Viewer()
+        self.canvas = self.viewer.get_subplot().create_canvas()
 
         if dataset.has_category_id_name_map():
             self.category_id_color_map = {}
@@ -62,7 +63,7 @@ class MOTDatasetQt5Viewer:
             self._stopTimer()
             return
         frame: MultipleObjectTrackingDatasetFrame_MemoryMapped = frame
-        canvas = self.viewer.get_canvas()
+        canvas = self.canvas
         canvas.set_background(image)
         with canvas.get_painter() as painter:
             for object_ in frame:

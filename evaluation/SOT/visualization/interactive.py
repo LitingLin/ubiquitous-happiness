@@ -28,6 +28,7 @@ def _get_bbox_format_transformer():
 class InteractiveDatasetsRunner:
     def __init__(self, tracker, datasets):
         self.viewer = Qt5Viewer()
+        self.canvas = self.viewer.get_subplot().create_canvas()
         self.tracker = tracker
 
         total_number_of_sequences = 0
@@ -84,7 +85,7 @@ class InteractiveDatasetsRunner:
             self.timer.stop()
             return
 
-        canvas = self.viewer.get_canvas()
+        canvas = self.canvas
         canvas.set_background(image)
         with canvas.get_painter() as painter:
             if groundtruth_bbox_validity_flag is False:

@@ -7,6 +7,7 @@ class CLSDatasetQt5Viewer:
     def __init__(self, dataset: ImageClassificationDataset_MemoryMapped):
         self.dataset = dataset
         self.viewer = Qt5Viewer()
+        self.canvas = self.viewer.get_subplot().create_canvas()
         image_names = []
         for index in range(len(self.dataset)):
             image_names.append(str(index))
@@ -20,7 +21,7 @@ class CLSDatasetQt5Viewer:
         image = self.dataset[index]
         pixmap = QPixmap()
         assert pixmap.load(image.get_image_path())
-        canvas = self.viewer.get_canvas()
+        canvas = self.canvas
         canvas.set_background(pixmap)
         canvas.update()
         self.label.setText(self.dataset.get_category_id_name_map()[image.get_category_id()])
