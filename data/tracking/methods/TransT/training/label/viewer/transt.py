@@ -84,23 +84,24 @@ class TransTDataPreprocessingVisualizer:
             z_qimages.append(QPixmap(numpy_rgb888_to_qimage(z_image.cpu().numpy())))
             x_qimages.append(QPixmap(numpy_rgb888_to_qimage(x_image.cpu().numpy())))
 
-        for miscellany in miscellanies:
-
-        z_origin_batch = miscellanies['z']
-        x_origin_batch = miscellanies['x']
-        z_origin_bboxes = miscellanies['z_bbox']
-        x_origin_bboxes = miscellanies['x_bbox']
-        is_positive_samples = miscellanies['is_positive_sample']
-
         z_origin_qimages = []
         x_origin_qimages = []
-        for z_image, x_image in zip(z_origin_batch, x_origin_batch):
-            z_origin_qimages.append(QPixmap(numpy_rgb888_to_qimage(z_image.cpu().numpy())))
-            x_origin_qimages.append(QPixmap(numpy_rgb888_to_qimage(x_image.cpu().numpy())))
-
-        z_origin_bboxes = z_origin_bboxes.tolist()
-        x_origin_bboxes = x_origin_bboxes.tolist()
-        is_positive_samples = is_positive_samples.tolist()
+        z_origin_bboxes = []
+        x_origin_bboxes = []
+        is_positive_samples = []
+        for miscellany in miscellanies:
+            z_origin = miscellany['z']  # C, H, W
+            x_origin = miscellany['x']  # C, H, W
+            z_origin_bbox = miscellany['z_bbox']
+            x_origin_bbox = miscellany['x_bbox']
+            is_positive_sample = miscellany['is_positive_sample']
+            z_origin = z_origin.permute(1, 2, 0)  # C, H, W => H, W, C
+            x_origin = x_origin.permute(1, 2, 0)  # C, H, W => H, W, C
+            z_origin_qimages.append(QPixmap(numpy_rgb888_to_qimage(z_origin.cpu().numpy())))
+            x_origin_qimages.append(QPixmap(numpy_rgb888_to_qimage(x_origin.cpu().numpy())))
+            z_origin_bboxes.append(z_origin_bbox.tolist())
+            x_origin_bboxes.append(x_origin_bbox.tolist())
+            is_positive_samples.append(is_positive_sample)
 
         return (z_qimages, x_qimages, recovered_bbox), (z_origin_qimages, z_origin_bboxes, x_origin_qimages, x_origin_bboxes, is_positive_samples)
 
