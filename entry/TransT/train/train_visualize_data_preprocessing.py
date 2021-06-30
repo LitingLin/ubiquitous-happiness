@@ -21,8 +21,6 @@ def get_args_parser():
     parser.add_argument('--device', default='cuda',
                         help='device to use for training / testing')
     parser.add_argument('--seed', default=42, type=int)
-    parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
-                        help='start epoch')
     parser.add_argument('--num_workers', default=4, type=int)
     parser.add_argument('--persistent_data_workers', action='store_true', help='make the workers of dataloader persistent')
     parser.add_argument('--pin_memory', action='store_true', help='move tensors to pinned memory before transferring to GPU')
@@ -47,10 +45,12 @@ def main(args):
     network_config = yaml_load(network_config_path)
     train_config = yaml_load(train_config_path)
 
+    args.distributed = False
     visualization_target = args.visualization_target
     assert visualization_target in ('train', 'val')
     train_config = copy.deepcopy(train_config)
     train_config['data']['sampler'][visualization_target]['batch_size'] = args.batch_size
+    train_config['data']['with_raw_data'] = True
 
     _, (data_loader_train, data_loader_val), _, stage_2_data_processor = \
         build_training_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
@@ -65,7 +65,4 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('TransT training script', parents=[get_args_parser()])
     args = parser.parse_args()
-    if args.output_dir:
-        Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-
     sys.exit(main(args))
