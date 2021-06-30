@@ -30,7 +30,9 @@ def transt_collate_fn(data):
     target_class_label_vector_list = []
     target_bounding_box_label_matrix_list = []
     miscellanies = []
-    for index, (z_image, x_image, z_context, x_context, miscellany,
+    collate_miscellanies = None
+
+    for index, (z_image, x_image, z_context, x_context, miscellany, collate_miscellany,
         target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix) in enumerate(data):
         z_image_list.append(z_image)
         x_image_list.append(x_image)
@@ -43,6 +45,7 @@ def transt_collate_fn(data):
         target_class_label_vector_list.append(target_class_label_vector)
         if target_bounding_box_label_matrix is not None:
             target_bounding_box_label_matrix_list.append(target_bounding_box_label_matrix)
+        collate_miscellanies = collate_miscellany
 
     assert len(z_context_list) == len(x_context_list)
 
@@ -63,7 +66,8 @@ def transt_collate_fn(data):
     else:
         target_bounding_box_label_matrix_batch = None
 
-    miscellanies = default_collate(miscellanies)
+    if collate_miscellanies:
+        miscellanies = default_collate(miscellanies)
 
     return (z_image_batch, x_image_batch), \
            (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch,
@@ -79,7 +83,9 @@ def SiamFC_collate_fn(data):
     labels = []
     miscellanies = []
 
-    for index, (z_image, x_image, z_context, x_context, miscellany, label) in enumerate(data):
+    collate_miscellanies = None
+
+    for index, (z_image, x_image, z_context, x_context, miscellany, collate_miscellany, label) in enumerate(data):
         z_image_list.append(z_image)
         x_image_list.append(x_image)
         if z_context is not None:
@@ -88,6 +94,7 @@ def SiamFC_collate_fn(data):
             x_context_list.append(x_context)
         labels.append(label)
         miscellanies.append(miscellany)
+        collate_miscellanies = collate_miscellany
 
     assert len(z_context_list) == len(x_context_list)
 
@@ -102,6 +109,7 @@ def SiamFC_collate_fn(data):
 
     labels = torch.stack(labels)
 
-    miscellanies = default_collate(miscellanies)
+    if collate_miscellanies:
+        miscellanies = default_collate(miscellanies)
 
     return (z_image_batch, x_image_batch), labels, miscellanies, context

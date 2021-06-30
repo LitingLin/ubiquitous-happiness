@@ -39,7 +39,6 @@ class TransTDataPreprocessingVisualizer:
         miscellanies, context = data
 
         assert context is None
-        assert 'z' in miscellanies and 'z_bbox' in miscellanies and 'x' in miscellanies and 'x_bbox' in miscellanies and 'is_positive_sample' in miscellanies
 
         z_qimages = []
         x_qimages = []
@@ -84,6 +83,8 @@ class TransTDataPreprocessingVisualizer:
         for z_image, x_image in zip(z_image_batch, x_image_batch):
             z_qimages.append(QPixmap(numpy_rgb888_to_qimage(z_image.cpu().numpy())))
             x_qimages.append(QPixmap(numpy_rgb888_to_qimage(x_image.cpu().numpy())))
+
+        for miscellany in miscellanies:
 
         z_origin_batch = miscellanies['z']
         x_origin_batch = miscellanies['x']
