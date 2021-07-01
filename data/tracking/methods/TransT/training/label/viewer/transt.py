@@ -8,6 +8,11 @@ from miscellanies.qt_numpy_interop import numpy_rgb888_to_qimage
 from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
 from data.operator.bbox.spatial.cxcywh2xyxy import bbox_cxcywh2xyxy
 from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
+from data.operator.bbox.transform.pixel_coordinate_system.mapping import bbox_pixel_coordinate_system_aligned_to_half_pixel_offset
+
+
+def _bbox_format_convert(bbox):
+    return bbox_xyxy2xywh(bbox_pixel_coordinate_system_aligned_to_half_pixel_offset(bbox))
 
 
 class TransTDataPreprocessingVisualizer:
@@ -122,14 +127,14 @@ class TransTDataPreprocessingVisualizer:
             canvas.set_background(z)
             with canvas.get_painter() as painter:
                 painter.set_pen(self.bbox_pen)
-                painter.draw_rect(bbox_xyxy2xywh(z_bbox))
+                painter.draw_rect(_bbox_format_convert(z_bbox))
             canvas.update()
 
             canvas = subplot.get_canvas(1)
             canvas.set_background(x)
             with canvas.get_painter() as painter:
                 painter.set_pen(self.bbox_pen)
-                painter.draw_rect(bbox_xyxy2xywh(x_bbox))
+                painter.draw_rect(_bbox_format_convert(x_bbox))
             canvas.update()
 
             canvas = subplot.get_canvas(2)
@@ -141,7 +146,7 @@ class TransTDataPreprocessingVisualizer:
             if x_curated_bbox is not None:
                 with canvas.get_painter() as painter:
                     painter.set_pen(self.bbox_pen)
-                    painter.draw_rect(bbox_xyxy2xywh(x_curated_bbox))
+                    painter.draw_rect(_bbox_format_convert(x_curated_bbox))
             canvas.update()
 
             label = subplot.get_informative_widget(0)
