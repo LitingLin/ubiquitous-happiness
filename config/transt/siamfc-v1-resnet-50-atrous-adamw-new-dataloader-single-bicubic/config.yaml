@@ -24,7 +24,7 @@ neck:
     hidden_dim: 256
 
 head:
-  type: "DETR"
+  type: "TransT"
   parameters:
     input_size: [17, 17]
     input_dim: 256

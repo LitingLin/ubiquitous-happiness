@@ -59,13 +59,15 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
         else:
             model = torch.nn.parallel.DistributedDataParallel(model)
 
-            from miscellanies.torch.distributed import get_rank, get_world_size
-            gathered_objects = [None for _ in range(get_world_size())]
-            torch.distributed.all_gather_object(gathered_objects, dict(model.module.named_parameters()))
-            for i in range(1, get_world_size()):
-                for v1, v2 in zip(gathered_objects[0].values(), gathered_objects[1].values()):
-                    assert torch.equal(v1, v2)
-            del gathered_objects
+            check_dist_model_params_equal = False
+            if check_dist_model_params_equal:
+                from miscellanies.torch.distributed import get_rank, get_world_size
+                gathered_objects = [None for _ in range(get_world_size())]
+                torch.distributed.all_gather_object(gathered_objects, dict(model.module.named_parameters()))
+                for i in range(1, get_world_size()):
+                    for v1, v2 in zip(gathered_objects[0].values(), gathered_objects[1].values()):
+                        assert torch.equal(v1, v2)
+                del gathered_objects
 
     grad_max_norm = _get_clip_max_norm(train_config)
 

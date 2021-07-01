@@ -57,7 +57,7 @@ def build_head(network_config: dict):
     head_config = network_config['head']
     head_type = head_config['type']
     head_parameters = head_config['parameters']
-    if head_type == 'DETR':
+    if head_type == 'TransT':
         from .head.detr import DETRHead
         head = DETRHead(head_parameters['input_dim'], head_parameters['hidden_dim'])
     elif head_type == 'SiamFC':
