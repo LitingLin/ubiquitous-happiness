@@ -1,6 +1,4 @@
 import numpy as np
-from data.operator.bbox.transform.rasterize.aligned import bbox_rasterize_aligned
-from data.operator.bbox.spatial.utility.aligned.image import bbox_scale_with_image_resize
 from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_normalize
 from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
 from data.operator.bbox.spatial.xywh2cxcywh import bbox_xywh2cxcywh
@@ -10,15 +8,18 @@ from typing import Optional
 
 def get_target_feat_map_indices(search_feat_size, search_region_size, target_bbox):
     feat_map_indices = np.arange(0, search_feat_size[0] * search_feat_size[1])
+    feat_map_indices = feat_map_indices.reshape(search_feat_size[1], search_feat_size[0])
 
-    feat_map_indices = feat_map_indices.reshape(search_feat_size)
+    scale = (
+    (search_feat_size[0] - 1) / (search_region_size[0] - 1), (search_feat_size[1] - 1) / (search_region_size[1] - 1))
+    target_bbox_feat_map = target_bbox[0] * scale[0], target_bbox[1] * scale[1], target_bbox[2] * scale[0], target_bbox[3] * scale[1]
+    pixel_size = (search_feat_size[0] - 1) / search_feat_size[0], (search_feat_size[1] - 1) / search_feat_size[1]
+    target_bbox_feat_indices = target_bbox_feat_map[0] / pixel_size[0], target_bbox_feat_map[1] / pixel_size[1], target_bbox_feat_map[2] / pixel_size[0], target_bbox_feat_map[3] / pixel_size[1]
+    target_bbox_feat_indices = tuple(int(v) for v in target_bbox_feat_indices)
+    target_bbox_feat_indices = feat_map_indices[target_bbox_feat_indices[1]: target_bbox_feat_indices[3] + 1, target_bbox_feat_indices[0]: target_bbox_feat_indices[2] + 1].flatten()
 
-    target_bbox_ = bbox_scale_with_image_resize(target_bbox, search_region_size, search_feat_size)
-    target_bbox_ = bbox_rasterize_aligned(target_bbox_)
-
-    target_feat_map_indices = feat_map_indices[target_bbox_[1]: target_bbox_[3] + 1, target_bbox_[0]: target_bbox_[2] + 1].flatten()
-    assert len(target_feat_map_indices) != 0
-    return torch.tensor(target_feat_map_indices, dtype=torch.long)
+    assert len(target_bbox_feat_indices) != 0
+    return torch.tensor(target_bbox_feat_indices, dtype=torch.long)
 
 
 def generate_target_class_vector(search_feat_size, target_feat_map_indices: Optional[torch.Tensor]):
