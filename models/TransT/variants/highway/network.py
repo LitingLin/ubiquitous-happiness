@@ -17,6 +17,11 @@ def _forward_feat(x, backbone, position_encoder, input_proj):
     return x_feat, x_feat_pos
 
 
+def _get_backbone_output_channels(backbone):
+    assert len(backbone.num_channels_output) == 1
+    return backbone.num_channels_output[0]
+
+
 class TransTTraskHighwayTracking(nn.Module):
     def __init__(self, backbone, classification_highway_backbone, regression_highway_backbone,
                  position_encoder, classification_position_encoder, regression_position_encoder,
@@ -25,9 +30,9 @@ class TransTTraskHighwayTracking(nn.Module):
         super().__init__()
         hidden_dim = transformer.d_model
 
-        self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
-        self.classification_input_proj = nn.Conv2d(classification_highway_backbone.num_channels, classification_highway_transformer.d_model, kernel_size=1)
-        self.regression_input_proj = nn.Conv2d(regression_highway_backbone.num_channels, regression_highway_transformer.d_model, kernel_size=1)
+        self.input_proj = nn.Conv2d(_get_backbone_output_channels(backbone), hidden_dim, kernel_size=1)
+        self.classification_input_proj = nn.Conv2d(_get_backbone_output_channels(classification_highway_backbone), classification_highway_transformer.d_model, kernel_size=1)
+        self.regression_input_proj = nn.Conv2d(_get_backbone_output_channels(regression_highway_backbone), regression_highway_transformer.d_model, kernel_size=1)
 
         self.backbone = backbone
         self.classification_highway_backbone = classification_highway_backbone
