@@ -1,0 +1,36 @@
+name: "TransT-Swin"
+tags:
+  - "TransT"
+  - "Swin-Transformer"
+
+version: 4
+
+type: "TransT-SwinT-CrossAttention"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [112, 112]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_base_patch4_window7_224_in22k"
+    output_layers: [1]
+
+transformer:
+  template_size: [14, 14]
+  search_size: [28, 28]
+  hidden_dim: 192  # consist with backbone
+  drop_path_rate: 0.2
+  nheads: 8
+  featurefusion_layers: 4
+
+head:
+  type: TransT
+  parameters:
+    input_size: [28, 28]

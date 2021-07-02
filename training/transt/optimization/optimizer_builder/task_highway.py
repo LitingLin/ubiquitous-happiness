@@ -5,7 +5,6 @@ def build_task_highway_optimizer(model: TransTTraskHighwayTracking, train_config
     optimizer_config = train_config['optimization']['optimizer']
     lr = optimizer_config['lr']
     lr_backbone = optimizer_config['advanced_strategy']['lr_backbone']
-    weight_decay = optimizer_config['weight_decay']
 
     lr_classification_branch = optimizer_config['advanced_strategy']['lr_classification_ratio'] * lr
     lr_regression_branch = optimizer_config['advanced_strategy']['lr_regression_ratio'] * lr
