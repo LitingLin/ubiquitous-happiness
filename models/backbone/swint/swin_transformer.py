@@ -713,31 +713,22 @@ _cfg = {
 import copy
 
 
-def build_swin_transformer_backbone(name, load_pretrained=True, output_layers=(3,), frozen_stages=-1):
+def build_swin_transformer_backbone(name, load_pretrained=True, output_layers=(3,), frozen_stages=-1,
+                                    overwrite_embed_dim=None):
+    pretrained_model_path = None
+    if load_pretrained and 'url' in _cfg[name]:
+        pretrained_model_path = _cfg[name]['url']
+
     max_output_index = max(output_layers)
     params = copy.deepcopy(_cfg[name]['params'])
     if max_output_index < 3:
         params['depths'] = params['depths'][0: max_output_index + 1]
         params['num_heads'] = params['num_heads'][0: max_output_index + 1]
+
+    if overwrite_embed_dim is not None:
+        params['embed_dim'] = overwrite_embed_dim
+        pretrained_model_path = None
     transformer = SwinTransformer(out_indices=output_layers, frozen_stages=frozen_stages, **params)
 
-    url = None
-    if load_pretrained:
-        url = _cfg[name]['url']
-    transformer.init_weights(url)
+    transformer.init_weights(pretrained_model_path)
     return transformer
-
-
-def build_large_patch4_window7_224_in22k(load_pretrained=True, output_layers=(3,)):
-    return build_swin_transformer_backbone('swin_base_patch4_window7_224', load_pretrained, output_layers)
-
-
-def build_swin_small_patch2_window7_224(load_pretrained=False, output_layers=(3,)):
-    return build_swin_transformer_backbone('swin_small_patch2_window7_224', load_pretrained, output_layers)
-
-
-if __name__ == '__main__':
-    _generate_2d_relative_position_index([5, 6])
-    model = build_large_patch4_window7_224_in22k(output_layers=(2,))
-    a = model(torch.zeros((1, 3, 512, 512)))
-    print(a[0].shape)
