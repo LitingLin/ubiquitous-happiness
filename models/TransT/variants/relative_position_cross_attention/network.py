@@ -18,7 +18,7 @@ class RelativePositionTransTNetwork(nn.Module):
 
     def forward(self, z, x):
         z_feat = _get_single_scale(self.backbone(z))
-        x_feat = self.backbone(x)
+        x_feat = _get_single_scale(self.backbone(x))
 
         feat = self.transformer(z_feat, x_feat)
         return self.head(feat)

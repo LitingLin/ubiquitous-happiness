@@ -2,8 +2,9 @@ name: "TransT-Swin"
 tags:
   - "TransT"
   - "Swin-Transformer"
+  - "Relative-Positional"
 
-version: 4
+version: 5
 
 type: "TransT-SwinT-CrossAttention"
 
@@ -25,7 +26,7 @@ backbone:
 transformer:
   template_size: [14, 14]
   search_size: [28, 28]
-  hidden_dim: 192  # consist with backbone
+  hidden_dim: 256  # consist with backbone
   drop_path_rate: 0.2
   nheads: 8
   featurefusion_layers: 4
