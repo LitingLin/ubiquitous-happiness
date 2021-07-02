@@ -8,7 +8,11 @@ from fvcore.nn import FlopCountAnalysis, flop_count_table
 
 def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, pseudo_data_source):
     with logger:
-        print(flop_count_table(FlopCountAnalysis(runner.get_model(), pseudo_data_source.get_train(1))))
+        try:
+            print(flop_count_table(FlopCountAnalysis(runner.get_model(), pseudo_data_source.get_train(1))))
+        except Exception as e:
+            print(e)
+
         logger.watch(runner.get_model())
         print("Start training")
         start_epoch = runner.get_epoch()

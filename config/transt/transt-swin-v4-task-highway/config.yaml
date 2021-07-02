@@ -2,10 +2,11 @@ name: "TransT-Swin"
 tags:
   - "TransT"
   - "Swin-Transformer"
+  - "Highway"
 
-version: 4
+version: 5
 
-type: "TransT"
+type: "TransT-Task-Highway"
 
 data:
   area_factor:
@@ -21,6 +22,11 @@ backbone:
   parameters:
     name: "swin_base_patch4_window7_224_in22k"
     output_layers: [1]
+  highway:
+    classification:
+      embed_dim: 32
+    regression:
+      embed_dim: 32
 
 transformer:
   position_embedding: "sine"
@@ -30,6 +36,13 @@ transformer:
   dim_feedforward: 2048
   featurefusion_layers: 4
   activation: "gelu"
+  highway:
+    classification:
+      hidden_dim: 64
+      dim_feedforward: 256
+    regression:
+      hidden_dim: 64
+      dim_feedforward: 256
 
 head:
   type: TransT

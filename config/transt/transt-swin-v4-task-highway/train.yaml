@@ -16,7 +16,7 @@ data:
     version: 2
 
     train:
-      batch_size: 16
+      batch_size: 8
       samples_per_epoch: 65536
       negative_sample_ratio: 0.3
 
@@ -29,7 +29,7 @@ data:
           sampling_method: "causal"
 
     val:
-      batch_size: 16
+      batch_size: 8
 
       repeat_times_per_epoch: 1
       negative_sample_ratio: 0.3
@@ -47,9 +47,13 @@ optimization:
   optimizer:
     type: "AdamW"
     lr: 1.e-4
-    lr_backbone: 1.e-5
     weight_decay: 1.e-4
     clip_max_norm: 0.1
+    advanced_strategy:
+      type: 'Task-Highway'
+      lr_backbone: 1.e-5
+      lr_classification_ratio: 1.33
+      lr_regression_ratio: 1
     lr_scheduler:
       type: StepLR
       lr_drop: 500

@@ -1,5 +1,25 @@
+from models.TransT.position_encoding import build_position_encoding
+from torch import nn
+
+
+class TransTBackbone(nn.Module):
+    def __init__(self, backbone, position_encoding):
+        super(TransTBackbone, self).__init__()
+        self.backbone = backbone
+        self.position_encoding = position_encoding
+        assert len(self.backbone.num_channels_output) == 1
+        self.num_channels = self.backbone.num_channels_output[0]
+
+    def forward(self, x):
+        x_feat = self.backbone(x)
+        if isinstance(x_feat, (list, tuple)):
+            x_feat = x_feat[0]
+        return x_feat, self.position_encoding(x_feat)
+
+
 def build_backbone(net_config: dict, load_pretrained=True):
     backbone_config = net_config['backbone']
+    position_encoding = build_position_encoding(net_config)
     if 'parameters' in backbone_config:
         backbone_build_params = backbone_config['parameters']
         if load_pretrained and 'pretrained' in backbone_build_params:
@@ -28,4 +48,4 @@ def build_backbone(net_config: dict, load_pretrained=True):
     else:
         raise Exception(f'unsupported {backbone_config["type"]}')
 
-    return backbone
+    return TransTBackbone(backbone, position_encoding)

@@ -21,7 +21,9 @@ class TransTDataPreprocessingVisualizer:
         self.label_size = network_config['head']['parameters']['input_size']
         self.n_vertical_subplots = math.floor(math.sqrt(self.batch_size))
         self.n_horizontal_subplots = math.ceil(self.batch_size / self.n_vertical_subplots)
-        self.imagenet_normalized = network_config['data']['imagenet_normalization']
+        self.imagenet_normalized = True
+        if 'imagenet_normalization' in network_config['data']:
+            self.imagenet_normalized = network_config['data']['imagenet_normalization']
         self.bbox_pen = QPen(QColor(255, 0, 0, int(255 * 0.5)))
 
     def on_create(self):
