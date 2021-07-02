@@ -1,4 +1,4 @@
-from models.TransT.position_encoding import build_position_encoding
+from models.TransT._old.position_encoding import build_position_encoding
 from torch import nn
 
 

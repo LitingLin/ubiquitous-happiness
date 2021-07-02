@@ -49,8 +49,10 @@ optimization:
     lr: 1.e-4
     lr_backbone: 1.e-5
     weight_decay: 1.e-4
-    lr_drop: 500
     clip_max_norm: 0.1
+    lr_scheduler:
+      type: StepLR
+      lr_drop: 500
 
   loss:
     use_template: "transt"

@@ -79,7 +79,7 @@ class PositionEmbeddingLearned(nn.Module):
 
 def build_position_encoding(network_config):
     N_steps = network_config['transformer']['hidden_dim'] // 2
-    position_embedding_args = network_config['transformer']['position_embedding']
+    position_embedding_args = network_config['backbone']['position_embedding']
     if position_embedding_args in ('v2', 'sine'):
         # TODO find a better way of exposing other arguments
         position_embedding = PositionEmbeddingSine(N_steps, normalize=True)

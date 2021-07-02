@@ -5,9 +5,9 @@ def build_transt(network_config, load_pretrained=True):
 
     if network_config['version'] == 2:
         from .feature_fusion import build_featurefusion_network
-        from .backbone import build_backbone
+        from models.TransT._old.backbone import build_backbone
         from .network import TransTTracking
-        from .head.builder import build_head
+        from models.TransT.head._old.builder import build_head
 
         transformer = build_featurefusion_network(network_config)
         backbone = build_backbone(network_config, load_pretrained)
@@ -20,5 +20,16 @@ def build_transt(network_config, load_pretrained=True):
     elif network_config['version'] == 4 and network_config['type'].startswith('SiamFC'):
         from .siamfc.builder import build_siamfc
         return build_siamfc(network_config, load_pretrained)
+    elif network_config['version'] == 4 and network_config['type'] == 'TransT':
+        from .feature_fusion import build_featurefusion_network
+        from models.TransT.backbone import build_backbone
+        from .network import TransTTracking
+        from models.TransT.head.builder import build_head
+
+        transformer = build_featurefusion_network(network_config)
+        backbone = build_backbone(network_config, load_pretrained)
+        head = build_head(network_config)
+
+        return TransTTracking(backbone, transformer, head)
     else:
         raise NotImplementedError(f'Unknown version {network_config["version"]}')

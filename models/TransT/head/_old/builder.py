@@ -1,7 +1,7 @@
 def build_head(network_config):
     transformer_config = network_config['transformer']
-    head_config = network_config['head']
-    if head_config['type'] == 'TransT':
+    head_config = transformer_config['head']
+    if head_config['type'] == 'detr':
         from .detr import DETRHead
         return DETRHead(transformer_config['hidden_dim'])
     elif head_config['type'] == 'exp-1':

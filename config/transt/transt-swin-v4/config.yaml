@@ -20,7 +20,7 @@ backbone:
   type: "swin_transformer"
   parameters:
     name: "swin_base_patch4_window7_224_in22k"
-
+    output_layers: [1]
 
 transformer:
   position_embedding: "sine"
@@ -34,4 +34,4 @@ transformer:
 head:
   type: TransT
   parameters:
-    input_size: [7, 7]
+    input_size: [28, 28]

@@ -275,6 +275,6 @@ def build_swin_transformer_x_tracker(network_config: dict, load_pretrained=True)
                                 stage_injection_parameters)
     del swin_transformer
     network_config['transformer']['hidden_dim'] = dim
-    from models.TransT.head.builder import build_head
+    from models.TransT.head._old.builder import build_head
     head = build_head(network_config)
     return SwinTransformerXTracker(backbone, head)
