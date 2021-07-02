@@ -56,7 +56,7 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
     data_loader_train = DataLoader(train_dataset, batch_sampler=batch_sampler_train, worker_init_fn=train_worker_initialization_object,
                                    num_workers=train_num_workers, collate_fn=collate_fn, pin_memory=pin_memory, persistent_workers=persistent_workers)
     data_loader_val = DataLoader(val_dataset, val_batch_size, sampler=sampler_val, worker_init_fn=val_worker_initialization_object,
-                                 drop_last=False, num_workers=val_num_workers, collate_fn=collate_fn, pin_memory=pin_memory, persistent_workers=persistent_workers)
+                                 drop_last=True, num_workers=val_num_workers, collate_fn=collate_fn, pin_memory=pin_memory, persistent_workers=persistent_workers)
 
     if 'cuda' in device:
         device = torch.device(device)
