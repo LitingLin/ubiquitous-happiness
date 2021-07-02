@@ -29,7 +29,7 @@ transformer:
   nheads: 8
   dim_feedforward: 2048
   featurefusion_layers: 4
-  activation: "relu"
+  activation: "gelu"
 
 head:
   type: TransT
