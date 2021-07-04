@@ -73,7 +73,7 @@ class SelfAttention(nn.Module):
 
         x = self.norm1(x)
 
-        attn = self.x_z_cross_attn(x)
+        attn = self.self_attn(x)
 
         # FFN
         x = x_shortcut + self.x_drop_path(attn)
