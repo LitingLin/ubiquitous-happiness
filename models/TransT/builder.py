@@ -4,7 +4,7 @@ def build_transt(network_config, load_pretrained=True):
         return build_transt_old(network_config, load_pretrained)
 
     if network_config['version'] == 2:
-        from .feature_fusion import build_featurefusion_network
+        from models.TransT.feature_fusion.feature_fusion import build_featurefusion_network
         from models.TransT._old.old_backbone import build_backbone
         from models.TransT._old.network import TransTTracking
         from models.TransT.head._old.builder import build_head
@@ -21,7 +21,7 @@ def build_transt(network_config, load_pretrained=True):
         from .siamfc.builder import build_siamfc
         return build_siamfc(network_config, load_pretrained)
     elif network_config['version'] == 4 and network_config['type'] == 'TransT':
-        from .feature_fusion import build_featurefusion_network
+        from models.TransT.feature_fusion.feature_fusion import build_featurefusion_network
         from models.TransT._old.backbone import build_backbone
         from models.TransT._old.network import TransTTracking
         from models.TransT.head.builder import build_head
@@ -32,7 +32,7 @@ def build_transt(network_config, load_pretrained=True):
 
         return TransTTracking(backbone, transformer, head)
     elif network_config['version'] == 5 and network_config['type'] == 'TransT':
-        from .feature_fusion import build_featurefusion_network
+        from models.TransT.feature_fusion.feature_fusion import build_featurefusion_network
         from models.TransT.backbone import build_backbone
         from models.TransT.network import TransTTracking
         from models.TransT.head.builder import build_head
