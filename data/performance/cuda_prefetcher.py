@@ -70,22 +70,24 @@ class TensorFilteringByIndices:
 
 
 class CUDAPrefetcher:
-    def __init__(self, data_loader, device=None, tensor_filter=None):
+    def __init__(self, iterator, device=None, tensor_filter=None):
         if tensor_filter is None:
             tensor_filter = DefaultTensorFilter
-        self.data_loader = data_loader
+        self.iterator = iterator
         if device is None:
             device = torch.device('cuda')
         self.device = device
         self.tensor_filter = tensor_filter
+        self.tensor_list = None
 
     def __len__(self):
-        return len(self.data_loader)
+        return len(self.iterator)
 
     def __iter__(self):
         self.stream = torch.cuda.Stream()
-        self.iter = iter(self.data_loader)
+        self.iter = iter(self.iterator)
         self.preload()
+        assert self.tensor_list is not None, "empty iterator"
         return self
 
     def __next__(self):
@@ -112,6 +114,7 @@ class CUDAPrefetcher:
             self.data = next(self.iter)
         except StopIteration:
             self.data = None
+            self.tensor_list = None
             return
 
         self.tensor_list = self.tensor_filter.get_tensor_list(self.data)
