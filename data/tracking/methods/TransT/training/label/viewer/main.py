@@ -15,7 +15,7 @@ class _DataWrapper:
     def __next__(self):
         samplers, targets, miscellanies_host, miscellanies_device, miscellanies_element = next(self.data_loader_iter)
         if self.stage_2_data_processor is not None:
-            samplers = self.stage_2_data_processor(samplers, miscellanies_device)
+            samplers = self.stage_2_data_processor(samplers, miscellanies_host, miscellanies_device)
             miscellanies_device = None
         return self.data_adaptor.on_data((samplers, targets, miscellanies_host, miscellanies_device, miscellanies_element))
 
