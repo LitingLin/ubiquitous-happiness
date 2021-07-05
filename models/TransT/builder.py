@@ -50,5 +50,8 @@ def build_transt(network_config, load_pretrained=True):
     elif network_config['version'] == 5 and network_config['type'] == 'TransT-SwinT-CrossAttention':
         from .variants.relative_position_cross_attention.builder import build_relative_position_transt_tracker
         return build_relative_position_transt_tracker(network_config, load_pretrained)
+    elif network_config['version'] == 5 and network_config['type'] == 'TransT-AFT':
+        from .variants.aft_feature_fusion.builder import build_aft_transt_tracker
+        return build_aft_transt_tracker(network_config, load_pretrained)
     else:
         raise NotImplementedError(f'Unknown version {network_config["version"]}')
