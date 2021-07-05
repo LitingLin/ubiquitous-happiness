@@ -9,11 +9,16 @@ def _get_single_scale(feat):
     return feat
 
 
+def _get_backbone_output_channels(backbone):
+    assert len(backbone.num_channels_output) == 1
+    return backbone.num_channels_output[0]
+
+
 class TransTTracking(nn.Module):
     def __init__(self, backbone, position_encoding, transformer, head):
         super().__init__()
         hidden_dim = transformer.d_model
-        self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
+        self.input_proj = nn.Conv2d(_get_backbone_output_channels(backbone), hidden_dim, kernel_size=1)
 
         self.backbone = backbone
         self.position_encoding = position_encoding
