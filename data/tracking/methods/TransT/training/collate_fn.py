@@ -91,10 +91,20 @@ def transt_collate_fn(data):
         x_image_batch, x_index_of_collated_tensors, x_index_in_collated_tensors = collate_different_size_images(
             x_image_list)
 
+        z_curation_parameters = torch.stack(z_context_list)
+        x_curation_parameters = torch.stack(x_context_list)
+
         miscellanies_host['z_index_of_collated_tensors'] = z_index_of_collated_tensors
         miscellanies_host['x_index_of_collated_tensors'] = x_index_of_collated_tensors
 
-        miscellanies_device = (torch.stack(z_context_list), torch.stack(x_context_list), z_index_in_collated_tensors, x_index_in_collated_tensors)
+        miscellanies_host['z_index_in_collated_tensors'] = z_index_in_collated_tensors
+        miscellanies_host['x_index_in_collated_tensors'] = x_index_in_collated_tensors
+
+        miscellanies_host['z_curation_parameters'] = z_curation_parameters
+        miscellanies_host['x_curation_parameters'] = x_curation_parameters
+
+        # miscellanies_device = (z_index_in_collated_tensors, x_index_in_collated_tensors)
+        miscellanies_device = None
 
     target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, num_boxes_pos = \
         batch_collate_target_feat_map_indices(target_feat_map_indices_list)

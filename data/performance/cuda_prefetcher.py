@@ -54,18 +54,19 @@ class TensorFilteringByIndices:
         split_points = []
         device_tensor_list = []
         for index in self.indices:
-            device_tensors = _default_tensor_list_fn(data[index])
-            split_points.append(len(device_tensors))
-            device_tensor_list.extend(device_tensors)
+            datum = data[index]
+            if datum is not None:
+                device_tensors = _default_tensor_list_fn(datum)
+                split_points.append(len(device_tensors))
+                device_tensor_list.extend(device_tensors)
         return device_tensor_list
 
     def regroup(self, data, device_tensors: list):
         collated = []
         for index, datum in enumerate(data):
-            if index in self.indices:
-                collated.append(_default_regroup_fn_(datum, device_tensors))
-            else:
-                collated.append(datum)
+            if index in self.indices and datum is not None:
+                datum = _default_regroup_fn_(datum, device_tensors)
+            collated.append(datum)
         return collated
 
 

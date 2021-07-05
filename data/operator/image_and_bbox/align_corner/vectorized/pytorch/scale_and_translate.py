@@ -56,7 +56,7 @@ def torch_scale_and_translate_align_corners(img, output_size, scale, input_cente
             output_img = torch.zeros((n, c, output_size[1], output_size[0]), dtype=img.dtype, device=img.device)
 
     output_bbox = bbox_scale_and_translate_vectorized(
-        torch.tensor((0, 0, w - 1, h - 1), dtype=torch.float, device=img.device), scale, input_center, output_center)
+        torch.tensor((0, 0, w - 1, h - 1), dtype=torch.float, device=scale.device), scale, input_center, output_center)
     bbox_restrict_in_image_boundary_(output_bbox, output_size)
     input_bbox = bbox_scale_and_translate_vectorized(output_bbox, 1 / scale, output_center, input_center)
     torch.round_(output_bbox)
