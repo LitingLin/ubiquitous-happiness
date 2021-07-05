@@ -7,11 +7,13 @@ from .self_attention import SelfAttention
 
 class Encoder(nn.Module):
     def __init__(self, dim, num_heads, z_size, x_size, # (H, W)
-                 drop_path=0.):
+                 drop_path=0., relative_position_table_method='native',
+                 relative_position_table_init_method='trunc_normal'):
         super(Encoder, self).__init__()
         self.z_self_attn = SelfAttention(dim, num_heads, z_size, drop_path=drop_path)
         self.x_self_attn = SelfAttention(dim, num_heads, x_size, drop_path=drop_path)
-        self.cross_attn = CrossAttention(dim, num_heads, z_size, x_size, drop_path=drop_path)
+        self.cross_attn = CrossAttention(dim, num_heads, z_size, x_size, drop_path=drop_path, relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method)
 
     def forward(self, z, x):
         z = self.z_self_attn(z)
@@ -22,11 +24,13 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(self, dim, num_heads, z_size, x_size, # (H, W)
-                 drop_path=0.):
+                 drop_path=0., relative_position_table_method='native',
+                 relative_position_table_init_method='trunc_normal'):
         super(Decoder, self).__init__()
         self.z_self_attn = SelfAttention(dim, num_heads, z_size, drop_path=drop_path)
         self.x_self_attn = SelfAttention(dim, num_heads, x_size, drop_path=drop_path)
-        self.cross_attn = CrossAttentionDecoder(dim, num_heads, z_size, x_size, drop_path=drop_path)
+        self.cross_attn = CrossAttentionDecoder(dim, num_heads, z_size, x_size, drop_path=drop_path, relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method)
 
     def forward(self, z, x):
         z = self.z_self_attn(z)
@@ -35,13 +39,16 @@ class Decoder(nn.Module):
 
 
 class FeatureFusionNetwork(nn.Module):
-    def __init__(self, hidden_dim, n_heads, template_size, search_size, n_feature_fusion_layers, drop_path_rate):
+    def __init__(self, hidden_dim, n_heads, template_size, search_size, n_feature_fusion_layers, drop_path_rate, relative_position_table_method='native',
+                 relative_position_table_init_method='trunc_normal'):
         super(FeatureFusionNetwork, self).__init__()
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, n_feature_fusion_layers)]  # stochastic depth decay rule
         self.encoder = ModuleList(
-            [Encoder(hidden_dim, n_heads, template_size, search_size, drop_path=dpr[i]) for i in range(n_feature_fusion_layers)]
+            [Encoder(hidden_dim, n_heads, template_size, search_size, drop_path=dpr[i], relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method) for i in range(n_feature_fusion_layers)]
         )
-        self.decoder = Decoder(hidden_dim, n_heads, template_size, search_size)
+        self.decoder = Decoder(hidden_dim, n_heads, template_size, search_size, relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method)
 
     def forward(self, z, x):
         z = z.flatten(2).transpose(1, 2)  # N, C, H, W => N, L, C
@@ -57,4 +64,6 @@ def build_feature_fusion_network(network_config: dict):
     transformer_config = network_config['transformer']
     return FeatureFusionNetwork(transformer_config['hidden_dim'], transformer_config['nheads'],
                                 transformer_config['template_size'], transformer_config['search_size'],
-                                transformer_config['featurefusion_layers'], transformer_config['drop_path_rate'])
+                                transformer_config['featurefusion_layers'], transformer_config['drop_path_rate'],
+                                transformer_config['relative_position_bias_table'],
+                                transformer_config['relative_position_bias_table_init_method'])

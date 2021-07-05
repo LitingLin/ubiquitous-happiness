@@ -26,13 +26,43 @@ def generating_2d_relative_position(x_size, y_size):
 class RelativePositionCrossAttention(nn.Module):
     def __init__(self, dim, num_heads, z_2d_shape, x_2d_shape,  # (H, W)
                  qkv_bias=True, qk_scale=None, attn_drop=0.,
-                 proj_drop=0.):
+                 proj_drop=0., relative_position_table_method='native',
+                 relative_position_table_init_method='trunc_normal'):
         super(RelativePositionCrossAttention, self).__init__()
 
-        self.register_buffer("relative_position_index", generating_2d_relative_position((z_2d_shape[1], z_2d_shape[0]),
-                                                                                        (x_2d_shape[1], x_2d_shape[0])))
-        self.relative_position_bias_table = nn.Parameter(
-            torch.zeros(((z_2d_shape[0] + x_2d_shape[0] - 1) * (z_2d_shape[1] + x_2d_shape[1] - 1), num_heads)))
+        if relative_position_table_method == 'native':
+            self.register_buffer("relative_position_index", generating_2d_relative_position((z_2d_shape[1], z_2d_shape[0]),
+                                                                                            (x_2d_shape[1], x_2d_shape[0])))
+            self.relative_position_bias_table = nn.Parameter(
+                torch.zeros(((z_2d_shape[0] + x_2d_shape[0] - 1) * (z_2d_shape[1] + x_2d_shape[1] - 1), num_heads)))
+        elif relative_position_table_method == 'trunc':
+            from models.backbone.swint.swin_transformer import _generate_2d_relative_position_index
+            shape = max(z_2d_shape[0], x_2d_shape[0]), max(z_2d_shape[1], x_2d_shape[1])  # (H, W)
+            relative_position_index = _generate_2d_relative_position_index(shape)
+            relative_position_index_ = []
+            for i_z_y in range(z_2d_shape[0]):
+                for i_z_x in range(z_2d_shape[1]):
+                    relative_position_index__ = []
+                    i_z = i_z_x + i_z_y * shape[0]
+                    for i_x_y in range(x_2d_shape[0]):
+                        i_x_begin = i_x_y * shape[1]
+                        i_x_end = i_x_y * shape[1] + x_2d_shape[1]
+                        relative_position_index__.append(relative_position_index[i_z, i_x_begin: i_x_end])
+                    relative_position_index__ = torch.cat(relative_position_index__)
+                    relative_position_index_.append(relative_position_index__)
+            relative_position_index = torch.stack(relative_position_index_)
+            self.register_buffer("relative_position_index", relative_position_index)
+            self.relative_position_bias_table = nn.Parameter(
+                torch.zeros(((shape[0] * 2 - 1) * (shape[1] * 2 - 1), num_heads)))
+        else:
+            raise NotImplementedError(f"Unknown relative_position_table_method {relative_position_table_method}")
+
+        if relative_position_table_init_method == 'trunc_normal':
+            trunc_normal_(self.relative_position_bias_table, std=.02)
+        elif relative_position_table_init_method == 'uniform':
+            nn.init.uniform_(self.relative_position_bias_table)
+        else:
+            raise NotImplementedError(f"Unknown relative_position_table_init_method: {relative_position_table_init_method}")
 
         self.q_mat = nn.Linear(dim, dim, bias=qkv_bias)
         self.kv_mat = nn.Linear(dim, dim * 2, bias=qkv_bias)
@@ -44,7 +74,6 @@ class RelativePositionCrossAttention(nn.Module):
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
 
-        trunc_normal_(self.relative_position_bias_table, std=.02)
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, q, kv):
@@ -75,7 +104,8 @@ class RelativePositionCrossAttention(nn.Module):
 class CrossAttention(nn.Module):
     def __init__(self, dim, num_heads, z_size, x_size,  # (H, W)
                  mlp_ratio=4., qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
-                 act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+                 act_layer=nn.GELU, norm_layer=nn.LayerNorm, relative_position_table_method='native',
+                 relative_position_table_init_method='trunc_normal'):
         super(CrossAttention, self).__init__()
 
         self.dim = dim
@@ -85,8 +115,12 @@ class CrossAttention(nn.Module):
         self.z_norm1 = norm_layer(dim)
         self.x_norm1 = norm_layer(dim)
 
-        self.z_x_cross_attn = RelativePositionCrossAttention(dim, num_heads, z_size, x_size, qkv_bias, qk_scale, attn_drop, drop)
-        self.x_z_cross_attn = RelativePositionCrossAttention(dim, num_heads, x_size, z_size, qkv_bias, qk_scale, attn_drop, drop)
+        self.z_x_cross_attn = RelativePositionCrossAttention(dim, num_heads, z_size, x_size, qkv_bias, qk_scale,
+                                                             attn_drop, drop, relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method)
+        self.x_z_cross_attn = RelativePositionCrossAttention(dim, num_heads, x_size, z_size, qkv_bias, qk_scale,
+                                                             attn_drop, drop, relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method)
 
         mlp_hidden_dim = int(dim * mlp_ratio)
 
@@ -121,7 +155,8 @@ class CrossAttention(nn.Module):
 class CrossAttentionDecoder(nn.Module):
     def __init__(self, dim, num_heads, z_size, x_size,  # (H, W)
                  mlp_ratio=4., qkv_bias=True, qk_scale=None, drop=0., attn_drop=0., drop_path=0.,
-                 act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+                 act_layer=nn.GELU, norm_layer=nn.LayerNorm, relative_position_table_method='native',
+                 relative_position_table_init_method='trunc_normal'):
         super(CrossAttentionDecoder, self).__init__()
 
         self.dim = dim
@@ -131,7 +166,9 @@ class CrossAttentionDecoder(nn.Module):
         self.z_norm1 = norm_layer(dim)
         self.x_norm1 = norm_layer(dim)
 
-        self.x_z_cross_attn = RelativePositionCrossAttention(dim, num_heads, x_size, z_size, qkv_bias, qk_scale, attn_drop, drop)
+        self.x_z_cross_attn = RelativePositionCrossAttention(dim, num_heads, x_size, z_size, qkv_bias, qk_scale,
+                                                             attn_drop, drop, relative_position_table_method=relative_position_table_method,
+                                                             relative_position_table_init_method=relative_position_table_init_method)
 
         mlp_hidden_dim = int(dim * mlp_ratio)
 

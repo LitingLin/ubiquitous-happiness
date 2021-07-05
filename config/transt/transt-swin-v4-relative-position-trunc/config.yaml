@@ -30,7 +30,7 @@ transformer:
   drop_path_rate: 0.2
   nheads: 8
   featurefusion_layers: 4
-  relative_position_bias_table: "native"
+  relative_position_bias_table: "trunc"
   relative_position_bias_table_init_method: "trunc_normal"
 
 head:
