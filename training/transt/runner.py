@@ -41,9 +41,9 @@ class TransTRunner:
             for slot in self.stop_training_event_slot:
                 slot.stop()
 
-    def forward(self, samples, targets, miscellanies, stage_2_data_processing_context):
+    def forward(self, samples, targets, miscellanies_host, miscellanies_device, _):
         if self.stage_2_data_processor is not None:
-            samples = self.stage_2_data_processor(samples, stage_2_data_processing_context)
+            samples = self.stage_2_data_processor(samples, miscellanies_host, miscellanies_device)
         outputs = self.model(*samples)
         loss, loss_value, loss_stats = self.criterion(outputs, targets)
 
@@ -54,7 +54,7 @@ class TransTRunner:
 
         self.loss = loss
 
-        positive_samples = miscellanies['is_positive_sample']
+        positive_samples = miscellanies_host['is_positive_sample']
 
         return {'loss': loss_value, **loss_stats, 'pos_samples_ratio': torch.sum(positive_samples) / len(positive_samples)}
 

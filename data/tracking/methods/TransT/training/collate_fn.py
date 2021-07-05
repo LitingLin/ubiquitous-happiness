@@ -21,6 +21,36 @@ def batch_collate_target_feat_map_indices(target_feat_map_indices_list):
         return None, None, num_boxes_pos
 
 
+def collate_different_size_images(images: list):
+    collated = []
+    shape_collated = {}
+
+    index_of_collated_tensor_list = []
+    index_in_collated_tensor_list = []
+
+    for image in images:
+        c, h, w = image.shape
+        assert c == 3
+        if (h, w) not in shape_collated:
+            index_of_collated_tensor = len(shape_collated)
+            shape_collated[(h, w)] = index_of_collated_tensor
+            current_shape_image_list = []
+            collated.append(current_shape_image_list)
+        else:
+            index_of_collated_tensor = shape_collated[(h, w)]
+            current_shape_image_list = collated[index_of_collated_tensor]
+
+        index_in_collated_tensor = len(current_shape_image_list)
+        current_shape_image_list.append(image)
+        index_of_collated_tensor_list.append(index_of_collated_tensor)
+        index_in_collated_tensor_list.append(index_in_collated_tensor)
+
+    collated = [torch.stack(image) for image in collated]
+    index_of_collated_tensor_list = torch.tensor(index_of_collated_tensor_list)
+    index_in_collated_tensor_list = torch.tensor(index_in_collated_tensor_list)
+    return collated, index_of_collated_tensor_list, index_in_collated_tensor_list
+
+
 def transt_collate_fn(data):
     z_image_list = []
     x_image_list = []
@@ -29,10 +59,10 @@ def transt_collate_fn(data):
     target_feat_map_indices_list = []
     target_class_label_vector_list = []
     target_bounding_box_label_matrix_list = []
-    miscellanies = []
-    collate_miscellanies = None
+    miscellanies_host = []
+    miscellanies_element = []
 
-    for index, (z_image, x_image, z_context, x_context, miscellany, collate_miscellany,
+    for index, (z_image, x_image, z_context, x_context, miscellany, miscellany_element,
         target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix) in enumerate(data):
         z_image_list.append(z_image)
         x_image_list.append(x_image)
@@ -40,23 +70,31 @@ def transt_collate_fn(data):
             z_context_list.append(z_context)
         if x_context is not None:
             x_context_list.append(x_context)
-        miscellanies.append(miscellany)
+        miscellanies_host.append(miscellany)
         target_feat_map_indices_list.append(target_feat_map_indices)
         target_class_label_vector_list.append(target_class_label_vector)
         if target_bounding_box_label_matrix is not None:
             target_bounding_box_label_matrix_list.append(target_bounding_box_label_matrix)
-        collate_miscellanies = collate_miscellany
+        if miscellany_element is not None:
+            miscellanies_element.append(miscellany_element)
 
     assert len(z_context_list) == len(x_context_list)
+
+    miscellanies_host = default_collate(miscellanies_host)
 
     if len(z_context_list) == 0:
         z_image_batch = torch.stack(z_image_list)
         x_image_batch = torch.stack(x_image_list)
-        context = None
+        miscellanies_device = None
     else:
-        z_image_batch = z_image_list
-        x_image_batch = x_image_list
-        context = (torch.stack(z_context_list), torch.stack(x_context_list))
+        z_image_batch, z_index_of_collated_tensors, z_index_in_collated_tensors = collate_different_size_images(z_image_list)
+        x_image_batch, x_index_of_collated_tensors, x_index_in_collated_tensors = collate_different_size_images(
+            x_image_list)
+
+        miscellanies_host['z_index_of_collated_tensors'] = z_index_of_collated_tensors
+        miscellanies_host['x_index_of_collated_tensors'] = x_index_of_collated_tensors
+
+        miscellanies_device = (torch.stack(z_context_list), torch.stack(x_context_list), z_index_in_collated_tensors, x_index_in_collated_tensors)
 
     target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch, num_boxes_pos = \
         batch_collate_target_feat_map_indices(target_feat_map_indices_list)
@@ -66,13 +104,13 @@ def transt_collate_fn(data):
     else:
         target_bounding_box_label_matrix_batch = None
 
-    if collate_miscellanies:
-        miscellanies = default_collate(miscellanies)
+    if len(miscellanies_element) == 0:
+        miscellanies_element = None
 
     return (z_image_batch, x_image_batch), \
            (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch,
             target_class_label_vector_batch, target_bounding_box_label_matrix_batch), \
-           miscellanies, context
+           miscellanies_host, miscellanies_device, miscellanies_element
 
 
 def SiamFC_collate_fn(data):

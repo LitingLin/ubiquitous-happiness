@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 from miscellanies.Viewer.qt5_viewer import Qt5Viewer, QPixmap, QPen, QColor
-from ._common import imagenet_denormalize, tensor_list_to_cpu
+from ._common import imagenet_denormalize
 import math
 from miscellanies.qt_numpy_interop import numpy_rgb888_to_qimage
 from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
@@ -43,9 +43,9 @@ class TransTDataPreprocessingVisualizer:
         (z_image_batch, x_image_batch), \
         (num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices_batch,
          target_class_label_vector_batch, target_bounding_box_label_matrix_batch), \
-        miscellanies, context = data
+        miscellanies_host, miscellanies_device, miscellanies_element = data
 
-        assert context is None
+        assert miscellanies_device is None
 
         z_qimages = []
         x_qimages = []
@@ -101,20 +101,18 @@ class TransTDataPreprocessingVisualizer:
         x_origin_qimages = []
         z_origin_bboxes = []
         x_origin_bboxes = []
-        is_positive_samples = []
-        for miscellany in miscellanies:
+        is_positive_samples = miscellanies_host['is_positive_sample'].tolist()
+        for miscellany in miscellanies_element:
             z_origin = miscellany['z']  # C, H, W
             x_origin = miscellany['x']  # C, H, W
             z_origin_bbox = miscellany['z_bbox']
             x_origin_bbox = miscellany['x_bbox']
-            is_positive_sample = miscellany['is_positive_sample']
             z_origin = z_origin.permute(1, 2, 0)  # C, H, W => H, W, C
             x_origin = x_origin.permute(1, 2, 0)  # C, H, W => H, W, C
             z_origin_qimages.append(QPixmap(numpy_rgb888_to_qimage(z_origin.cpu().numpy())))
             x_origin_qimages.append(QPixmap(numpy_rgb888_to_qimage(x_origin.cpu().numpy())))
             z_origin_bboxes.append(z_origin_bbox.tolist())
             x_origin_bboxes.append(x_origin_bbox.tolist())
-            is_positive_samples.append(is_positive_sample)
 
         return (z_qimages, x_qimages, recovered_bbox), (z_origin_qimages, z_origin_bboxes, x_origin_qimages, x_origin_bboxes, is_positive_samples)
 

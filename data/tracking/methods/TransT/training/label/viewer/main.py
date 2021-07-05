@@ -13,11 +13,11 @@ class _DataWrapper:
         return self
 
     def __next__(self):
-        samplers, targets, miscellanies, stage_2_context = next(self.data_loader_iter)
+        samplers, targets, miscellanies_host, miscellanies_device, miscellanies_element = next(self.data_loader_iter)
         if self.stage_2_data_processor is not None:
-            samplers = self.stage_2_data_processor(samplers, stage_2_context)
-            stage_2_context = None
-        return self.data_adaptor.on_data((samplers, targets, miscellanies, stage_2_context))
+            samplers = self.stage_2_data_processor(samplers, miscellanies_device)
+            miscellanies_device = None
+        return self.data_adaptor.on_data((samplers, targets, miscellanies_host, miscellanies_device, miscellanies_element))
 
 
 class _VisualizerDataPrefetcher:

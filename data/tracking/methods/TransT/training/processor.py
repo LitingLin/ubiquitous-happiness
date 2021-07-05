@@ -34,13 +34,9 @@ class TransTProcessor:
 
     def __call__(self, z_image, z_bbox, x_image, x_bbox, is_positive):
         miscellany = {}
-        collate_miscellany = True
+        miscellany_element = None
         if self.with_raw_data:
-            miscellany['z'] = z_image
-            miscellany['x'] = x_image
-            miscellany['z_bbox'] = z_bbox
-            miscellany['x_bbox'] = x_bbox
-            collate_miscellany = False
+            miscellany_element = {'z': z_image, 'x': x_image, 'z_bbox': z_bbox, 'x_bbox': x_bbox}
         miscellany['is_positive_sample'] = is_positive
         z_image, x_image = TransT_training_image_preprocessing(z_image, x_image, self.gray_scale_transformer,
                                                                self.do_imagenet_normalization,
@@ -66,6 +62,6 @@ class TransTProcessor:
         x_image = x_image.float()
 
         if isinstance(labels, (list, tuple)):
-            return z_image, x_image, z_context, x_context, miscellany, collate_miscellany, *labels
+            return z_image, x_image, z_context, x_context, miscellany, miscellany_element, *labels
         else:
-            return z_image, x_image, z_context, x_context, miscellany, collate_miscellany, labels
+            return z_image, x_image, z_context, x_context, miscellany, miscellany_element, labels
