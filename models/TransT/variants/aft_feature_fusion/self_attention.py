@@ -7,7 +7,7 @@ class AFTSelfAttention(nn.Module):
         super(AFTSelfAttention, self).__init__()
         if aft_type == 'AFT-Full':
             self.aft = AFTFull(dim, dim, size[0] * size[1], size[0] * size[1])
-        if aft_type == 'AFTFull_Parameterized':
+        elif aft_type == 'AFTFull_Parameterized':
             self.aft = AFTFull_Parameterized(dim, dim, size[0] * size[1], size[0] * size[1])
         else:
             raise NotImplementedError(f"{aft_type} Not implemented")

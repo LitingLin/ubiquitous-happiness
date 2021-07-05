@@ -1,9 +1,9 @@
 class DummyLogger:
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return self
+        pass
 
     def log_train(self, epoch, forward_stats, backward_stats):
         pass

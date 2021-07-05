@@ -4,7 +4,7 @@ tags:
   - "Swin-Transformer"
   - "AFT"
 
-version: 4
+version: 5
 
 type: "TransT-AFT"
 
@@ -24,11 +24,11 @@ backbone:
     output_layers: [1]
 
 transformer:
-  type: "AFT-Full"
+  type: "AFTFull_Parameterized"
   template_size: [14, 14]
   search_size: [28, 28]
   hidden_dim: 256  # consist with backbone
-  featurefusion_layers: 4
+  featurefusion_layers: 1
 
 head:
   type: TransT
