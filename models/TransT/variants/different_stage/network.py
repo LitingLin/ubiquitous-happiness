@@ -25,6 +25,9 @@ class TransTVariantBackboneDifferentOutputStageNetwork(nn.Module):
         self.template_input_projection = nn.Linear(template_output_dim, transformer_hidden_dim)
         self.search_input_projection = nn.Linear(search_output_dim, transformer_hidden_dim)
 
+        nn.init.xavier_uniform_(self.template_input_projection.weight)
+        nn.init.xavier_uniform_(self.search_input_projection.weight)
+
         self.template_output_shape = template_output_shape
         self.search_output_shape = search_output_shape
 
