@@ -618,19 +618,21 @@ class SwinTransformer(nn.Module):
         else:
             raise TypeError('pretrained must be a str or None')
 
-    def forward(self, x):
+    def forward(self, x, out_indices=None, reshape=True):
+        if out_indices is None:
+            out_indices = self.out_indices
         _, _, H, W = x.size()
         outs = []
         for i in range(self.num_stages):
             layer = self.stages[i]
             x, H, W = layer(x, H, W)
-            if i in self.out_indices:
+            if i in out_indices:
                 norm_layer = getattr(self, f'norm{i}')
                 x_out = norm_layer(x)
-                out = x_out.view(-1, H, W, self.stage_dims[i]).permute(0, 3, 1, 2).contiguous()
-                outs.append(out)
-
-        return tuple(outs)
+                if reshape:
+                    x_out = x_out.view(-1, H, W, self.stage_dims[i]).permute(0, 3, 1, 2).contiguous()
+                outs.append(x_out)
+        return outs
 
     def train(self, mode=True):
         """Convert the model into training mode while keep layers freezed."""

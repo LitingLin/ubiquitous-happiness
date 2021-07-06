@@ -56,7 +56,8 @@ class TransTRunner:
 
         positive_samples = miscellanies_host['is_positive_sample']
 
-        return {'loss': loss_value, **loss_stats, 'pos_samples_ratio': torch.sum(positive_samples) / len(positive_samples)}
+        return {'loss': loss_value, **loss_stats,
+                'pos_samples_ratio': torch.sum(positive_samples) / len(positive_samples)}
 
     def _on_epoch_changed(self):
         if self.epoch_changed_event_slots is not None:
@@ -93,8 +94,8 @@ class TransTRunner:
 
     def state_dict(self):
         training_state_dict = {'optimizer': self.optimizer.state_dict(),
-                'lr_scheduler': self.lr_scheduler.state_dict(),
-                'epoch': self.epoch, 'version': 1}
+                               'lr_scheduler': self.lr_scheduler.state_dict(),
+                               'epoch': self.epoch, 'version': 1}
         if self.additional_stateful_objects is not None:
             for state_name, stateful_object in self.additional_stateful_objects.items():
                 training_state_dict[state_name] = stateful_object.get_state()
