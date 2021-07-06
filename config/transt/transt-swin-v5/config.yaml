@@ -25,11 +25,11 @@ backbone:
 transformer:
   backbone_output_layers:
     template:
-      stage: 2
+      stage: 1
       shape: [14, 14]
       dim: 256
     search:
-      stage: 3
+      stage: 1
       shape: [28, 28]
       dim: 256
 
