@@ -1,0 +1,58 @@
+version: 3
+
+data:
+  augmentation:
+    scale_jitter_factor:
+      template: 0
+      search: 0.25
+    translation_jitter_factor:
+      template: 0
+      search: 3
+    gray_scale_probability: 0.05
+    color_jitter: 0.4
+    stage_2_on_host_process: ture
+
+  sampler:
+    version: 2
+
+    train:
+      batch_size: 16
+      samples_per_epoch: 65536
+      negative_sample_ratio: 0
+
+      sequence_sampler:
+        type: "Siamese"
+        parameters:
+          frame_range: 100
+          enforce_fine_positive_sample: true
+          enable_adaptive_frame_range: true
+          sampling_method: "causal"
+
+    val:
+      batch_size: 16
+
+      repeat_times_per_epoch: 1
+      negative_sample_ratio: 0
+
+      sequence_sampler:
+        type: "Siamese"
+        parameters:
+          frame_range: 100
+          enforce_fine_positive_sample: true
+          enable_adaptive_frame_range: true
+          sampling_method: "causal"
+
+optimization:
+  epochs: 1000
+  optimizer:
+    type: "AdamW"
+    lr: 1.e-4
+    lr_backbone: 1.e-5
+    weight_decay: 1.e-4
+    clip_max_norm: 0.1
+    lr_scheduler:
+      type: StepLR
+      lr_drop: 500
+
+  loss:
+    use_template: "transt"
