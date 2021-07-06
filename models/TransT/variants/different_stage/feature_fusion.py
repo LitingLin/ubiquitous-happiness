@@ -57,7 +57,7 @@ class FeatureFusionNetwork(nn.Module):
                                                   pos_src2=pos_search)
         hs = self.decoder(memory_search, memory_temp,
                           pos_enc=pos_temp, pos_dec=pos_search)
-        return hs.unsqueeze(0).transpose(1, 2)
+        return hs.unsqueeze(0)
 
 
 class Decoder(nn.Module):

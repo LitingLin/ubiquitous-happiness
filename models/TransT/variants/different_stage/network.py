@@ -29,7 +29,7 @@ class TransTVariantBackboneDifferentOutputStageNetwork(nn.Module):
         self.search_output_shape = search_output_shape
 
     def _forward_feat(self, x, output_stage, output_shape, projection):
-        x_feat = _get_single_scale(self.backbone(x, output_stage, False))
+        x_feat = _get_single_scale(self.backbone(x, (output_stage, ), False))
         x_feat = projection(x_feat)
         x_pos = self.position_encoder(x_feat, *output_shape)
         return x_feat, x_pos

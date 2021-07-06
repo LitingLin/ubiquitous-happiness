@@ -48,7 +48,7 @@ class PositionEmbeddingSine(nn.Module):
         pos = pos.to(x.dtype)
 
         # To (N, L, C)
-        pos = pos.flatten(2).permute(2, 0, 1)
+        pos = pos.flatten(2).transpose(1, 2).contiguous()
         self.size_pos_mapping[(x.dtype, x.device, shape)] = pos
         return pos
 
