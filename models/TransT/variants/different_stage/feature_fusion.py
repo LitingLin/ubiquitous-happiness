@@ -121,7 +121,7 @@ class DecoderCFALayer(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1, activation="relu"):
         super().__init__()
 
-        self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
+        self.multihead_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
         # Implementation of Feedforward model
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
@@ -172,10 +172,10 @@ class FeatureFusionLayer(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
                  activation="relu"):
         super().__init__()
-        self.self_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
-        self.self_attn2 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
-        self.multihead_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
-        self.multihead_attn2 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
+        self.self_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
+        self.self_attn2 = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
+        self.multihead_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
+        self.multihead_attn2 = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
         # Implementation of Feedforward model
         self.linear11 = nn.Linear(d_model, dim_feedforward)
         self.dropout1 = nn.Dropout(dropout)
