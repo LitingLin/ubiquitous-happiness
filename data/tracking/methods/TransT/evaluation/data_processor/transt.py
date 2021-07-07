@@ -38,7 +38,7 @@ class TransTEvaluationDataProcessor:
 
         if not self.preprocessing_on_device:
             curated_template_image = curated_template_image.to(self.device, non_blocking=True)
-        return curated_template_image
+        return curated_template_image.unsqueeze(0)
 
     def track(self, image, last_frame_bbox):
         curation_parameter, _ = prepare_SiamFC_curation(last_frame_bbox, self.search_area_factor, self.search_size)
@@ -59,7 +59,7 @@ class TransTEvaluationDataProcessor:
         c, h, w = image.shape
         self.last_frame_image_size = (w, h)
         self.last_frame_curation_parameter = curation_parameter
-        return curated_search_image
+        return curated_search_image.unsqueeze(0)
 
     def get_bounding_box(self, bbox_normalized_cxcywh):
         return self.bounding_box_post_processor(bbox_normalized_cxcywh, self.last_frame_image_size, self.last_frame_curation_parameter)

@@ -37,7 +37,7 @@ def run_one_pass_evaluation_on_sequence(tracker, sequence: SingleObjectTrackingD
     sequence_data_getter = get_simple_sequence_data_prefetcher(sequence)
 
     data_begin = time.perf_counter()
-    for index_of_frame, (image, bounding_box) in enumerate(sequence_data_getter):
+    for index_of_frame, (image, bounding_box, _) in enumerate(sequence_data_getter):
         begin_time = time.perf_counter()
         data_time = begin_time - data_begin
         if index_of_frame == 0:
