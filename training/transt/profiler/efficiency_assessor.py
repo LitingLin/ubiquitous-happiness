@@ -23,7 +23,7 @@ class TrackerEfficiencyAssessor:
         if not is_train:
             self.model.train()
 
-        return 1 / (track_begin_time - init_begin_time) * batch, 1 / (track_end_time - track_begin_time) * batch
+        return batch / (track_begin_time - init_begin_time), batch / (track_end_time - track_begin_time)
 
     def get_batch(self):
         return self.batch

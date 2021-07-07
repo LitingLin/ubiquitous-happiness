@@ -11,7 +11,7 @@ def print_model_efficiency_assessment(efficiency_assessor):
     init_fps, track_fps = efficiency_assessor.test_fps()
     batched_init_fps, batched_track_fps = efficiency_assessor.test_fps_batched()
 
-    print(f"Estimated model FPS:\nbatch@1: init {init_fps:3d} track {track_fps:3d}\nbatch@{efficiency_assessor.get_batch()}: init {batched_init_fps:3d} track {batched_track_fps:3d}")
+    print(f"Estimated model FPS:\nbatch@1: init {init_fps:.3f} track {track_fps:.3f}\nbatch@{efficiency_assessor.get_batch()}: init {batched_init_fps:.3f} track {batched_track_fps:.3f}")
 
 
 def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, efficiency_assessor):
