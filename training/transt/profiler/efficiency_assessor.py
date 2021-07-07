@@ -10,7 +10,7 @@ class TrackerEfficiencyAssessor:
 
     def _test_fps(self, batch):
         is_train = self.model.training
-        if not is_train:
+        if is_train:
             self.model.eval()
         for _ in range(3):
             z, x = self.pseudo_data_source.get_train(batch)
@@ -20,7 +20,7 @@ class TrackerEfficiencyAssessor:
             self.model.track(z_feat, x)
             track_end_time = time.perf_counter()
 
-        if not is_train:
+        if is_train:
             self.model.train()
 
         return track_begin_time - init_begin_time, track_end_time - track_begin_time
