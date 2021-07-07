@@ -8,10 +8,10 @@ import datetime
 def print_model_efficiency_assessment(efficiency_assessor):
     print(efficiency_assessor.get_flop_count_table())
 
-    init_time, track_time = efficiency_assessor.test_fps()
-    batched_init_time, batched_track_time = efficiency_assessor.test_fps_batched()
+    init_fps, track_fps = efficiency_assessor.test_fps()
+    batched_init_fps, batched_track_fps = efficiency_assessor.test_fps_batched()
 
-    print(f"Estimated model FPS:\n@1: init {1/init_time} track {1/track_time}\n@{efficiency_assessor.get_batch()}: init {1/batched_init_time} track {1/batched_track_time}")
+    print(f"Estimated model FPS:\nbatch@1: init {init_fps:.3f} track {track_fps:.3f}\nbatch@{efficiency_assessor.get_batch()}: init {batched_init_fps:.3f} track {batched_track_fps:.3f}")
 
 
 def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, efficiency_assessor):

@@ -15,7 +15,7 @@ class TrackerEfficiencyAssessor:
         for _ in range(3):
             z, x = self.pseudo_data_source.get_train(batch)
             init_begin_time = time.perf_counter()
-            z_feat = self.model.initialize(z)
+            z_feat = self.model.template(z)
             track_begin_time = time.perf_counter()
             self.model.track(z_feat, x)
             track_end_time = time.perf_counter()
@@ -23,7 +23,7 @@ class TrackerEfficiencyAssessor:
         if is_train:
             self.model.train()
 
-        return track_begin_time - init_begin_time, track_end_time - track_begin_time
+        return batch / (track_begin_time - init_begin_time), batch / (track_end_time - track_begin_time)
 
     def get_batch(self):
         return self.batch
