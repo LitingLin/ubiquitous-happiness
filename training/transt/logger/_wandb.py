@@ -10,6 +10,7 @@ from miscellanies.torch.distributed import is_main_process, is_dist_available_an
 
 class WandbLogger:
     def __init__(self, id_, project_name: str, config: dict,
+                 tags: list,
                  initial_step: int, log_freq: int,
                  only_log_on_main_process: bool,
                  watch_model_freq: int,
@@ -25,7 +26,7 @@ class WandbLogger:
         self.project_name = project_name
         config = flatten_dict(config)
         config['git_version'] = get_git_status()
-        self.tags = config['tags']
+        self.tags = tags
         self.config = config
         self.step = initial_step
         self.log_freq = log_freq

@@ -1,12 +1,16 @@
-name: "TransT-Swin"
-tags:
-  - "TransT"
-  - "Swin-Transformer"
-  - "Positive-samples-only"
+name: "Swin-T-Baseline"
 
 version: 5
 
-type: "TransT-Different-Output-Stage"
+logging:
+  category: "Swin-T-v2"
+  tags:
+    - "Swin-Transformer"
+    - "baseline"
+    - "tiny"
+    - "Positive-samples-only"
+
+type: "T-Baseline"
 
 data:
   area_factor:
@@ -20,7 +24,7 @@ data:
 backbone:
   type: "swin_transformer"
   parameters:
-    name: "swin_base_patch4_window7_224_in22k"
+    name: "swin_tiny_patch4_window7_224"
     output_layers: [1]
 
 transformer:
