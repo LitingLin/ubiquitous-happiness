@@ -10,7 +10,11 @@ def _get_wandb_config(network_config: dict):
             category = network_config['category']
         else:
             category = 'transt'
-        return category, network_config['tags']
+        if 'tags' in network_config:
+            tags = network_config['tags']
+        else:
+            tags = None
+        return category, tags
 
 
 def build_logger(args, network_config, train_config, initial_step):
