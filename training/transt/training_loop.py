@@ -3,13 +3,20 @@ from .train_step import train_step
 from .eval_step import evaluate_step
 from miscellanies.torch.checkpoint import dump_checkpoint_from_runner
 import datetime
-from fvcore.nn import FlopCountAnalysis, flop_count_table
 
 
-def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, pseudo_data_source):
+def print_model_efficiency_assessment(efficiency_assessor):
+    print(efficiency_assessor.get_flop_count_table())
+
+    init_time, track_time = efficiency_assessor.test_fps()
+    batched_init_time, batched_track_time = efficiency_assessor.test_fps_batched()
+
+    print(f"Estimated model FPS:\n@1: init {1/init_time} track {1/track_time}\n@{efficiency_assessor.get_batch()}: init {1/batched_init_time} track {1/batched_track_time}")
+
+
+def run_training_loop(args, n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, efficiency_assessor):
     with logger:
-        print(flop_count_table(FlopCountAnalysis(runner.get_model(), pseudo_data_source.get_train(1))))
-
+        print_model_efficiency_assessment(efficiency_assessor)
         logger.watch(runner.get_model())
         print("Start training")
         start_epoch = runner.get_epoch()

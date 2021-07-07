@@ -4,7 +4,7 @@ from models.TransT.loss.builder import build_criterion
 from miscellanies.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 from training.transt.logger.builder import build_logger
-from training.transt.profiler.builder import build_profiler
+from training.transt.profiler.builder import build_profiler, build_efficiency_assessor
 from data.tracking.methods.TransT.pseudo_data import build_pseudo_data_generator
 import torch
 import torch.distributed
@@ -140,5 +140,6 @@ def build_training_runner_logger_and_dataloader(args, network_config: dict, trai
     profiler = build_profiler(args)
 
     pseudo_data_generator = build_pseudo_data_generator(args, network_config)
+    efficiency_assessor = build_efficiency_assessor(runner.get_model(), pseudo_data_generator, train_config)
 
-    return n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, pseudo_data_generator
+    return n_epochs, runner, logger, profiler, data_loader_train, data_loader_val, efficiency_assessor
