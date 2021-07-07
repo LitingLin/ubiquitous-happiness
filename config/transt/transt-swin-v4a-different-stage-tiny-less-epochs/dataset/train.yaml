@@ -28,6 +28,7 @@ DATASETS:
   LaSOT:
     SPLITS:
       - train
+
   YoutubeBB:
 
   COCO:

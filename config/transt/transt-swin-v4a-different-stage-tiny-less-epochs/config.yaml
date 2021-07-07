@@ -1,12 +1,13 @@
 name: "TransT-Swin-Tiny"
 
-category: "Swin-T-v2"
-tags:
-  - "TransT"
-  - "Swin-Transformer"
-  - "Different-Backbone-Output-Stage"
-  - "tiny"
-  - "Positive-samples-only"
+logging:
+  category: "Swin-T-v2"
+  tags:
+    - "TransT"
+    - "Swin-Transformer"
+    - "Different-Backbone-Output-Stage"
+    - "tiny"
+    - "Positive-samples-only"
 
 version: 5
 
