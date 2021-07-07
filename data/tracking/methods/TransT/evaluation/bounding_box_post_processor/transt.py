@@ -19,6 +19,7 @@ class TransTBoundingBoxPostProcessor:
         self.bbox_size_limit_in_curated_image = bbox_size_limit_in_curated_image
 
     def __call__(self, bbox_normalized_cxcywh, image_size, curation_parameter):
+        curation_parameter = curation_parameter.tolist()
         curation_scaling, curation_source_center_point, curation_target_center_point = curation_parameter
         bbox = recover_bounding_box_from_normalized_cxcywh(bbox_normalized_cxcywh, self.search_region_size)
 
