@@ -17,6 +17,7 @@ data:
 
     train:
       batch_size: 64
+
       samples_per_epoch: 1048576
       negative_sample_ratio: 0
 
