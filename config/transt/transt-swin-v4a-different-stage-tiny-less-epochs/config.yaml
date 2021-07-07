@@ -1,0 +1,49 @@
+name: "TransT-Swin-Tiny"
+tags:
+  - "TransT"
+  - "Swin-Transformer"
+  - "Different-Backbone-Output-Stage"
+  - "Positive-samples-only"
+
+version: 5
+
+type: "TransT-Different-Output-Stage"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [112, 112]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_tiny_patch4_window7_224"
+    output_layers: [2, 3]
+
+transformer:
+  backbone_output_layers:
+    template:
+      stage: 2
+      shape: [7, 7]
+      dim: 384
+    search:
+      stage: 3
+      shape: [7, 7]
+      dim: 768
+
+  position_embedding: "sine"
+  hidden_dim: 384
+  dropout: 0.1
+  nheads: 4
+  dim_feedforward: 1536
+  featurefusion_layers: 2
+  activation: "gelu"
+
+head:
+  type: TransT
+  parameters:
+    input_size: [7, 7]
