@@ -18,7 +18,10 @@ def build_logger(args, network_config, train_config, initial_step):
         return DummyLogger()
     from ._wandb import WandbLogger, has_wandb
     if has_wandb:
-        return WandbLogger(logger_id, network_config['name'], network_config, initial_step, args.logging_interval,
+        wandb_project = 'transt'
+        if 'category' in network_config:
+            wandb_project = network_config['category']
+        return WandbLogger(logger_id, wandb_project, network_config, initial_step, args.logging_interval,
                            True, args.watch_model_freq,
                            args.watch_model_parameters, args.watch_model_gradients,
                            tensorboard_root_path)

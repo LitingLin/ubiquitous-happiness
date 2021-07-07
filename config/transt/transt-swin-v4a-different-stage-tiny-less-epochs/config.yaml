@@ -1,4 +1,6 @@
 name: "TransT-Swin-Tiny"
+
+category: "Swin-T-v2"
 tags:
   - "TransT"
   - "Swin-Transformer"
