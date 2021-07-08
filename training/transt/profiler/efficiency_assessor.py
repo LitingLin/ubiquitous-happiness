@@ -1,5 +1,7 @@
+import torch
 import time
 from fvcore.nn import FlopCountAnalysis, flop_count_table
+
 
 
 class TrackerEfficiencyAssessor:
@@ -14,10 +16,16 @@ class TrackerEfficiencyAssessor:
             self.model.eval()
         for _ in range(3):
             z, x = self.pseudo_data_source.get_train(batch)
+            if self.pseudo_data_source.is_cuda():
+                torch.cuda.synchronize(self.pseudo_data_source.get_device())
             init_begin_time = time.perf_counter()
             z_feat = self.model.template(z)
+            if self.pseudo_data_source.is_cuda():
+                torch.cuda.synchronize(self.pseudo_data_source.get_device())
             track_begin_time = time.perf_counter()
             self.model.track(z_feat, x)
+            if self.pseudo_data_source.is_cuda():
+                torch.cuda.synchronize(self.pseudo_data_source.get_device())
             track_end_time = time.perf_counter()
 
         if is_train:
