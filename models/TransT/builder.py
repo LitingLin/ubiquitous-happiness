@@ -57,5 +57,8 @@ def build_transt(network_config, load_pretrained=True):
     elif network_config['version'] == 5 and network_config['type'] == 'TransT-Different-Output-Stage':
         from .variants.different_stage.builder import build_transt_variant_backbone_different_output_stage
         return build_transt_variant_backbone_different_output_stage(network_config, load_pretrained)
+    elif network_config['version'] == 5 and network_config['type'] == 'T-Baseline':
+        from .variants.baseline.builder import build_baseline_tracker
+        return build_baseline_tracker(network_config, load_pretrained)
     else:
         raise NotImplementedError(f'Unknown version {network_config["version"]}')
