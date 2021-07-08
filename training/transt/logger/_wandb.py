@@ -77,12 +77,11 @@ class WandbLogger:
         if self._is_disabled():
             return
 
-        if self.step % self.log_freq == 0:
-            step = self.step * self.step_times
-            summary = {'test_' + k: v for k, v in summary.items()}
-            summary['epoch'] = epoch
+        step = self.step * self.step_times
+        summary = {'test_' + k: v for k, v in summary.items()}
+        summary['epoch'] = epoch
 
-            wandb.log(summary, step=step)
+        wandb.log(summary, step=step)
 
     def watch(self, model):
         if self._is_disabled():
