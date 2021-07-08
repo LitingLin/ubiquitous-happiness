@@ -24,6 +24,7 @@ class TransTCriterion(nn.Module):
                 self.iou_aware_loss = None
 
     def _do_statistic(self, stats: dict):
+        stats = {k: v.detach() for k, v in stats.items()}
         loss_dict_reduced = reduce_dict(stats)
         loss_dict_reduced_unscaled = {f'{k}_unscaled': v
                                       for k, v in loss_dict_reduced.items()}
