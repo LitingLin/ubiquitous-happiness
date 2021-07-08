@@ -75,15 +75,33 @@ class TransTTraskHighwayTracking(nn.Module):
 
     @torch.no_grad()
     def template(self, z):
-        z_feat, z_feat_pos = self.backbone(z)
-        z_feat = self.input_proj(z_feat)
-        return z_feat, z_feat_pos
+        z_feat, z_feat_pos = _forward_feat(z, self.backbone, self.position_encoder, self.input_proj)
+        z_cls_feat, z_cls_feat_pos = _forward_feat(z, self.classification_highway_backbone,
+                                                   self.classification_position_encoder, self.classification_input_proj)
+
+        z_reg_feat, z_reg_feat_pos = _forward_feat(z, self.regression_highway_backbone,
+                                                   self.regression_position_encoder, self.regression_input_proj)
+
+        return z_feat, z_feat_pos, z_cls_feat, z_cls_feat_pos, z_reg_feat, z_reg_feat_pos
 
     @torch.no_grad()
     def track(self, z_feats, x):
-        z_feat, z_feat_pos = z_feats
-        x_feat, x_feat_pos = self.backbone(x)
-        x_feat = self.input_proj(x_feat)
+        z_feat, z_feat_pos, z_cls_feat, z_cls_feat_pos, z_reg_feat, z_reg_feat_pos = z_feats
+        x_feat, x_feat_pos = _forward_feat(x, self.backbone, self.position_encoder, self.input_proj)
 
         hs = self.transformer(z_feat, x_feat, z_feat_pos, x_feat_pos)
-        return self.head(hs)
+
+        x_cls_feat, x_cls_feat_pos = _forward_feat(x, self.classification_highway_backbone,
+                                                   self.classification_position_encoder, self.classification_input_proj)
+
+        cls_hs = self.classification_highway_transformer(z_cls_feat, x_cls_feat, z_cls_feat_pos, x_cls_feat_pos)
+
+        x_reg_feat, x_reg_feat_pos = _forward_feat(x, self.regression_highway_backbone,
+                                                   self.regression_position_encoder, self.regression_input_proj)
+
+        reg_hs = self.regression_highway_transformer(z_reg_feat, x_reg_feat, z_reg_feat_pos, x_reg_feat_pos)
+
+        cls_hs = torch.cat((hs, cls_hs), dim=-1)
+        reg_hs = torch.cat((hs, reg_hs), dim=-1)
+
+        return self.head(cls_hs, reg_hs)
