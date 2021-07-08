@@ -46,8 +46,8 @@ def generate_2d_sine_position_encoding(batch, h, w, dim, device=torch.device('cp
                                        normalized=True, scale=math.pi * 2, temperature=10000,
                                        eps=torch.finfo(torch.float32).eps):
     return generate_sine_position_encoding(batch, dim,
-                                           (torch.arange(h, dtype=dtype, device=device),
-                                            torch.arange(w, dtype=dtype, device=device)),
+                                           (torch.arange(1, h + 1, dtype=dtype, device=device),
+                                            torch.arange(1, w + 1, dtype=dtype, device=device)),
                                            normalized, scale, temperature, eps)
 
 
@@ -55,7 +55,7 @@ def generate_indexed_2d_sine_position_encoding(index, batch, h, w, dim, device=t
                                                normalized=True, scale=math.pi * 2, temperature=10000,
                                                eps=torch.finfo(torch.float32).eps):
     return generate_sine_position_encoding(batch, dim,
-                                           (torch.arange(h, dtype=dtype, device=device),
-                                            torch.arange(w, dtype=dtype, device=device),
-                                            torch.tensor([index], dtype=dtype, device=device)),
+                                           (torch.arange(1, h + 1, dtype=dtype, device=device),
+                                            torch.arange(1, w + 1, dtype=dtype, device=device),
+                                            torch.tensor([index + 1], dtype=dtype, device=device)),
                                            normalized, scale, temperature, eps).view(batch, h, w, dim)
