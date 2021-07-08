@@ -10,7 +10,7 @@ from miscellanies.torch.distributed import is_main_process, is_dist_available_an
 
 class WandbLogger:
     def __init__(self, id_, project_name: str, config: dict,
-                 tags: list,
+                 tags: list, step_times: int,
                  initial_step: int, log_freq: int,
                  only_log_on_main_process: bool,
                  watch_model_freq: int,
@@ -31,6 +31,7 @@ class WandbLogger:
         self.step = initial_step
         self.log_freq = log_freq
         self.only_log_on_main_process = only_log_on_main_process
+        self.step_times = step_times
 
         if watch_model_parameters and watch_model_gradients:
             watch_model = 'all'
@@ -67,8 +68,9 @@ class WandbLogger:
             return
 
         if self.step % self.log_freq == 0:
-            log = {'epoch': epoch, 'batch': self.step, **forward_stats, **backward_stats}
-            wandb.log(log, step=self.step)
+            step = self.step * self.step_times
+            log = {'epoch': epoch, 'batch': step, **forward_stats, **backward_stats}
+            wandb.log(log, step=step)
         self.step += 1
 
     def log_test(self, epoch, summary):
@@ -76,10 +78,11 @@ class WandbLogger:
             return
 
         if self.step % self.log_freq == 0:
+            step = self.step * self.step_times
             summary = {'test_' + k: v for k, v in summary.items()}
             summary['epoch'] = epoch
 
-            wandb.log(summary, step=self.step)
+            wandb.log(summary, step=step)
 
     def watch(self, model):
         if self._is_disabled():

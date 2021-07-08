@@ -1,5 +1,6 @@
 import copy
 from datetime import datetime
+from miscellanies.torch.distributed import get_world_size
 
 
 def _get_wandb_config(network_config: dict):
@@ -35,7 +36,7 @@ def build_logger(args, network_config, train_config, initial_step):
     if has_wandb:
         wandb_project, wandb_tags = _get_wandb_config(network_config)
         return WandbLogger(logger_id, wandb_project, network_config,
-                           wandb_tags,
+                           wandb_tags, get_world_size(),
                            initial_step, args.logging_interval,
                            True, args.watch_model_freq,
                            args.watch_model_parameters, args.watch_model_gradients,
