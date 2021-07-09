@@ -45,7 +45,7 @@ class GFocalV2Head(nn.Module):
                  gfocal_reg_max: int,  # bbox in range [0, reg_max]
                  gfocal_v2_topk: int, gfocal_v2_reg_channels: int, gfocal_v2_add_mean: bool):
         super(GFocalV2Head, self).__init__()
-        self.classification_branch = MLP(input_dim, hidden_dim, 2, 3)
+        self.classification_branch = MLP(input_dim, hidden_dim, 1, 3)
         self.regression_branch = MLP(input_dim, hidden_dim, 4 * (gfocal_reg_max + 1), 3)
         self.shape = shape  # (W, H)
         self.integral = Integral(gfocal_reg_max)
