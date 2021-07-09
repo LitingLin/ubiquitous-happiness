@@ -3,10 +3,13 @@ import torch.nn as nn
 import torch.distributed
 from miscellanies.torch.distributed import is_dist_available_and_initialized, get_world_size
 from ._do_statistic import do_statistic
+from data.types.bounding_box_format import BoundingBoxFormat
+from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcywh_to_xyxy
 
 
 class GFocalCriterion(nn.Module):
-    def __init__(self, quality_focal_loss, distribution_focal_loss, iou_loss, quality_fn, weight_dict: dict, gfocal_reg_max: int):
+    def __init__(self, quality_focal_loss, distribution_focal_loss, iou_loss,
+                 quality_fn, weight_dict: dict, gfocal_reg_max: int, head_bounding_box_format: BoundingBoxFormat):
         super(GFocalCriterion, self).__init__()
         self.quality_focal_loss = quality_focal_loss
         self.distribution_focal_loss = distribution_focal_loss
@@ -17,6 +20,9 @@ class GFocalCriterion(nn.Module):
         self.weight_dict = weight_dict
 
         self.gfocal_reg_max = gfocal_reg_max
+
+        self.head_bounding_box_format = head_bounding_box_format
+        assert head_bounding_box_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
 
     def forward(self, predicted, label):
         # BBox format: normalized XYXY
@@ -43,11 +49,16 @@ class GFocalCriterion(nn.Module):
         if not is_non_positives:
             predicted_bbox = predicted_bbox.view(N, H * W, 4)
             predicted_bbox = predicted_bbox[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
-            valid_mask = (predicted_bbox[:, 2] - predicted_bbox[:, 0] > 0) & (predicted_bbox[:, 3] - predicted_bbox[:, 1] > 0)
-            predicted_bbox_ = predicted_bbox[valid_mask]
-            if len(predicted_bbox_) != 0:
-                quality_score[target_feat_map_indices_batch_id_vector[valid_mask], target_feat_map_indices[valid_mask]] = \
-                    self.quality_fn(predicted_bbox_.detach(), target_bounding_box_label_matrix[valid_mask])
+            if self.head_bounding_box_format == BoundingBoxFormat.XYXY:
+                valid_mask = (predicted_bbox[:, 2] - predicted_bbox[:, 0] > 0) & (predicted_bbox[:, 3] - predicted_bbox[:, 1] > 0)
+                predicted_bbox_ = predicted_bbox[valid_mask]
+                if len(predicted_bbox_) != 0:
+                    quality_score[target_feat_map_indices_batch_id_vector[valid_mask], target_feat_map_indices[valid_mask]] = \
+                        self.quality_fn(predicted_bbox_.detach(), target_bounding_box_label_matrix[valid_mask])
+            else:
+                quality_score[
+                    target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
+                    self.quality_fn(predicted_bbox.detach(), target_bounding_box_label_matrix)
 
         losses['loss_quality_focal'] = self.quality_focal_loss(cls_score.flatten(2).transpose(1, 2).view(N * H * W, -1), (target_class_label_vector.flatten(0), quality_score.flatten(0)))
 
@@ -61,10 +72,14 @@ class GFocalCriterion(nn.Module):
         if is_non_positives:
             losses['loss_iou'] = torch.mean(predicted_bbox * 0)
         else:
-            if len(predicted_bbox_) == 0:
-                losses['loss_iou'] = torch.mean(predicted_bbox * 0)
+            if self.head_bounding_box_format == BoundingBoxFormat.CXCYWH:
+                losses['loss_iou'] = self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
+                                                   box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) / num_boxes_pos
             else:
-                losses['loss_iou'] = self.iou_loss(predicted_bbox_, target_bounding_box_label_matrix[valid_mask]) / num_boxes_pos
+                if len(predicted_bbox_) == 0:
+                    losses['loss_iou'] = torch.mean(predicted_bbox * 0)
+                else:
+                    losses['loss_iou'] = self.iou_loss(predicted_bbox_, target_bounding_box_label_matrix[valid_mask]) / num_boxes_pos
 
         loss = sum(losses[k] * self.weight_dict[k] for k in losses.keys())
         return (loss, *do_statistic(losses, self.weight_dict))
@@ -114,9 +129,11 @@ def build_gfocal_loss(network_config, train_config):
     else:
         raise NotImplementedError(f'Unknown value: {iou_loss_type}')
 
+    head_bounding_box_format = BoundingBoxFormat[network_config['head']['bounding_box_format']]
+
     loss_weight = {
         'loss_quality_focal': loss_parameters['quality_focal_loss']['weight'],
         'loss_distribution_focal': loss_parameters['distribution_focal_loss']['weight'],
         'loss_iou': loss_parameters['iou_loss']['weight']
     }
-    return GFocalCriterion(qfl, dfl, iou_loss, qa_func, loss_weight, gfocal_reg_max)
+    return GFocalCriterion(qfl, dfl, iou_loss, qa_func, loss_weight, gfocal_reg_max, head_bounding_box_format)

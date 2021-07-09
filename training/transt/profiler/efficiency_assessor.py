@@ -3,7 +3,6 @@ import time
 from fvcore.nn import FlopCountAnalysis, flop_count_table
 
 
-
 class TrackerEfficiencyAssessor:
     def __init__(self, model, pseudo_data_source, batch):
         self.model = model
