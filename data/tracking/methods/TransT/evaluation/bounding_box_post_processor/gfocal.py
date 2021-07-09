@@ -1,5 +1,5 @@
 from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
-from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
+from data.operator.bbox.spatial.normalize import bbox_denormalize
 from data.types.bounding_box_format import BoundingBoxFormat
 
 
@@ -10,7 +10,7 @@ def recover_bounding_box_from_normalized(label, search_region_size):
     return bbox
 
 
-class TransTBoundingBoxPostProcessor:
+class TransTGFocalBoundingBoxPostProcessor:
     def __init__(self, search_region_size, bbox_size_limit_min_wh, bbox_size_limit_in_curated_image, input_format=BoundingBoxFormat.XYXY):
         self.search_region_size = search_region_size
         self.bbox_size_limit_min_wh = bbox_size_limit_min_wh

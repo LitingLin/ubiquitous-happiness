@@ -61,5 +61,5 @@ class TransTEvaluationDataProcessor:
         self.last_frame_curation_parameter = curation_parameter
         return curated_search_image.unsqueeze(0)
 
-    def get_bounding_box(self, bbox_normalized_cxcywh):
-        return self.bounding_box_post_processor(bbox_normalized_cxcywh, self.last_frame_image_size, self.last_frame_curation_parameter)
+    def get_bounding_box(self, bbox_normalized):
+        return self.bounding_box_post_processor(bbox_normalized, self.last_frame_image_size, self.last_frame_curation_parameter)

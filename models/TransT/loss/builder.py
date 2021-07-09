@@ -13,12 +13,16 @@ def build_criterion(network_config, train_config: dict):
         if network_config['head']['type'] == 'SiamFC':
             from .siamfc.builder import build_siamfc_loss
             return build_siamfc_loss(train_config)
+        elif network_config['head']['type'] == 'GFocal-v2':
+            from .gfocal import build_gfocal_loss
+            return build_gfocal_loss(network_config, train_config)
         loss_parameters = train_config['optimization']['loss']
         if 'use_template' in loss_parameters:
             from miscellanies.yaml_ops import yaml_load
             from miscellanies.repo_root import get_repository_root
             import os
             loss_parameters = yaml_load(os.path.join(get_repository_root(), 'config', 'transt', 'templates', 'loss', f"{loss_parameters['use_template']}.yaml"))
+
     else:
         raise NotImplementedError(f"Unknown train config version {train_config['version']}")
 

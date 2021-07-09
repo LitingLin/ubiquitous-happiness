@@ -46,6 +46,11 @@ def build_transt_data_processor(network_config: dict, train_config: dict):
         return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn
     elif network_config['head']['type'] == 'Stark':
         pass
+    elif network_config['head']['type'] == 'GFocal-v2':
+        from .label.gfocal import GFocalLabelGenerator
+        label_generator = GFocalLabelGenerator(network_config['head']['parameters']['input_size'],
+                                    network_config['data']['search_size'])
+        return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn
     elif network_config['head']['type'] == 'SiamFC':
         from .label.siamfc import SiamFCLabelGenerator
         head_parameters = network_config['head']['parameters']

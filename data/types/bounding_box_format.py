@@ -10,3 +10,4 @@ class BoundingBoxFormat(Enum):
     XYWH = auto()
     XYXY = auto()
     Polygon = auto()
+    CXCYWH = auto()

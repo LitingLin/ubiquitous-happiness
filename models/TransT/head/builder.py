@@ -13,5 +13,11 @@ def build_head(network_config):
             return EXP1Head_WithRegBranch(transformer_config['hidden_dim'])
         else:
             raise RuntimeError(f"Unknown value {head_config['quality_assessment_with']}")
+    elif head_config['type'] == 'GFocal-v2':
+        from .gfocal_v2 import GFocalV2Head
+        head_parameters = head_config['parameters']
+        return GFocalV2Head(head_parameters['input_dim'], head_parameters['hidden_dim'], head_parameters['input_size'],
+                            head_parameters['reg_max'], head_parameters['topk'], head_parameters['reg_channels'],
+                            head_parameters['add_mean'])
     else:
         raise RuntimeError(f"Unknown value {head_config['type']}")

@@ -48,7 +48,7 @@ class Transformer(nn.Module):
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         hs = self.decoder(tgt, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed)
-        return hs
+        return hs.unsqueeze(0)
 
 
 class TransformerEncoder(nn.Module):
@@ -96,7 +96,7 @@ class TransformerDecoder(nn.Module):
                            pos=pos, query_pos=query_pos)
 
         output = self.norm(output)
-        return output.unsqueeze(0)
+        return output
 
 
 class TransformerEncoderLayer(nn.Module):
