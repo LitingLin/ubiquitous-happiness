@@ -43,8 +43,8 @@ class GFocalLabelGenerator:
     def __init__(self, search_feat_size, search_region_size, target_bounding_box_format: BoundingBoxFormat):
         self.search_feat_size = search_feat_size
         self.search_region_size = search_region_size
-        self.target_bounding_box_format = target_bounding_box_format
-        assert target_bounding_box_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
+        self.target_bounding_box_format = BoundingBoxFormat[target_bounding_box_format]
+        assert self.target_bounding_box_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
 
     def __call__(self, bbox, is_positive):
         if is_positive:

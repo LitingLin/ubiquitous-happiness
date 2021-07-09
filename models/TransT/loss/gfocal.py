@@ -58,7 +58,7 @@ class GFocalCriterion(nn.Module):
             else:
                 quality_score[
                     target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
-                    self.quality_fn(predicted_bbox.detach(), target_bounding_box_label_matrix)
+                    self.quality_fn(box_cxcywh_to_xyxy(predicted_bbox.detach()), box_cxcywh_to_xyxy(target_bounding_box_label_matrix))
 
         losses['loss_quality_focal'] = self.quality_focal_loss(cls_score.flatten(2).transpose(1, 2).view(N * H * W, -1), (target_class_label_vector.flatten(0), quality_score.flatten(0)))
 
