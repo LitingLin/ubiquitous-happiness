@@ -9,6 +9,7 @@ logging:
     - "baseline"
     - "tiny"
     - "Positive-samples-only"
+    - "GFocal"
 
 type: "T-Baseline"
 
