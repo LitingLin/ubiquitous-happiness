@@ -44,6 +44,9 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
     criterion = build_criterion(net_config, train_config)
     optimizer, lr_scheduler = setup_optimizer(model, net_config, train_config)
 
+    if hasattr(criterion, 'set_epoch'):
+        epoch_changed_event_slots.append(criterion)
+
     if 'sync_bn' in train_config['optimization'] and 'cuda' in device.type:
         if train_config['optimization']['sync_bn']:
             from miscellanies.torch.distributed import is_dist_available_and_initialized

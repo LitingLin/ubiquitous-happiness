@@ -24,6 +24,7 @@ class TransTRunner:
         self.epoch_changed_event_slots = epoch_changed_event_slots
         self.statistics_collectors = statistics_collectors
         self.multi_stage_handlers = multi_stage_handlers
+        self._on_epoch_changed()
 
     def __enter__(self):
         self.start()

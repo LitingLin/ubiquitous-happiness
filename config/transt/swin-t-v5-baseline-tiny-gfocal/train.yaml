@@ -60,6 +60,11 @@ optimization:
       beta: 2.0
       weight: 1.0
       quality_function: "IoU"
+      advanced_strategy:
+        min_quality_score:
+          value: 0
+          drop_epoch: 5
+
     distribution_focal_loss:
       weight: 0.25
     iou_loss:
