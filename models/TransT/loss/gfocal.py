@@ -43,8 +43,11 @@ class GFocalCriterion(nn.Module):
         if not is_non_positives:
             predicted_bbox = predicted_bbox.view(N, H * W, 4)
             predicted_bbox = predicted_bbox[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
-            quality_score[target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
-                self.quality_fn(predicted_bbox.detach(), target_bounding_box_label_matrix)
+            valid_mask = (predicted_bbox[:, 2] - predicted_bbox[:, 0] > 0) & (predicted_bbox[:, 3] - predicted_bbox[:, 1] > 0)
+            predicted_bbox_ = predicted_bbox[valid_mask]
+            if len(predicted_bbox_) != 0:
+                quality_score[target_feat_map_indices_batch_id_vector[valid_mask], target_feat_map_indices[valid_mask]] = \
+                    self.quality_fn(predicted_bbox_.detach(), target_bounding_box_label_matrix[valid_mask])
 
         losses['loss_quality_focal'] = self.quality_focal_loss(cls_score.flatten(2).transpose(1, 2).view(N * H * W, -1), (target_class_label_vector.flatten(0), quality_score.flatten(0)))
 
@@ -58,7 +61,10 @@ class GFocalCriterion(nn.Module):
         if is_non_positives:
             losses['loss_iou'] = torch.mean(predicted_bbox * 0)
         else:
-            losses['loss_iou'] = self.iou_loss(predicted_bbox, target_bounding_box_label_matrix) / num_boxes_pos
+            if len(predicted_bbox_) == 0:
+                losses['loss_iou'] = torch.mean(predicted_bbox * 0)
+            else:
+                losses['loss_iou'] = self.iou_loss(predicted_bbox_, target_bounding_box_label_matrix[valid_mask]) / num_boxes_pos
 
         loss = sum(losses[k] * self.weight_dict[k] for k in losses.keys())
         return (loss, *do_statistic(losses, self.weight_dict))
