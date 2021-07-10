@@ -50,6 +50,7 @@ transformer:
   encoder_num_layers: 4
   decoder_num_layers: 2
   activation: "gelu"
+  num_queries: 49
 
 head:
   type: TransT

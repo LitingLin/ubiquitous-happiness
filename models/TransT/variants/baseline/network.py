@@ -11,9 +11,10 @@ def _get_single_scale(feat):
 
 class BaselineTrackerNetwork(nn.Module):
     def __init__(self, backbone, feature_merger, transformer, head,
+                 num_queries,
                  transformer_hidden_dim,
                  template_output_stage, template_output_dim,
-                 search_output_stage, search_output_dim, search_output_shape):
+                 search_output_stage, search_output_dim):
         super(BaselineTrackerNetwork, self).__init__()
         self.backbone = backbone
         self.feature_merger = feature_merger
@@ -25,7 +26,7 @@ class BaselineTrackerNetwork(nn.Module):
         self.template_input_projection = nn.Linear(template_output_dim, transformer_hidden_dim)
         self.search_input_projection = nn.Linear(search_output_dim, transformer_hidden_dim)
 
-        self.query_embed = nn.Parameter(torch.empty((1, search_output_shape[0] * search_output_shape[1], transformer_hidden_dim), dtype=torch.float))
+        self.query_embed = nn.Parameter(torch.empty((1, num_queries, transformer_hidden_dim), dtype=torch.float))
         nn.init.xavier_uniform_(self.template_input_projection.weight)
         nn.init.xavier_uniform_(self.search_input_projection.weight)
         nn.init.normal_(self.query_embed)

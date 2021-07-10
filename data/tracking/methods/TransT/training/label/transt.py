@@ -14,8 +14,9 @@ def get_target_feat_map_indices(search_feat_size, search_region_size, target_bbo
     (search_feat_size[0] - 1) / (search_region_size[0] - 1), (search_feat_size[1] - 1) / (search_region_size[1] - 1))
     target_bbox_feat_map = target_bbox[0] * scale[0], target_bbox[1] * scale[1], target_bbox[2] * scale[0], target_bbox[3] * scale[1]
     pixel_size = (search_feat_size[0] - 1) / search_feat_size[0], (search_feat_size[1] - 1) / search_feat_size[1]
-    target_bbox_feat_indices = target_bbox_feat_map[0] / pixel_size[0], target_bbox_feat_map[1] / pixel_size[1], target_bbox_feat_map[2] / pixel_size[0], target_bbox_feat_map[3] / pixel_size[1]
-    target_bbox_feat_indices = tuple(int(v) for v in target_bbox_feat_indices)
+    target_bbox_feat_indices = [v // pixel_size[i % 2] if pixel_size[i % 2] != 0 else 0 for i, v in enumerate(target_bbox_feat_map)]
+    # target_bbox_feat_indices = target_bbox_feat_map[0] / pixel_size[0], target_bbox_feat_map[1] / pixel_size[1], target_bbox_feat_map[2] / pixel_size[0], target_bbox_feat_map[3] / pixel_size[1]
+    # target_bbox_feat_indices = tuple(int(v) for v in target_bbox_feat_indices)
     target_bbox_feat_indices = feat_map_indices[target_bbox_feat_indices[1]: target_bbox_feat_indices[3] + 1, target_bbox_feat_indices[0]: target_bbox_feat_indices[2] + 1].flatten()
 
     assert len(target_bbox_feat_indices) != 0
