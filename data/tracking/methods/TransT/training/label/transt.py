@@ -51,8 +51,42 @@ def get_target_feat_map_indices_centerness(search_feat_size, search_region_size,
     return feat_map_indices[torch.min(y_indices): torch.max(y_indices) + 1, torch.min(x_indices): torch.max(x_indices) + 1].flatten()
 
 
-def get_target_feat_map_indices_iou(search_feat_size, search_region_size, target_bbox, threshold):
-    pass
+def _generate_featmap_element_bounding_boxes(search_feat_size, search_region_size):
+    x = torch.linspace(0, search_region_size[0] - 1, search_feat_size[0] + 1)
+    x1 = x[:-1]
+    x2 = x[1:]
+    y = torch.linspace(0, search_region_size[1] - 1, search_feat_size[1] + 1)
+    y1 = y[:-1]
+    y2 = y[1:]
+
+    yy1, xx1 = torch.meshgrid(y1, x1)
+    yy2, xx2 = torch.meshgrid(y2, x2)
+
+    return torch.stack((xx1, yy1, xx2, yy2), dim=-1)
+
+
+def get_target_feat_map_indices_iou(search_feat_size, search_region_size, target_bbox):
+    threshold = 0.2
+    bounding_boxes = _generate_featmap_element_bounding_boxes(search_feat_size, search_region_size).view(-1, 4)
+
+    grid_area = bounding_boxes[0]
+    grid_area = grid_area[2:] - grid_area[:2]
+    grid_area = grid_area[0] * grid_area[1]
+    target_bbox = torch.tensor(target_bbox)
+    lt = torch.max(bounding_boxes[:, :2],
+                   target_bbox[:2])  # [B, rows, cols, 2]
+    rb = torch.min(bounding_boxes[:, 2:],
+                   target_bbox[2:])  # [B, rows, cols, 2]
+
+    wh = torch.clamp(rb - lt, min=0)
+    overlap = wh[..., 0] * wh[..., 1]
+    iou = overlap / grid_area
+
+    indices = torch.where(iou > threshold)[0]
+    if len(indices) == 0:
+        return get_target_feat_map_indices_centerness(search_feat_size, search_region_size, target_bbox)
+    else:
+        return indices
 
 
 def get_target_feat_map_indices_single(search_feat_size, search_region_size, target_bbox):
@@ -97,13 +131,15 @@ class TransTLabelGenerator:
         self.search_region_size = search_region_size
         self.target_bounding_box_format = target_bounding_box_format
         assert target_bounding_box_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
-        assert positive_label_assignment_method in ('round', 'centerness')
+        assert positive_label_assignment_method in ('round', 'centerness', 'iou')
         if search_feat_size[0] * search_region_size[0] == 1:
             self.positive_sample_assignment_fn = get_target_feat_map_indices_single
         elif positive_label_assignment_method == 'round':
             self.positive_sample_assignment_fn = get_target_feat_map_indices
         elif positive_label_assignment_method == 'centerness':
             self.positive_sample_assignment_fn = get_target_feat_map_indices_centerness
+        elif positive_label_assignment_method == 'iou':
+            self.positive_sample_assignment_fn = get_target_feat_map_indices_iou
         else:
             raise NotImplementedError
         self.bounding_box_normalization_helper = bounding_box_normalization_helper
