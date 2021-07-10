@@ -27,7 +27,7 @@ data:
           frame_range: 100
           enforce_fine_positive_sample: true
           enable_adaptive_frame_range: true
-          sampling_method: "causal"
+          sampling_method: "interval"
 
     val:
       batch_size: 64

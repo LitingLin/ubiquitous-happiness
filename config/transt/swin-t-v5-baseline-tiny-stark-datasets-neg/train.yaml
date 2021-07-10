@@ -19,13 +19,13 @@ data:
       batch_size: 64
 
       samples_per_epoch: 1048576
-      negative_sample_ratio: 0
+      negative_sample_ratio: 0.3
 
       sequence_sampler:
         type: "Siamese"
         parameters:
           frame_range: 100
-          enforce_fine_positive_sample: true
+          enforce_fine_positive_sample: false
           enable_adaptive_frame_range: true
           sampling_method: "causal"
 
@@ -44,7 +44,7 @@ data:
           sampling_method: "causal"
 
 optimization:
-  epochs: 60
+  epochs: 85
   optimizer:
     type: "AdamW"
     lr: 1.e-4
@@ -53,7 +53,17 @@ optimization:
     clip_max_norm: 0.1
     lr_scheduler:
       type: "StepLR"
-      lr_drop: 30
+      lr_drop: 42
 
   loss:
-    use_template: "transt"
+    classification:
+      cross_entropy_loss:
+        num_classes: 1
+        background_class_weight: 0.0625
+        weight: 5.8
+    bounding_box_regression:
+      IoU_loss:
+        type: "GIoU"
+        weight: 2
+      L1_loss:
+        weight: 5
