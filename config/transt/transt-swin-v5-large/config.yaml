@@ -31,11 +31,11 @@ transformer:
     template:
       stage: 1
       shape: [14, 14]
-      dim: 256
+      dim: 384
     search:
       stage: 1
       shape: [28, 28]
-      dim: 256
+      dim: 384
 
   position_embedding: "sine"
   hidden_dim: 256
