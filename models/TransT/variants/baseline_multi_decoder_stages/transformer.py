@@ -103,8 +103,7 @@ class Transformer(nn.Module):
 
     def forward(self, src, mask, query_embed, pos_embed):
         batch = src.shape[0]
-        if self.decoder_stage_merge_method == 'pool':
-            query_embed = query_embed.repeat(batch, 1, 1)
+        query_embed = query_embed.repeat(batch, 1, 1)
         tgt = torch.zeros((batch, query_embed.shape[1], query_embed.shape[2]), dtype=query_embed.dtype, device=query_embed.device)
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         tgt = self.decoder(tgt, memory, memory_key_padding_mask=mask,
