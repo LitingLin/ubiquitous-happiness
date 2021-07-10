@@ -9,7 +9,7 @@ logging:
 
 version: 5
 
-type: "TransT-Different-Output-Stage"
+type: "TransT-Different-Output-Stage-2"
 
 data:
   area_factor:
