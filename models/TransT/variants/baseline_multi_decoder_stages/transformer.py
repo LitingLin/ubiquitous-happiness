@@ -87,6 +87,8 @@ class Transformer(nn.Module):
         elif decoder_stage_merge_method == 'conv':
             self.patch_merging_decoder = nn.Conv1d(d_model, d_model, 4, 4)
             self.patch_merging_num_queries = nn.Conv1d(d_model, d_model, 4, 4)
+        elif decoder_stage_merge_method == 'pool':
+            self.patch_merging_decoder = nn.MaxPool1d(4)
         else:
             raise NotImplementedError
         self.decoder_stage_merge_method = decoder_stage_merge_method
@@ -108,13 +110,22 @@ class Transformer(nn.Module):
         if self.decoder_stage_merge_method == 'mlp':
             tgt = self.patch_merging_decoder(tgt)
             query_embed = self.patch_merging_num_queries(query_embed)
-        else:
+        elif self.decoder_stage_merge_method == 'conv':
             tgt = tgt.transpose(1, 2)
             query_embed = query_embed.transpose(1, 2)
             tgt = self.patch_merging_decoder(tgt)
             query_embed = self.patch_merging_num_queries(query_embed)
             tgt = tgt.transpose(1, 2)
             query_embed = query_embed.transpose(1, 2)
+        elif self.decoder_stage_merge_method == 'pool':
+            tgt = tgt.transpose(1, 2)
+            query_embed = query_embed.transpose(1, 2)
+            tgt = self.patch_merging_decoder(torch.cat((tgt, query_embed), dim=-1))
+            tgt, query_embed = torch.chunk(tgt, 2, dim=-1)
+            tgt = tgt.transpose(1, 2)
+            query_embed = query_embed.transpose(1, 2)
+        else:
+            raise NotImplementedError
         hs = self.decoder_stage_2(tgt, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed)
         return hs.unsqueeze(0)
