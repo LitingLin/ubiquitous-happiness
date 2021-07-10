@@ -21,7 +21,7 @@ class _DataWrapper:
 
 
 class _VisualizerDataPrefetcher:
-    def __init__(self, data_loader, enable_prefetch = True):
+    def __init__(self, data_loader, enable_prefetch = False):
         self.data_loader = data_loader
         self.enable_prefetch = enable_prefetch
         self._begin()

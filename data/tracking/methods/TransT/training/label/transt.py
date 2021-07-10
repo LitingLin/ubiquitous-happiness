@@ -33,20 +33,26 @@ def _get_featmap_element_coord_matrix(search_feat_size, search_region_size):
 
 def get_target_feat_map_indices_centerness(search_feat_size, search_region_size, target_bbox):
     x_feat_center, y_feat_center = _get_featmap_element_coord_matrix(search_feat_size, search_region_size)
-    x_indices = x_feat_center >= target_bbox[0] & x_feat_center <= target_bbox[2]
-    y_indices = y_feat_center >= target_bbox[1] & y_feat_center <= target_bbox[3]
-    if len(x_indices) == 0:
+    x_indices = (x_feat_center >= target_bbox[0]) & (x_feat_center <= target_bbox[2])
+    y_indices = (y_feat_center >= target_bbox[1]) & (y_feat_center <= target_bbox[3])
+    if not torch.any(x_indices):
         x_center = (target_bbox[0] + target_bbox[2]) / 2
         x_diff = torch.abs(x_feat_center - x_center)
         x_indices = torch.min(x_diff) == x_diff
-    if len(y_indices) == 0:
+    if not torch.any(y_indices):
         y_center = (target_bbox[1] + target_bbox[3]) / 2
         y_diff = torch.abs(y_feat_center - y_center)
         y_indices = torch.min(y_diff) == y_diff
+    x_indices = torch.where(x_indices)[0]
+    y_indices = torch.where(y_indices)[0]
 
     feat_map_indices = torch.arange(0, search_feat_size[0] * search_feat_size[1], dtype=torch.long)
     feat_map_indices = feat_map_indices.reshape(search_feat_size[1], search_feat_size[0])
-    return feat_map_indices[y_indices, x_indices]
+    return feat_map_indices[torch.min(y_indices): torch.max(y_indices) + 1, torch.min(x_indices): torch.max(x_indices) + 1].flatten()
+
+
+def get_target_feat_map_indices_iou(search_feat_size, search_region_size, target_bbox, threshold):
+    pass
 
 
 def get_target_feat_map_indices_single(search_feat_size, search_region_size, target_bbox):
@@ -91,14 +97,13 @@ class TransTLabelGenerator:
         self.search_region_size = search_region_size
         self.target_bounding_box_format = target_bounding_box_format
         assert target_bounding_box_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
-        self.positive_label_assignment_method = positive_label_assignment_method
         assert positive_label_assignment_method in ('round', 'centerness')
         if search_feat_size[0] * search_region_size[0] == 1:
-            self.positive_label_assignment_method = get_target_feat_map_indices_single
+            self.positive_sample_assignment_fn = get_target_feat_map_indices_single
         elif positive_label_assignment_method == 'round':
             self.positive_sample_assignment_fn = get_target_feat_map_indices
         elif positive_label_assignment_method == 'centerness':
-            self.positive_label_assignment_method = get_target_feat_map_indices_centerness
+            self.positive_sample_assignment_fn = get_target_feat_map_indices_centerness
         else:
             raise NotImplementedError
         self.bounding_box_normalization_helper = bounding_box_normalization_helper

@@ -5,11 +5,11 @@ from miscellanies.Viewer.qt5_viewer import Qt5Viewer, QPixmap, QPen, QColor
 from ._common import imagenet_denormalize
 import math
 from miscellanies.qt_numpy_interop import numpy_rgb888_to_qimage
-from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
 from data.operator.bbox.spatial.cxcywh2xyxy import bbox_cxcywh2xyxy
 from data.operator.bbox.spatial.xyxy2xywh import bbox_xyxy2xywh
 from data.operator.bbox.transform.pixel_coordinate_system.mapping import bbox_pixel_coordinate_system_aligned_to_half_pixel_offset
-
+from data.tracking.methods.TransT._common import _get_bounding_box_format, _get_bounding_box_normalization_helper
+from data.types.bounding_box_format import BoundingBoxFormat
 
 def _bbox_format_convert(bbox):
     return bbox_xyxy2xywh(bbox_pixel_coordinate_system_aligned_to_half_pixel_offset(bbox))
@@ -25,6 +25,8 @@ class TransTDataPreprocessingVisualizer:
         if 'imagenet_normalization' in network_config['data']:
             self.imagenet_normalized = network_config['data']['imagenet_normalization']
         self.bbox_pen = QPen(QColor(255, 0, 0, int(255 * 0.5)))
+        self.bounding_box_format = _get_bounding_box_format(network_config)
+        self.bounding_box_normalization_helper = _get_bounding_box_normalization_helper(network_config)
 
     def on_create(self):
         viewer = Qt5Viewer(n_vertical_subplots=self.n_vertical_subplots, n_horizontal_subplots=self.n_horizontal_subplots)
@@ -81,8 +83,9 @@ class TransTDataPreprocessingVisualizer:
                 assert (bounding_boxes - bounding_boxes[0]).sum() == 0
                 bounding_box = bounding_boxes[0]
                 bounding_box = bounding_box.tolist()
-                bounding_box = bbox_cxcywh2xyxy(bounding_box)
-                bounding_box = bbox_denormalize(bounding_box, (x_W, x_H))
+                if self.bounding_box_format == BoundingBoxFormat.CXCYWH:
+                    bounding_box = bbox_cxcywh2xyxy(bounding_box)
+                bounding_box = self.bounding_box_normalization_helper.denormalize(bounding_box, (x_W, x_H))
                 recovered_bbox.append(bounding_box)
         else:
             recovered_bbox = [None] * N
