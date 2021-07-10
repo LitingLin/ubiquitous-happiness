@@ -5,6 +5,7 @@ from miscellanies.Parser.ini import parse_ini_file
 from miscellanies.Parser.txt import load_numpy_array_from_txt
 from miscellanies.Numpy.dtype import try_get_int_array
 import ast
+import numpy as np
 
 _category_names = ['JetLev-Flyer',
                    'abrocome',
@@ -549,6 +550,7 @@ def _construct_GOT10k_non_public_data(constructor: SingleObjectTrackingDatasetCo
 def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
     root_path = seed.root_path
     data_split = seed.data_split
+    sequence_filter = seed.sequence_filter
 
     if data_split == DataSplit.Training:
         folder = 'train'
@@ -566,6 +568,11 @@ def construct_GOT10k(constructor: SingleObjectTrackingDatasetConstructor, seed):
         sequence_name = sequence_name.strip()
         current_sequence_path = os.path.join(root_path, folder, sequence_name)
         sequence_list.append((sequence_name, current_sequence_path))
+
+    if sequence_filter is not None:
+        sequence_id_file_path = os.path.join(os.path.dirname(__file__), 'data_specs', f'{sequence_filter}.txt')
+        sequence_ids = np.loadtxt(sequence_id_file_path, dtype=np.uint32)
+        sequence_list = [sequence_list[id_] for id_ in sequence_ids]
 
     constructor.set_total_number_of_sequences(len(sequence_list))
 
