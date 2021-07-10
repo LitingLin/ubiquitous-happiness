@@ -12,9 +12,6 @@ data:
     color_jitter: 0.4
     stage_2_on_host_process: ture
 
-  label:
-    positive_assignment_method: ""
-
   sampler:
     version: 2
 

@@ -40,11 +40,11 @@ def build_transt_data_processor(network_config: dict, train_config: dict):
     head_type = network_config['head']['type']
     if head_type == 'TransT' or head_type == 'GFocal-v2':
         from .label.transt import TransTLabelGenerator
-        default_possitive_assignment_method = 'round'
+        positive_label_assignment_method = 'round'
         if 'label' in train_config['data']:
-            default_possitive_assignment_method = train_config['data']['label']['positive_samples_assignment_method']
+            positive_label_assignment_method = train_config['data']['label']['positive_samples_assignment_method']
         label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'],
-                                               default_possitive_assignment_method,
+                                               positive_label_assignment_method,
                                                _get_bounding_box_format(network_config),
                                                _get_bounding_box_normalization_helper(network_config))
         return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn
