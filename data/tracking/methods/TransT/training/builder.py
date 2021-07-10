@@ -1,5 +1,6 @@
 from data.tracking.methods.TransT.training.collate_fn import transt_collate_fn, SiamFC_collate_fn
 from data.tracking.methods.TransT.training.processor_stage2 import TransTStage2DataProcessor
+from data.tracking.methods.TransT._common import _get_bounding_box_normalization_helper, _get_bounding_box_format
 
 
 def _get_imagenet_normalization_option(network_config):
@@ -36,23 +37,22 @@ def _build_transt_data_processor(network_config: dict, train_config: dict, label
 
 
 def build_transt_data_processor(network_config: dict, train_config: dict):
-    if network_config['head']['type'] == 'TransT':
+    head_type = network_config['head']['type']
+    if head_type == 'TransT' or head_type == 'GFocal-v2':
         from .label.transt import TransTLabelGenerator
-        label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'])
+        default_possitive_assignment_method = 'round'
+        if 'label' in train_config['data']:
+            default_possitive_assignment_method = train_config['data']['label']['positive_samples_assignment_method']
+        label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'],
+                                               default_possitive_assignment_method,
+                                               _get_bounding_box_format(network_config),
+                                               _get_bounding_box_normalization_helper(network_config))
         return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn
-    elif 'exp-1' in network_config['head']['type']:
+    elif 'exp-1' in head_type:
         from .label.exp_1 import Exp1LabelGenerator
         label_generator = Exp1LabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'], train_config['data']['gaussian_target_label_min_overlap'])
         return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn
-    elif network_config['head']['type'] == 'Stark':
-        pass
-    elif network_config['head']['type'] == 'GFocal-v2':
-        from .label.gfocal import GFocalLabelGenerator
-        label_generator = GFocalLabelGenerator(network_config['head']['parameters']['input_size'],
-                                               network_config['data']['search_size'],
-                                               network_config['head']['bounding_box_format'])
-        return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn
-    elif network_config['head']['type'] == 'SiamFC':
+    elif head_type == 'SiamFC':
         from .label.siamfc import SiamFCLabelGenerator
         head_parameters = network_config['head']['parameters']
         label_generator = SiamFCLabelGenerator(head_parameters['size'], head_parameters['r_pos'], head_parameters['r_neg'], head_parameters['total_stride'])

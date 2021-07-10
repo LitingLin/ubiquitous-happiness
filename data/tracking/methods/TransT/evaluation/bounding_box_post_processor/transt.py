@@ -1,27 +1,29 @@
 from data.operator.bbox.spatial.scale_and_translate import bbox_scale_and_translate
-from data.operator.bbox.spatial.utility.aligned.normalize_v2 import bbox_denormalize
 from data.types.bounding_box_format import BoundingBoxFormat
 
 
-def recover_bounding_box_from_normalized(label, search_region_size):
+def recover_bounding_box_from_normalized(label, search_region_size, bbox_normalizer):
     label = label.tolist()
 
-    bbox = bbox_denormalize(label, search_region_size)
+    bbox = bbox_normalizer.denormalize(label, search_region_size)
     return bbox
 
 
 class TransTBoundingBoxPostProcessor:
-    def __init__(self, search_region_size, bbox_size_limit_min_wh, bbox_size_limit_in_curated_image, input_format=BoundingBoxFormat.XYXY):
+    def __init__(self, search_region_size, bbox_size_limit_min_wh, bbox_size_limit_in_curated_image,
+                 bbox_normalizer,
+                 input_format=BoundingBoxFormat.XYXY):
         self.search_region_size = search_region_size
         self.bbox_size_limit_min_wh = bbox_size_limit_min_wh
         self.bbox_size_limit_in_curated_image = bbox_size_limit_in_curated_image
         assert input_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
         self.input_format = input_format
+        self.bbox_normalizer = bbox_normalizer
 
     def __call__(self, bbox_normalized, image_size, curation_parameter):
         curation_parameter = curation_parameter.tolist()
         curation_scaling, curation_source_center_point, curation_target_center_point = curation_parameter
-        bbox = recover_bounding_box_from_normalized(bbox_normalized, self.search_region_size)
+        bbox = recover_bounding_box_from_normalized(bbox_normalized, self.search_region_size, self.bbox_normalizer)
         if self.input_format == BoundingBoxFormat.CXCYWH:
             from data.operator.bbox.spatial.cxcywh2xyxy import bbox_cxcywh2xyxy
             bbox = bbox_cxcywh2xyxy(bbox)

@@ -21,6 +21,9 @@ data:
   search_size: [224, 224]
   imagenet_normalization: true
   interpolation_mode: "bicubic"
+  bounding_box_normalization_protocol:
+    interval: "[)"
+    range: [0, 1]
 
 backbone:
   type: "swin_transformer"

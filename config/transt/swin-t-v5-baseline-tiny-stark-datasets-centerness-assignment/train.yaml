@@ -13,7 +13,7 @@ data:
     stage_2_on_host_process: ture
 
   label:
-    positive_assignment_method: ""
+    positive_samples_assignment_method: "centerness"
 
   sampler:
     version: 2

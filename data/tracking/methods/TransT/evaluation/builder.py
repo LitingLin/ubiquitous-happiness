@@ -1,12 +1,6 @@
 from data.tracking.methods.TransT.evaluation.data_processor.transt import TransTEvaluationDataProcessor
 from data.types.bounding_box_format import BoundingBoxFormat
-
-
-def determine_bounding_box_format(network_config: dict):
-    if 'bounding_box_format' in network_config['head']:
-        return BoundingBoxFormat[network_config['head']['bounding_box_format']]
-    else:
-        return BoundingBoxFormat.CXCYWH
+from data.tracking.methods.TransT._common import _get_bounding_box_format, _get_bounding_box_normalization_helper
 
 
 def build_siamfc_evaluation_data_processor(network_config, evaluation_config, device, preprocessing_on_device):
@@ -45,17 +39,9 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
     else:
         bbox_size_limit_in_feat_space = evaluation_config['tracking']['bbox_size_limit_in_feat_space']
 
-    bounding_box_format = determine_bounding_box_format(network_config)
-    if network_config['head']['type'] != 'GFocal-V2':
-        from data.tracking.methods.TransT.evaluation.bounding_box_post_processor.transt import \
-            TransTBoundingBoxPostProcessor
-        bounding_box_post_processor = TransTBoundingBoxPostProcessor(network_config['data']['search_size'], evaluation_config['tracking']['min_wh'], bbox_size_limit_in_feat_space, bounding_box_format)
-    else:
-        from data.tracking.methods.TransT.evaluation.bounding_box_post_processor.gfocal import \
-            TransTGFocalBoundingBoxPostProcessor
-        bounding_box_post_processor = TransTGFocalBoundingBoxPostProcessor(network_config['data']['search_size'],
-                                                                     evaluation_config['tracking']['min_wh'],
-                                                                     bbox_size_limit_in_feat_space, bounding_box_format)
+    from data.tracking.methods.TransT.evaluation.bounding_box_post_processor.transt import \
+        TransTBoundingBoxPostProcessor
+    bounding_box_post_processor = TransTBoundingBoxPostProcessor(network_config['data']['search_size'], evaluation_config['tracking']['min_wh'], bbox_size_limit_in_feat_space, _get_bounding_box_normalization_helper(network_config), _get_bounding_box_format(network_config))
 
     data_processor = TransTEvaluationDataProcessor(
         network_config['data']['area_factor']['template'], network_config['data']['area_factor']['search'],
