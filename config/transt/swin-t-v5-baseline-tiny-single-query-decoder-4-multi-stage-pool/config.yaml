@@ -54,7 +54,7 @@ transformer:
   encoder_num_layers: 4
   decoder_num_layers: 2
   decoder_stage_2_num_layers: 2
-  decoder_stage_merge_method: "conv"
+  decoder_stage_merge_method: "pool"
   activation: "gelu"
   num_queries: 4
 
