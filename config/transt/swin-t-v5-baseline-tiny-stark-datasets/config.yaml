@@ -9,6 +9,7 @@ logging:
     - "baseline"
     - "tiny"
     - "Positive-samples-only"
+    - "Stack datasets"
 
 type: "T-Baseline"
 
