@@ -88,7 +88,7 @@ class Transformer(nn.Module):
             self.patch_merging_decoder = nn.Conv1d(d_model, d_model, 4, 4)
             self.patch_merging_num_queries = nn.Conv1d(d_model, d_model, 4, 4)
         elif decoder_stage_merge_method == 'pool':
-            self.patch_merging_decoder = nn.MaxPool1d(4)
+            self.patch_merging_decoder = nn.MaxPool1d(4, return_indices=True)
         else:
             raise NotImplementedError
         self.decoder_stage_merge_method = decoder_stage_merge_method
@@ -103,6 +103,7 @@ class Transformer(nn.Module):
 
     def forward(self, src, mask, query_embed, pos_embed):
         batch = src.shape[0]
+        query_embed = query_embed.repeat(batch, 1, 1)
         tgt = torch.zeros((batch, query_embed.shape[1], query_embed.shape[2]), dtype=query_embed.dtype, device=query_embed.device)
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         tgt = self.decoder(tgt, memory, memory_key_padding_mask=mask,
@@ -120,8 +121,9 @@ class Transformer(nn.Module):
         elif self.decoder_stage_merge_method == 'pool':
             tgt = tgt.transpose(1, 2)
             query_embed = query_embed.transpose(1, 2)
-            tgt = self.patch_merging_decoder(torch.cat((tgt, query_embed), dim=-1))
-            tgt, query_embed = torch.chunk(tgt, 2, dim=-1)
+            tgt, pool_indices = self.patch_merging_decoder(tgt)
+            query_embed = query_embed.gather(dim=2, index=pool_indices)
+            # query_embed = query_embed[:, pool_indices, :]
             tgt = tgt.transpose(1, 2)
             query_embed = query_embed.transpose(1, 2)
         else:
