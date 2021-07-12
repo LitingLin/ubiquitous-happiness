@@ -1,0 +1,43 @@
+name: "TransT-Swin"
+
+version: 5
+
+logging:
+  category: "Swin-T-v3"
+  tags:
+    - "TransT"
+    - "Swin-Transformer"
+    - "LePE"
+
+
+type: "TransT-SwinT-CrossAttention-lepe"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [112, 112]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_base_patch4_window7_224_in22k"
+    output_layers: [1]
+
+transformer:
+  template_size: [14, 14]
+  search_size: [28, 28]
+  hidden_dim: 256  # consist with backbone
+  drop_path_rate: 0.2
+  nheads: 8
+  featurefusion_layers: 4
+  position_encoder_spatial_locality: 3
+  position_encoder_dim_locality: 4
+
+head:
+  type: TransT
+  parameters:
+    input_size: [28, 28]
