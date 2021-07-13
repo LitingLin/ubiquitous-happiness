@@ -24,3 +24,7 @@ DATASETS:
   GOT10k:
     SPLITS:
       - val
+
+  LaSOT:
+    SPLITS:
+      - val
