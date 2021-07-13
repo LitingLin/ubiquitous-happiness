@@ -63,7 +63,7 @@ head:
     hidden_dim: 384
     input_size: [7, 7]
 
-    reg_max: 224
+    reg_max: 223
     topk: 4
     reg_channels: 64
     add_mean: true
