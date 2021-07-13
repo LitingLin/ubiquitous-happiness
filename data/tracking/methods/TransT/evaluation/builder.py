@@ -55,6 +55,9 @@ def build_evaluation_data_processors(network_config, evaluation_config, device):
     elif network_config['head']['type'] == 'exp-1':
         from data.tracking.methods.TransT.evaluation.post_processor.exp_1 import TransTExp1TrackingPostProcessing
         network_post_processor = TransTExp1TrackingPostProcessing(evaluation_config['tracking']['window_penalty'] > 0, evaluation_config['tracking']['with_quality_assessment'], network_config['head']['parameters']['input_size'], device, evaluation_config['tracking']['window_penalty'])
+    elif network_config['head']['type'] == 'GFocal-v2':
+        from .post_processor.gfocal import GFocalTrackingPostProcessing
+        network_post_processor = GFocalTrackingPostProcessing(evaluation_config['tracking']['window_penalty'] > 0, network_config['head']['parameters']['input_size'], device, evaluation_config['tracking']['window_penalty'])
     else:
         raise RuntimeError(f"Unknown value {network_config['head']['type']}")
     return data_processor, network_post_processor

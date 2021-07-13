@@ -12,9 +12,6 @@ data:
     color_jitter: 0.4
     stage_2_on_host_process: ture
 
-  label:
-    positive_samples_assignment_method: "iou"
-
   sampler:
     version: 2
 
