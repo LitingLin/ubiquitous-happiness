@@ -1,0 +1,56 @@
+name: "TransT-Swin-PVT-Tiny-Stage-3"
+
+version: 5
+
+logging:
+  category: "Swin-T-v3"
+  tags:
+    - "TransT"
+    - "Swin-Transformer"
+    - "Feature-fusion"
+    - "PVT"
+    - "Positive-samples-only"
+    - "Stack datasets"
+    - "Stage 3"
+
+type: "TransT-PVT"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [112, 112]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_tiny_patch4_window7_224"
+    output_layers: [1, 2]
+
+transformer:
+  backbone_output_layers:
+    template:
+      stage: 1
+      shape: [14, 14]
+      dim: 192
+    search:
+      stage: 2
+      shape: [14, 14]
+      dim: 384
+  hidden_dim: 768
+  num_heads: 8
+  mlp_ratio: 4
+  qkv_bias: true
+  drop_rate: 0
+  attn_drop_rate: 0
+  drop_path_rate: 0.1
+  num_layers: 4
+  sr_ratio: 2
+
+head:
+  type: TransT
+  parameters:
+    input_size: [14, 14]
