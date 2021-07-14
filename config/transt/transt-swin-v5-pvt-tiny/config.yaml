@@ -39,6 +39,7 @@ transformer:
       stage: 3
       shape: [7, 7]
       dim: 768
+  enable_dim_projection: false
   hidden_dim: 384
   num_heads: 4
   mlp_ratio: 4

@@ -50,10 +50,16 @@ class FeatureFusionNetwork(nn.Module):
 def build_pvt_feature_fusion(network_config: dict):
     transformer_config = network_config['transformer']
 
-    template_input_dim = transformer_config['backbone_output_layers']['template']['dim']
-    search_input_dim = transformer_config['backbone_output_layers']['search']['dim']
+    enable_dim_projection = network_config['transformer']['enable_dim_projection']
 
     hidden_dim = transformer_config['hidden_dim']
+    if enable_dim_projection:
+        template_input_dim = hidden_dim
+        search_input_dim = hidden_dim
+    else:
+        template_input_dim = transformer_config['backbone_output_layers']['template']['dim']
+        search_input_dim = transformer_config['backbone_output_layers']['search']['dim']
+
     num_heads = transformer_config['num_heads']
     mlp_ratio = transformer_config['mlp_ratio']
     qkv_bias = transformer_config['qkv_bias']

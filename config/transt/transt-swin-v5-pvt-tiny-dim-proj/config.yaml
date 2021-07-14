@@ -1,4 +1,4 @@
-name: "TransT-Swin-PVT-Tiny-Stage-3"
+name: "TransT-Swin-PVT-Tiny"
 
 version: 5
 
@@ -11,7 +11,6 @@ logging:
     - "PVT"
     - "Positive-samples-only"
     - "Stack datasets"
-    - "Stage 3"
 
 type: "TransT-PVT"
 
@@ -28,19 +27,19 @@ backbone:
   type: "swin_transformer"
   parameters:
     name: "swin_tiny_patch4_window7_224"
-    output_layers: [1, 2]
+    output_layers: [2, 3]
 
 transformer:
   backbone_output_layers:
     template:
-      stage: 1
-      shape: [14, 14]
-      dim: 192
-    search:
       stage: 2
-      shape: [14, 14]
+      shape: [7, 7]
       dim: 384
-  enable_dim_projection: false
+    search:
+      stage: 3
+      shape: [7, 7]
+      dim: 768
+  enable_dim_projection: true
   hidden_dim: 384
   num_heads: 4
   mlp_ratio: 4
@@ -49,9 +48,9 @@ transformer:
   attn_drop_rate: 0
   drop_path_rate: 0.1
   num_layers: 2
-  sr_ratio: 2
+  sr_ratio: 1
 
 head:
   type: TransT
   parameters:
-    input_size: [14, 14]
+    input_size: [7, 7]

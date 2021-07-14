@@ -12,6 +12,13 @@ def build_pvt_feature_fusion_tracker(network_config: dict, load_pretrained=True)
     template_output_shape = network_config['transformer']['backbone_output_layers']['template']['shape']
     search_output_stage = network_config['transformer']['backbone_output_layers']['search']['stage']
     search_output_shape = network_config['transformer']['backbone_output_layers']['search']['shape']
+
+    enable_projection = network_config['transformer']['enable_dim_projection']
+    template_output_dim = network_config['transformer']['backbone_output_layers']['template']['dim']
+    search_output_dim = network_config['transformer']['backbone_output_layers']['search']['dim']
+    template_hidden_dim = network_config['transformer']['hidden_dim']
+
     return PVTFeatureFusionNetwork(backbone, transformer, head,
-                                   template_output_stage, template_output_shape,
-                                   search_output_stage, search_output_shape)
+                                   template_hidden_dim, enable_projection,
+                                   template_output_stage, template_output_dim, template_output_shape,
+                                   search_output_stage, search_output_dim, search_output_shape)
