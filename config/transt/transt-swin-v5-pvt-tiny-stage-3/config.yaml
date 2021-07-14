@@ -40,7 +40,7 @@ transformer:
       stage: 2
       shape: [14, 14]
       dim: 384
-  hidden_dim: 768
+  hidden_dim: 384
   num_heads: 8
   mlp_ratio: 4
   qkv_bias: true
