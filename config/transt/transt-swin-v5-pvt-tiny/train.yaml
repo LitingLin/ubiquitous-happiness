@@ -16,7 +16,7 @@ data:
     version: 2
 
     train:
-      batch_size: 16
+      batch_size: 64
 
       samples_per_epoch: 1048576
       negative_sample_ratio: 0
@@ -30,7 +30,7 @@ data:
           sampling_method: "causal"
 
     val:
-      batch_size: 16
+      batch_size: 64
 
       samples_per_epoch: 16384
       negative_sample_ratio: 0.3

@@ -30,7 +30,7 @@ class PVTFeatureFusionNetwork(nn.Module):
         x_feat = self._forward_feat(x, self.search_output_stage)
 
         feat = self.transformer(z_feat, x_feat, *self.template_output_shape, *self.search_output_shape)
-        return self.head(feat)
+        return self.head(feat.unsqueeze(0))
 
     @torch.no_grad()
     def template(self, z):
@@ -41,4 +41,4 @@ class PVTFeatureFusionNetwork(nn.Module):
         x_feat = self._forward_feat(x, self.search_output_stage)
 
         feat = self.transformer(z_feat, x_feat, *self.template_output_shape, *self.search_output_shape)
-        return self.head(feat)
+        return self.head(feat.unsqueeze(0))

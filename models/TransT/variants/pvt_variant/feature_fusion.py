@@ -36,8 +36,8 @@ class FeatureFusionNetwork(nn.Module):
                                        hidden_dim, num_heads, mlp_ratio, qkv_bias, qk_scale, drop_rate,
                                        attn_drop_rate, dpr[i], sr_ratio, act_layer, norm_layer)
              for i in range(num_layers)])
-        self.decoder = FeatureFusionDecoderLayer(hidden_dim, hidden_dim, hidden_dim, num_heads, qkv_bias, qk_scale,
-                                                 drop_rate, attn_drop_rate, drop_path_rate, sr_ratio,
+        self.decoder = FeatureFusionDecoderLayer(hidden_dim, hidden_dim, hidden_dim, num_heads, mlp_ratio, qkv_bias,
+                                                 qk_scale, drop_rate, attn_drop_rate, drop_path_rate, sr_ratio,
                                                  act_layer, norm_layer)
         self.apply(_init_weights)
 
@@ -63,5 +63,5 @@ def build_pvt_feature_fusion(network_config: dict):
     num_layers = transformer_config['num_layers']
     sr_ratio = transformer_config['sr_ratio']
 
-    return FeatureFusionNetwork(template_input_dim, search_input_dim, hidden_dim, num_heads, mlp_ratio, qkv_bias,
+    return FeatureFusionNetwork(template_input_dim, search_input_dim, hidden_dim, num_heads, mlp_ratio, qkv_bias, None,
                                 drop_rate, attn_drop_rate, drop_path_rate, num_layers=num_layers, sr_ratio=sr_ratio)
