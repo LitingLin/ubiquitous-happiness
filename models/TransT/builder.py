@@ -69,5 +69,8 @@ def build_transt(network_config, load_pretrained=True):
     elif network_config['version'] == 5 and network_config['type'] == 'TransT-SwinT-CrossAttention-lepe':
         from .variants.lepe_cross_attention.builder import build_relative_position_transt_tracker
         return build_relative_position_transt_tracker(network_config, load_pretrained)
+    elif network_config['version'] == 5 and network_config['type'] == 'TransT-PVT':
+        from .variants.pvt_variant.builder import build_pvt_feature_fusion_tracker
+        return build_pvt_feature_fusion_tracker(network_config, load_pretrained)
     else:
         raise NotImplementedError(f'Unknown version {network_config["version"]}')

@@ -1,6 +1,8 @@
+import torch
 import torch.nn as nn
 from timm.models.layers import trunc_normal_
 import math
+from .feature_fusion_module import FeatureFusionEncoderLayer, FeatureFusionDecoderLayer
 
 
 def _init_weights(m):
@@ -20,61 +22,46 @@ def _init_weights(m):
 
 
 class FeatureFusionNetwork(nn.Module):
-
-    def __init__(self, d_model=512, nhead=8, num_featurefusion_layers=4,
-                 dim_feedforward=2048, dropout=0.1, activation="relu"):
+    def __init__(self, template_input_dim, search_input_dim, hidden_dim, num_heads=8,
+                 mlp_ratio=4, qkv_bias=False, qk_scale=None, drop_rate=0.,
+                 attn_drop_rate=0., drop_path_rate=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, num_layers=4,
+                 sr_ratio=2):
         super().__init__()
 
-        featurefusion_layer = FeatureFusionLayer(d_model, nhead, dim_feedforward, dropout, activation)
-        self.encoder = Encoder(featurefusion_layer, num_featurefusion_layers)
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, num_layers)]  # stochastic depth decay rule
 
-        decoderCFA_layer = DecoderCFALayer(d_model, nhead, dim_feedforward, dropout, activation)
-        decoderCFA_norm = nn.LayerNorm(d_model)
-        self.decoder = Decoder(decoderCFA_layer, decoderCFA_norm)
-
+        self.encoder = nn.ModuleList(
+            [FeatureFusionEncoderLayer(template_input_dim if i == 0 else hidden_dim,
+                                       search_input_dim if i == 0 else hidden_dim,
+                                       hidden_dim, num_heads, mlp_ratio, qkv_bias, qk_scale, drop_rate,
+                                       attn_drop_rate, dpr[i], sr_ratio, act_layer, norm_layer)
+             for i in range(num_layers)])
+        self.decoder = FeatureFusionDecoderLayer(hidden_dim, hidden_dim, hidden_dim, num_heads, qkv_bias, qk_scale,
+                                                 drop_rate, attn_drop_rate, drop_path_rate, sr_ratio,
+                                                 act_layer, norm_layer)
         self.apply(_init_weights)
 
-        self.d_model = d_model
-        self.nhead = nhead
-
-    def _reset_parameters(self):
-        for p in self.parameters():
-            if p.dim() > 1:
-                nn.init.xavier_uniform_(p)
-
-    def forward(self, src_temp, src_search, pos_temp, pos_search):
-        memory_temp, memory_search = self.encoder(src1=src_temp, src2=src_search,
-                                                  pos_src1=pos_temp,
-                                                  pos_src2=pos_search)
-        hs = self.decoder(memory_search, memory_temp,
-                          pos_enc=pos_temp, pos_dec=pos_search)
-        return hs.unsqueeze(0)
+    def forward(self, x, y, x_H, x_W, y_H, y_W):
+        for encoder in self.encoder:
+            x, y = encoder(x, y, x_H, x_W, y_H, y_W)
+        return self.decoder(x, y, x_H, x_W, y_H, y_W)
 
 
-class Decoder(nn.Module):
+def build_pvt_feature_fusion(network_config: dict):
+    transformer_config = network_config['transformer']
 
-    def __init__(self, decoderCFA_layer, norm=None):
-        super().__init__()
-        self.layers = _get_clones(decoderCFA_layer, 1)
-        self.norm = norm
+    template_input_dim = transformer_config['backbone_output_layers']['template']['dim']
+    search_input_dim = transformer_config['backbone_output_layers']['search']['dim']
 
-    def forward(self, tgt, memory,
-                tgt_mask: Optional[Tensor] = None,
-                memory_mask: Optional[Tensor] = None,
-                tgt_key_padding_mask: Optional[Tensor] = None,
-                memory_key_padding_mask: Optional[Tensor] = None,
-                pos_enc: Optional[Tensor] = None,
-                pos_dec: Optional[Tensor] = None):
-        output = tgt
+    hidden_dim = transformer_config['hidden_dim']
+    num_heads = transformer_config['num_heads']
+    mlp_ratio = transformer_config['mlp_ratio']
+    qkv_bias = transformer_config['qkv_bias']
+    drop_rate = transformer_config['drop_rate']
+    attn_drop_rate = transformer_config['attn_drop_rate']
+    drop_path_rate = transformer_config['drop_path_rate']
+    num_layers = transformer_config['num_layers']
+    sr_ratio = transformer_config['sr_ratio']
 
-        for layer in self.layers:
-            output = layer(output, memory, tgt_mask=tgt_mask,
-                           memory_mask=memory_mask,
-                           tgt_key_padding_mask=tgt_key_padding_mask,
-                           memory_key_padding_mask=memory_key_padding_mask,
-                           pos_enc=pos_enc, pos_dec=pos_dec)
-
-        if self.norm is not None:
-            output = self.norm(output)
-
-        return output
+    return FeatureFusionNetwork(template_input_dim, search_input_dim, hidden_dim, num_heads, mlp_ratio, qkv_bias,
+                                drop_rate, attn_drop_rate, drop_path_rate, num_layers=num_layers, sr_ratio=sr_ratio)

@@ -22,7 +22,7 @@ class DWConv(nn.Module):
 
 class FeatureFusionEncoderLayer(nn.Module):
     def __init__(self, x_dim, y_dim, hidden_dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, sr_ratio=1):
+                 drop_path=0., sr_ratio=1, act_layer=nn.GELU, norm_layer=nn.LayerNorm):
         super(FeatureFusionEncoderLayer, self).__init__()
         self.x_input_proj = DWConv(x_dim, hidden_dim)
         self.y_input_proj = DWConv(y_dim, hidden_dim)
