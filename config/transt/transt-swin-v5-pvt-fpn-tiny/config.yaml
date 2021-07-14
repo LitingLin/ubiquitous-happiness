@@ -11,8 +11,9 @@ logging:
     - "PVT"
     - "Positive-samples-only"
     - "Stack datasets"
+    - "Feature Pyramid"
 
-type: "TransT-PVT"
+type: "TransT-PVT-FPN"
 
 data:
   area_factor:
@@ -30,6 +31,8 @@ backbone:
     output_layers: [2, 3]
 
 transformer:
+  fpn:
+
   backbone_output_layers:
     template:
       stage: 2
@@ -39,14 +42,14 @@ transformer:
       stage: 3
       shape: [7, 7]
       dim: 768
-  hidden_dim: 384
+  hidden_dim: 768
   num_heads: 8
   mlp_ratio: 4
   qkv_bias: true
   drop_rate: 0
   attn_drop_rate: 0
   drop_path_rate: 0.1
-  num_layers: 2
+  num_layers: 4
   sr_ratio: 1
 
 head:
