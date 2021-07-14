@@ -41,7 +41,7 @@ transformer:
       shape: [14, 14]
       dim: 384
   hidden_dim: 384
-  num_heads: 8
+  num_heads: 4
   mlp_ratio: 4
   qkv_bias: true
   drop_rate: 0
