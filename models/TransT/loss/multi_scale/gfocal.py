@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.distributed
 from miscellanies.torch.distributed import is_dist_available_and_initialized, get_world_size
+from miscellanies.torch.distributed.reduce_mean import reduce_mean_
 from ._do_statistic import do_statistic
 from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcywh_to_xyxy
 
@@ -28,10 +29,9 @@ class GFocalCriterion(nn.Module):
     def set_epoch(self, epoch):
         self.epoch = epoch
 
-    def forward_single(self, num_pos_samples, cls_score, predicted_bbox, bbox_distribution,
+    def forward_single(self, num_positive_anchors, cls_score, predicted_bbox, bbox_distribution,
                        target_feat_map_indices_batch_id_vector, target_feat_map_indices,
                        target_class_label_vector, target_bounding_box_label_matrix):
-
         is_non_positives = target_feat_map_indices_batch_id_vector is None
 
         N, num_classes, H, W = cls_score.shape
@@ -53,33 +53,34 @@ class GFocalCriterion(nn.Module):
             predicted_bbox = predicted_bbox.view(N, H * W, 4)
             predicted_bbox = predicted_bbox[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
 
-            quality_score[
-                target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
-                self.quality_fn(box_cxcywh_to_xyxy(predicted_bbox.detach()), box_cxcywh_to_xyxy(target_bounding_box_label_matrix))
+            quality_score[target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
+                self.quality_fn(box_cxcywh_to_xyxy(predicted_bbox.detach()),
+                                box_cxcywh_to_xyxy(target_bounding_box_label_matrix))
 
         if self.strategy_min_quality_score_drop_epoch is not None and self.strategy_min_quality_score_drop_epoch >= self.epoch and self.strategy_min_quality_score > 0:
             quality_score.clamp_(min=self.strategy_min_quality_score, max=None)
 
-        losses['loss_quality_focal'] = self.quality_focal_loss(cls_score, (target_class_label_vector.flatten(0), quality_score.flatten(0))) / num_pos_samples
+        loss_cls = self.quality_focal_loss(cls_score, (target_class_label_vector.flatten(0), quality_score.flatten(0))) / num_positive_anchors
 
         if is_non_positives:
-            losses['loss_distribution_focal'] = torch.mean(bbox_distribution * 0)
+            loss_dfl = torch.mean(bbox_distribution * 0)
         else:
             bbox_distribution = bbox_distribution.view(N, H * W, 4 * (self.gfocal_reg_max + 1))
             bbox_distribution = bbox_distribution[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
-            losses['loss_distribution_focal'] = (self.distribution_focal_loss(bbox_distribution.view(-1, self.gfocal_reg_max + 1), target_bounding_box_label_matrix.view(-1) * self.gfocal_reg_max) * weight_targets[:, None].expand(-1, 4).reshape(-1)).sum() / 4
+            loss_dfl = (self.distribution_focal_loss(bbox_distribution.view(-1, self.gfocal_reg_max + 1),
+                                                     target_bounding_box_label_matrix.view(-1) * self.gfocal_reg_max) *
+                        weight_targets[:, None].expand(-1, 4).reshape(-1)).sum() / 4
 
         if is_non_positives:
-            losses['loss_iou'] = torch.mean(predicted_bbox * 0)
+            loss_iou = torch.mean(predicted_bbox * 0)
         else:
             loss_iou = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
-                                               box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
+                                      box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
 
-        return loss_cls, loss_bbox, loss_dfl, weight_targets.sum()
+        return loss_cls, loss_iou, loss_dfl, weight_targets.sum()
 
     def forward(self, predicted, label):
         # BBox format: normalized XYXY
-
         losses = {}
         '''
             cls_score: (N, C, H, W)
@@ -88,11 +89,9 @@ class GFocalCriterion(nn.Module):
         '''
         cls_score, predicted_bbox, bbox_distribution = predicted
 
-        num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label
-        if is_dist_available_and_initialized():
-            torch.distributed.all_reduce(num_boxes_pos)
-
-        num_boxes_pos = max((num_boxes_pos / get_world_size()).item(), 1)
+        num_positive_anchors, target_feat_map_indices_batch_id_vector, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label
+        reduce_mean_(num_positive_anchors)
+        num_positive_anchors = max(num_positive_anchors.item(), 1)
 
         is_non_positives = target_feat_map_indices_batch_id_vector is None
 
@@ -128,7 +127,7 @@ class GFocalCriterion(nn.Module):
         if self.strategy_min_quality_score_drop_epoch is not None and self.strategy_min_quality_score_drop_epoch >= self.epoch and self.strategy_min_quality_score > 0:
             quality_score.clamp_(min=self.strategy_min_quality_score, max=None)
 
-        losses['loss_quality_focal'] = self.quality_focal_loss(cls_score, (target_class_label_vector.flatten(0), quality_score.flatten(0))) / num_boxes_pos
+        losses['loss_quality_focal'] = self.quality_focal_loss(cls_score, (target_class_label_vector.flatten(0), quality_score.flatten(0))) / num_positive_anchors
 
         if is_non_positives:
             losses['loss_distribution_focal'] = torch.mean(bbox_distribution * 0)
@@ -147,7 +146,7 @@ class GFocalCriterion(nn.Module):
                 if len(predicted_bbox_) == 0:
                     losses['loss_iou'] = torch.mean(predicted_bbox * 0)
                 else:
-                    losses['loss_iou'] = self.iou_loss(predicted_bbox_, target_bounding_box_label_matrix[valid_mask]) / num_boxes_pos
+                    losses['loss_iou'] = self.iou_loss(predicted_bbox_, target_bounding_box_label_matrix[valid_mask]) / num_positive_anchors
 
         weight_targets = weight_targets.sum()
         if is_dist_available_and_initialized():
