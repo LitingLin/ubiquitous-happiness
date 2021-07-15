@@ -28,20 +28,30 @@ backbone:
   type: "swin_transformer"
   parameters:
     name: "swin_tiny_patch4_window7_224"
-    output_layers: [2, 3]
+    output_layers: [1, 2]
 
 transformer:
   fpn:
+    type: "BiFPN"
+    scales:
+      - dim: 192
+        input:
+          template:
+            stage: 1
+            shape: [14, 14]
+          search:
+            stage: 1
+            shape: [28, 28]
+        sr_ratio: 2
+      - dim: 384
+        input:
+          template:
+            stage: 2
+            shape: [7, 7]
+          search:
+            stage: 2
+            shape: [14, 14]
 
-  backbone_output_layers:
-    template:
-      stage: 2
-      shape: [7, 7]
-      dim: 384
-    search:
-      stage: 3
-      shape: [7, 7]
-      dim: 768
   hidden_dim: 768
   num_heads: 8
   mlp_ratio: 4
