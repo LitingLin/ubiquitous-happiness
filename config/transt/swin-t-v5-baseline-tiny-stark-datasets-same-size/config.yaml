@@ -47,7 +47,7 @@ transformer:
     type: "sine"
     parameters:
       indexed: true
-  hidden_dim: 768
+  hidden_dim: 384
   dropout: 0.1
   num_heads: 6
   dim_feedforward: 1536
