@@ -30,7 +30,7 @@ backbone:
   type: "swin_transformer"
   parameters:
     name: "swin_tiny_patch4_window7_224"
-    output_layers: [2, 3]
+    output_layers: [3]
 
 transformer:
   backbone_output_layers:
