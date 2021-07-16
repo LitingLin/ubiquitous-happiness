@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from models.backbone.swint.swin_transformer import Mlp
+from models.modules.mlp import MLP
 
 
 class Integral(nn.Module):
@@ -42,9 +42,14 @@ class Integral(nn.Module):
 
 class GFocalV2MultiScaleHead(nn.Module):
     def __init__(self, input_dims: list, hidden_dim: int, shape,
+                 act_fn,
                  gfocal_reg_max: int,  # bbox in range [0, reg_max]
                  gfocal_v2_topk: int, gfocal_v2_reg_channels: int, gfocal_v2_add_mean: bool):
         super(GFocalV2MultiScaleHead, self).__init__()
+
+        self.input_projections = nn.ModuleList(
+            []
+        )
 
         self.classification_branch = MLP(input_dim, hidden_dim, 1, 3)
         self.regression_branch = MLP(input_dim, hidden_dim, 4 * (gfocal_reg_max + 1), 3)

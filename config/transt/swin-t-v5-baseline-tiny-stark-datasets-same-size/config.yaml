@@ -1,0 +1,62 @@
+name: "Swin-T-Baseline"
+
+version: 5
+
+logging:
+  category: "Swin-T-v3"
+  tags:
+    - "Swin-Transformer"
+    - "baseline"
+    - "tiny"
+    - "Positive-samples-only"
+    - "Stack datasets"
+    - "Same size"
+
+type: "T-Baseline"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [224, 224]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+  bounding_box_normalization_protocol:
+    interval: "[]"
+    range: [0, 1]
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_tiny_patch4_window7_224"
+    output_layers: [2, 3]
+
+transformer:
+  backbone_output_layers:
+    template:
+      stage: 3
+      shape: [7, 7]
+      dim: 768
+    search:
+      stage: 3
+      shape: [7, 7]
+      dim: 768
+
+  position_embedding:
+    type: "sine"
+    parameters:
+      indexed: true
+  hidden_dim: 768
+  dropout: 0.1
+  num_heads: 6
+  dim_feedforward: 1536
+  encoder_num_layers: 4
+  decoder_num_layers: 2
+  activation: "gelu"
+  num_queries: 49
+
+head:
+  type: "TransT"
+  parameters:
+    input_size: [7, 7]
