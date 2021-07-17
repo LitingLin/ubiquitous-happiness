@@ -9,8 +9,7 @@ logging:
     - "baseline"
     - "tiny"
     - "Positive-samples-only"
-    - "Stack datasets"
-    - "Same size"
+    - "GFocal"
 
 type: "T-Baseline"
 
@@ -18,26 +17,26 @@ data:
   area_factor:
     template: 2.0
     search: 4.0
-  template_size: [224, 224]
+  template_size: [112, 112]
   search_size: [224, 224]
   imagenet_normalization: true
   interpolation_mode: "bicubic"
   bounding_box_normalization_protocol:
-    interval: "[]"
+    interval: "[)"
     range: [0, 1]
 
 backbone:
   type: "swin_transformer"
   parameters:
     name: "swin_tiny_patch4_window7_224"
-    output_layers: [3]
+    output_layers: [2, 3]
 
 transformer:
   backbone_output_layers:
     template:
-      stage: 3
+      stage: 2
       shape: [7, 7]
-      dim: 768
+      dim: 384
     search:
       stage: 3
       shape: [7, 7]
@@ -57,6 +56,17 @@ transformer:
   num_queries: 49
 
 head:
-  type: "TransT"
+  type: "GFocal-v2"
+  bounding_box_format: 'CXCYWH'
   parameters:
+    input_dim: 384
+    hidden_dim: 384
     input_size: [7, 7]
+
+    reg_max: 16
+    topk: 4
+    reg_channels: 64
+    add_mean: true
+
+    pos_encoded: true
+

@@ -4,8 +4,10 @@ from timm.models.layers import trunc_normal_
 
 
 def _init_weights(m):
-    trunc_normal_(m.weight, std=.02)
-    nn.init.constant_(m.bias, 0)
+    if isinstance(m, nn.Linear):
+        trunc_normal_(m.weight, std=.02)
+        nn.init.constant_(m.bias, 0)
+
 
 class MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
