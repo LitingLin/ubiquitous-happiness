@@ -2,8 +2,6 @@ import torch
 import torch.utils.data
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.dataloader import DataLoader
-# from data.performance.cuda_prefetcher import CUDAPrefetcher
-from data.performance.cuda_prefetcher_thread import CUDAPrefetcher
 
 
 class _WorkerInitialization:
@@ -60,6 +58,10 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                  drop_last=True, num_workers=val_num_workers, collate_fn=collate_fn, pin_memory=pin_memory, persistent_workers=persistent_workers)
 
     if 'cuda' in device:
+        if pin_memory:
+            from data.performance.cuda_prefetcher import CUDAPrefetcher
+        else:
+            from data.performance.cuda_prefetcher_thread import CUDAPrefetcher
         device = torch.device(device)
         data_loader_train = CUDAPrefetcher(data_loader_train, device, device_tensor_selection_filter)
         data_loader_val = CUDAPrefetcher(data_loader_val, device, device_tensor_selection_filter)
