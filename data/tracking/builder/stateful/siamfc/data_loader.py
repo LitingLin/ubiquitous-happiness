@@ -3,7 +3,8 @@ from data.randomness_control.iterable_dataset import IterableDatasetOrchestrator
 from .dataset import build_siamfc_sampling_dataset
 from miscellanies.torch.distributed import get_world_size, get_rank
 import torch.utils.data.dataloader
-from data.performance.cuda_prefetcher import CUDAPrefetcher
+# from data.performance.cuda_prefetcher import CUDAPrefetcher
+from data.performance.cuda_prefetcher_thread import CUDAPrefetcher
 from data.randomness_control.ordered_batch_sampler import OrderedBatchSampler
 
 
