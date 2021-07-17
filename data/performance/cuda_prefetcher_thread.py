@@ -82,7 +82,7 @@ class TensorMover:
         self.tensor_filter = tensor_filter
 
     def __len__(self):
-        return self.iterator
+        return len(self.iterator)
 
     def __iter__(self):
         self.stream = torch.cuda.Stream()
@@ -115,7 +115,7 @@ class TensorMover:
 
 class CUDAPrefetcher:
     def __init__(self, iterator, device=None, tensor_filter=None):
-        self.prefetcher = SimplePrefetcher(CUDAPrefetcher(iterator, device, tensor_filter), 0, 1)
+        self.prefetcher = SimplePrefetcher(TensorMover(iterator, device, tensor_filter), 0, 1)
 
     def __len__(self):
         return len(self.prefetcher)

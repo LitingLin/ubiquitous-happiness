@@ -2,7 +2,8 @@ import torch
 import torch.utils.data
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.dataloader import DataLoader
-from data.performance.cuda_prefetcher import CUDAPrefetcher
+# from data.performance.cuda_prefetcher import CUDAPrefetcher
+from data.performance.cuda_prefetcher_thread import CUDAPrefetcher
 
 
 class _WorkerInitialization:
