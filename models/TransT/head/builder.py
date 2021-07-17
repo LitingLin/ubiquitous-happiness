@@ -16,7 +16,13 @@ def build_head(network_config):
     elif head_config['type'] == 'GFocal-v2':
         head_parameters = head_config['parameters']
         if 'pos_encoded' in head_parameters:
-            from .gfocal_pos_encoded_mlp import GFocalV2Head
+            cls_reg_shared = False
+            if 'shared' in head_parameters:
+                cls_reg_shared = head_parameters['shared']
+            if cls_reg_shared:
+                from .gfocal_pos_encoded_mlp_shared import GFocalV2Head
+            else:
+                from .gfocal_pos_encoded_mlp import GFocalV2Head
         else:
             cls_reg_shared = False
             if 'shared' in head_parameters:
