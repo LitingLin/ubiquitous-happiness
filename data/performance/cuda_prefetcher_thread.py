@@ -85,7 +85,7 @@ class TensorMover:
         return self.iterator
 
     def __iter__(self):
-        self.stream = torch.cuda.Stream()
+        # self.stream = torch.cuda.Stream()
         self.iter = iter(self.iterator)
         return self
 
@@ -93,20 +93,20 @@ class TensorMover:
         try:
             data = next(self.iter)
         except StopIteration:
-            if hasattr(self, 'stream'):
-                del self.stream
+        #    if hasattr(self, 'stream'):
+        #        del self.stream
             gc.collect()
             raise
         tensor_list = self.tensor_filter.get_tensor_list(data)
 
-        with torch.cuda.stream(self.stream):
-            for i in range(len(tensor_list)):
-                tensor_list[i] = tensor_list[i].to(self.device, non_blocking=True)
+        #with torch.cuda.stream(self.stream):
+        for i in range(len(tensor_list)):
+            tensor_list[i] = tensor_list[i].to(self.device)
 
-        torch.cuda.current_stream().wait_stream(self.stream)
+        # torch.cuda.current_stream().wait_stream(self.stream)
 
-        for tensor in tensor_list:
-            tensor.record_stream(torch.cuda.current_stream())
+        # for tensor in tensor_list:
+        #    tensor.record_stream(torch.cuda.current_stream())
 
         data = self.tensor_filter.regroup(data, tensor_list)
         assert len(tensor_list) == 0
