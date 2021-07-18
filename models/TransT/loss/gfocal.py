@@ -105,16 +105,13 @@ def build_gfocal_loss(network_config, train_config):
     if quality_function == 'IoU':
         from models.operator.iou.iou import iou
         qa_func = iou
-    elif quality_function == ['GIoU']:
+    elif quality_function == 'GIoU':
         from models.operator.iou.giou import giou
         qa_func = giou
-    elif quality_function == ['GIoU']:
-        from models.operator.iou.giou import giou
-        qa_func = giou
-    elif quality_function == ['DIoU']:
+    elif quality_function == 'DIoU':
         from models.operator.iou.diou import diou
         qa_func = diou
-    elif quality_function == ['CIoU']:
+    elif quality_function == 'CIoU':
         from models.operator.iou.ciou import ciou
         qa_func = ciou
     else:

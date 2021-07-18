@@ -58,8 +58,8 @@ optimization:
   loss:
     quality_focal_loss:
       beta: 2.0
-      weight: 1.0
-      quality_function: "IoU"
+      weight: 1.5
+      quality_function: "GIoU"
       advanced_strategy:
         min_quality_score:
           value: 0
