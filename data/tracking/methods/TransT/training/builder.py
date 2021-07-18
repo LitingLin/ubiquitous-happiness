@@ -43,8 +43,11 @@ def build_transt_data_processor(network_config: dict, train_config: dict):
         positive_label_assignment_method = 'round'
         if 'label' in train_config['data']:
             positive_label_assignment_method = train_config['data']['label']['positive_samples_assignment_method']
+        one_as_positive = False
+        if head_type == 'GFocal-v2':
+            one_as_positive = True
         label_generator = TransTLabelGenerator(network_config['head']['parameters']['input_size'], network_config['data']['search_size'],
-                                               positive_label_assignment_method,
+                                               one_as_positive, positive_label_assignment_method,
                                                _get_bounding_box_format(network_config),
                                                _get_bounding_box_normalization_helper(network_config))
         return _build_transt_data_processor(network_config, train_config, label_generator), transt_collate_fn

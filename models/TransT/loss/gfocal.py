@@ -23,7 +23,7 @@ class GFocalCriterion(nn.Module):
         self.gfocal_reg_max = gfocal_reg_max
 
         self.head_bounding_box_format = head_bounding_box_format
-        assert head_bounding_box_format in (BoundingBoxFormat.XYXY, BoundingBoxFormat.CXCYWH)
+        assert head_bounding_box_format in (BoundingBoxFormat.CXCYWH,)
         self.epoch = 0
         self.strategy_min_quality_score = strategy_min_quality_score
         self.strategy_min_quality_score_drop_epoch = strategy_min_quality_score_drop_epoch
@@ -52,37 +52,26 @@ class GFocalCriterion(nn.Module):
 
         N, num_classes, H, W = cls_score.shape
 
-        cls_score = cls_score.flatten(2).transpose(1, 2).view(N * H * W, -1)
-
-        pos_inds = ((target_class_label_vector.view(-1) >= 0)
-                    & (target_class_label_vector.view(-1) < num_classes)).nonzero().squeeze(1)
-
+        cls_score = cls_score.flatten(2).transpose(1, 2).flatten(1)
         if is_non_positives:
             weight_targets = torch.zeros([1], dtype=cls_score.dtype, device=cls_score.device)
         else:
             weight_targets = cls_score.detach()
-            weight_targets = weight_targets.max(dim=1)[0][pos_inds]
+            weight_targets = weight_targets[target_feat_map_indices_batch_id_vector, target_feat_map_indices].flatten()
 
         quality_score = torch.zeros((N, H * W), dtype=cls_score.dtype, device=cls_score.device)
 
         if not is_non_positives:
             predicted_bbox = predicted_bbox.view(N, H * W, 4)
             predicted_bbox = predicted_bbox[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
-            if self.head_bounding_box_format == BoundingBoxFormat.XYXY:
-                valid_mask = (predicted_bbox[:, 2] - predicted_bbox[:, 0] > 0) & (predicted_bbox[:, 3] - predicted_bbox[:, 1] > 0)
-                predicted_bbox_ = predicted_bbox[valid_mask]
-                if len(predicted_bbox_) != 0:
-                    quality_score[target_feat_map_indices_batch_id_vector[valid_mask], target_feat_map_indices[valid_mask]] = \
-                        self.quality_fn(predicted_bbox_.detach(), target_bounding_box_label_matrix[valid_mask])
-            else:
-                quality_score[
-                    target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
-                    self.quality_fn(box_cxcywh_to_xyxy(predicted_bbox.detach()), box_cxcywh_to_xyxy(target_bounding_box_label_matrix))
+            quality_score[
+                target_feat_map_indices_batch_id_vector, target_feat_map_indices] = \
+                self.quality_fn(box_cxcywh_to_xyxy(predicted_bbox.detach()), box_cxcywh_to_xyxy(target_bounding_box_label_matrix))
 
         if self.strategy_min_quality_score_drop_epoch is not None and self.strategy_min_quality_score_drop_epoch >= self.epoch and self.strategy_min_quality_score > 0:
             quality_score.clamp_(min=self.strategy_min_quality_score, max=None)
 
-        losses['loss_quality_focal'] = self.quality_focal_loss(cls_score, (target_class_label_vector.flatten(0), quality_score.flatten(0))) / num_boxes_pos
+        losses['loss_quality_focal'] = self.quality_focal_loss(cls_score, (target_class_label_vector, quality_score, (target_feat_map_indices_batch_id_vector, target_feat_map_indices))) / num_boxes_pos
 
         if is_non_positives:
             losses['loss_distribution_focal'] = torch.mean(bbox_distribution * 0)
@@ -94,15 +83,8 @@ class GFocalCriterion(nn.Module):
         if is_non_positives:
             losses['loss_iou'] = torch.mean(predicted_bbox * 0)
         else:
-            if self.head_bounding_box_format == BoundingBoxFormat.CXCYWH:
-                losses['loss_iou'] = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
-                                                   box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
-            else:
-                if len(predicted_bbox_) == 0:
-                    losses['loss_iou'] = torch.mean(predicted_bbox * 0)
-                else:
-                    losses['loss_iou'] = self.iou_loss(predicted_bbox_, target_bounding_box_label_matrix[valid_mask]) / num_boxes_pos
-
+            losses['loss_iou'] = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
+                                               box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
         weight_targets = weight_targets.sum()
         if is_dist_available_and_initialized():
             torch.distributed.all_reduce(weight_targets)
@@ -140,7 +122,8 @@ def build_gfocal_loss(network_config, train_config):
 
     gfocal_reg_max = network_config['head']['parameters']['reg_max']
 
-    from models.loss.gfocal_v2 import QualityFocalLoss, DistributionFocalLoss
+    from models.loss.gfocal_v2 import DistributionFocalLoss
+    from .single_class_quality_gfocal.quality_gfocal import QualityFocalLoss
 
     qfl = QualityFocalLoss(False, loss_parameters['quality_focal_loss']['beta'], 'sum')
     dfl = DistributionFocalLoss('none')

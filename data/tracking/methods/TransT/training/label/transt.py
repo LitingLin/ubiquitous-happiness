@@ -100,6 +100,13 @@ def generate_target_class_vector(search_feat_size, target_feat_map_indices: Opti
     return target_class_vector
 
 
+def generate_target_class_vector_one_as_positive(search_feat_size, target_feat_map_indices: Optional[torch.Tensor]):
+    target_class_vector = torch.zeros([search_feat_size[0] * search_feat_size[1]], dtype=torch.long)
+    if target_feat_map_indices is not None:
+        target_class_vector[target_feat_map_indices] = 1
+    return target_class_vector
+
+
 def generate_target_bounding_box_label_matrix(bbox, search_region_size, target_feat_map_indices: torch.Tensor, bounding_box_format: BoundingBoxFormat, bbox_normalizer):
     length = len(target_feat_map_indices)
 
@@ -111,22 +118,30 @@ def generate_target_bounding_box_label_matrix(bbox, search_region_size, target_f
     return bbox.repeat(length, 1)
 
 
-def label_generation(bbox, search_feat_size, search_region_size, positive_sample_assignment_fn, bounding_box_format, bbox_normalizer):
+def label_generation(bbox, search_feat_size, search_region_size,
+                     label_generation_fn, positive_sample_assignment_fn,
+                     bounding_box_format, bbox_normalizer):
     target_feat_map_indices = positive_sample_assignment_fn(search_feat_size, search_region_size, bbox)
-    target_class_label_vector = generate_target_class_vector(search_feat_size, target_feat_map_indices)
+    target_class_label_vector = label_generation_fn(search_feat_size, target_feat_map_indices)
     target_bounding_box_label_matrix = generate_target_bounding_box_label_matrix(bbox, search_region_size, target_feat_map_indices, bounding_box_format, bbox_normalizer)
 
     return target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix
 
 
-def negative_label_generation(search_feat_size):
-    return None, generate_target_class_vector(search_feat_size, None), None
+def negative_label_generation(search_feat_size, label_fn):
+    return None, label_fn(search_feat_size, None), None
 
 
 class TransTLabelGenerator:
-    def __init__(self, search_feat_size, search_region_size, positive_label_assignment_method,
+    def __init__(self, search_feat_size, search_region_size,
+                 label_one_as_positive: bool,
+                 positive_label_assignment_method,
                  target_bounding_box_format,
                  bounding_box_normalization_helper):
+        if label_one_as_positive:
+            self.label_function = generate_target_class_vector_one_as_positive
+        else:
+            self.label_function = generate_target_class_vector
         self.search_feat_size = search_feat_size
         self.search_region_size = search_region_size
         self.target_bounding_box_format = target_bounding_box_format
@@ -146,6 +161,8 @@ class TransTLabelGenerator:
 
     def __call__(self, bbox, is_positive):
         if is_positive:
-            return label_generation(bbox, self.search_feat_size, self.search_region_size, self.positive_sample_assignment_fn, self.target_bounding_box_format, self.bounding_box_normalization_helper)
+            return label_generation(bbox, self.search_feat_size, self.search_region_size,
+                                    self.label_function, self.positive_sample_assignment_fn,
+                                    self.target_bounding_box_format, self.bounding_box_normalization_helper)
         else:
-            return negative_label_generation(self.search_feat_size)
+            return negative_label_generation(self.search_feat_size, self.label_function)
