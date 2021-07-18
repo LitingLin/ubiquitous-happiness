@@ -12,6 +12,9 @@ def build_transt_variant_backbone_different_output_stage(network_config: dict, l
 
     head = build_head(network_config)
 
+    enable_dim_projection = True
+    if 'input_projection' in network_config['transformer']:
+        enable_dim_projection = network_config['transformer']['input_projection']
     transformer_hidden_dim = network_config['transformer']['hidden_dim']
     backbone_output_layers_config = network_config['transformer']['backbone_output_layers']
     template_output_stage = backbone_output_layers_config['template']['stage']
@@ -25,6 +28,6 @@ def build_transt_variant_backbone_different_output_stage(network_config: dict, l
     from .network import TransTVariantBackboneDifferentOutputStageNetwork
 
     return TransTVariantBackboneDifferentOutputStageNetwork(backbone, feature_fusion_network, head,
-                                                            transformer_hidden_dim,
+                                                            transformer_hidden_dim, enable_dim_projection,
                                                             template_output_stage, template_output_dim, template_output_shape,
                                                             search_output_stage, search_output_dim, search_output_shape)

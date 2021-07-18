@@ -12,7 +12,7 @@ def _get_single_scale(feat):
 
 class TransTVariantBackboneDifferentOutputStageNetwork(nn.Module):
     def __init__(self, backbone, transformer, head,
-                 transformer_hidden_dim,
+                 transformer_hidden_dim, enable_input_projection: bool,
                  template_output_stage, template_output_dim, template_output_shape,
                  search_output_stage, search_output_dim, search_output_shape):
         super(TransTVariantBackboneDifferentOutputStageNetwork, self).__init__()
@@ -22,11 +22,17 @@ class TransTVariantBackboneDifferentOutputStageNetwork(nn.Module):
         self.template_output_stage = template_output_stage
         self.search_output_stage = search_output_stage
 
-        self.template_input_projection = nn.Linear(template_output_dim, transformer_hidden_dim)
-        self.search_input_projection = nn.Linear(search_output_dim, transformer_hidden_dim)
+        if enable_input_projection:
+            self.template_input_projection = nn.Linear(template_output_dim, transformer_hidden_dim)
+            self.search_input_projection = nn.Linear(search_output_dim, transformer_hidden_dim)
 
-        nn.init.xavier_uniform_(self.template_input_projection.weight)
-        nn.init.xavier_uniform_(self.search_input_projection.weight)
+            nn.init.xavier_uniform_(self.template_input_projection.weight)
+            nn.init.xavier_uniform_(self.search_input_projection.weight)
+        else:
+            assert transformer_hidden_dim == template_output_dim and transformer_hidden_dim == search_output_dim
+
+            self.template_input_projection = None
+            self.search_input_projection = None
 
         self.template_output_shape = template_output_shape
         self.search_output_shape = search_output_shape
@@ -39,7 +45,8 @@ class TransTVariantBackboneDifferentOutputStageNetwork(nn.Module):
 
     def _forward_feat(self, x, output_stage, projection):
         x_feat = _get_single_scale(self.backbone(x, (output_stage, ), False))
-        x_feat = projection(x_feat)
+        if projection is not None:
+            x_feat = projection(x_feat)
         return x_feat
 
     def forward(self, z, x):

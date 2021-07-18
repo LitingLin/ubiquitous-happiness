@@ -37,6 +37,7 @@ transformer:
       shape: [14, 14]
       dim: 384
 
+  input_projection: false
   position_embedding: "sine"
   hidden_dim: 384
   dropout: 0.1
@@ -46,6 +47,6 @@ transformer:
   activation: "gelu"
 
 head:
-  type: TransT
+  type: "TransT"
   parameters:
     input_size: [14, 14]

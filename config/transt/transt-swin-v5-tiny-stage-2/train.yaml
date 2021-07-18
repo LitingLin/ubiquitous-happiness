@@ -52,7 +52,7 @@ optimization:
     weight_decay: 1.e-4
     clip_max_norm: 0.1
     lr_scheduler:
-      type: StepLR
+      type: "StepLR"
       lr_drop: 30
 
   loss:
