@@ -1,9 +1,8 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-def quality_focal_loss(pred, target, beta=2.0, use_sigmoid=True):
+def bce_loss(pred, target, use_sigmoid=True):
     r"""Quality Focal Loss (QFL) is from `Generalized Focal Loss: Learning
     Qualified and Distributed Bounding Boxes for Dense Object Detection
     <https://arxiv.org/abs/2006.04388>`_.
@@ -32,16 +31,8 @@ def quality_focal_loss(pred, target, beta=2.0, use_sigmoid=True):
 
     # negatives are supervised by 0 quality score
     pred_sigmoid = pred.sigmoid() if use_sigmoid else pred
-    scale_factor = pred_sigmoid
-    zerolabel = scale_factor.new_zeros(pred.shape)
-    loss = func(pred, zerolabel, reduction='none') * scale_factor.pow(beta)
 
-    # positives are supervised by bbox quality (IoU) score
-    if pos_ind[0] is not None:
-        scale_factor = score[pos_ind] - pred_sigmoid[pos_ind]
-        loss[pos_ind] = func(pred[pos_ind], score[pos_ind],
-            reduction='none') * scale_factor.abs().pow(beta)
-
+    loss = func(pred_sigmoid, label, reduction='none')
     return loss.flatten()
 
 
@@ -61,12 +52,10 @@ class QualityFocalLoss(nn.Module):
 
     def __init__(self,
                  use_sigmoid=True,
-                 beta=2.0,
                  reduction='mean'):
         super(QualityFocalLoss, self).__init__()
         # assert use_sigmoid is True, 'Only sigmoid in QFL supported now.'
         self.use_sigmoid = use_sigmoid
-        self.beta = beta
         self.reduction = reduction
 
     def forward(self,
@@ -88,10 +77,9 @@ class QualityFocalLoss(nn.Module):
                 override the original reduction method of the loss.
                 Defaults to None.
         """
-        cls_loss = quality_focal_loss(
+        cls_loss = bce_loss(
             pred,
             target,
-            beta=self.beta,
             use_sigmoid=self.use_sigmoid)
         if self.reduction == 'sum':
             return cls_loss.sum()
