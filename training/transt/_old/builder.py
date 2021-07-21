@@ -1,7 +1,7 @@
 import torch
 from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
-from models.TransT.loss.builder import build_criterion
+from models.TransT.loss._old.v3_builder import build_criterion
 from miscellanies.torch.checkpoint import load_checkpoint
 
 

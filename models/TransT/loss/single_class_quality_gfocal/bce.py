@@ -23,7 +23,6 @@ def bce_loss(pred, target, use_sigmoid=True):
         including category label and quality label, respectively"""
     # label denotes the category id, score denotes the quality score
     # N, L
-    label, score, pos_ind = target
     if use_sigmoid:
         func = F.binary_cross_entropy_with_logits
     else:
@@ -32,11 +31,11 @@ def bce_loss(pred, target, use_sigmoid=True):
     # negatives are supervised by 0 quality score
     pred_sigmoid = pred.sigmoid() if use_sigmoid else pred
 
-    loss = func(pred_sigmoid, label, reduction='none')
+    loss = func(pred_sigmoid, target, reduction='none')
     return loss.flatten()
 
 
-class QualityFocalLoss(nn.Module):
+class BCELoss(nn.Module):
     r"""Quality Focal Loss (QFL) is a variant of `Generalized Focal Loss:
     Learning Qualified and Distributed Bounding Boxes for Dense Object
     Detection <https://arxiv.org/abs/2006.04388>`_.
@@ -53,7 +52,7 @@ class QualityFocalLoss(nn.Module):
     def __init__(self,
                  use_sigmoid=True,
                  reduction='mean'):
-        super(QualityFocalLoss, self).__init__()
+        super(BCELoss, self).__init__()
         # assert use_sigmoid is True, 'Only sigmoid in QFL supported now.'
         self.use_sigmoid = use_sigmoid
         self.reduction = reduction

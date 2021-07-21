@@ -8,17 +8,16 @@ from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcyw
 
 
 class GFocalCriterion(nn.Module):
-    def __init__(self, quality_focal_loss, distribution_focal_loss, iou_loss,
-                 quality_fn, weight_dict: dict, gfocal_reg_max: int, head_bounding_box_format: BoundingBoxFormat,
+    def __init__(self, quality_focal_loss, bce_loss, distribution_focal_loss, iou_loss,
+                 quality_fn, gfocal_reg_max: int, head_bounding_box_format: BoundingBoxFormat,
                  strategy_min_quality_score: int, strategy_min_quality_score_drop_epoch: int):
         super(GFocalCriterion, self).__init__()
         self.quality_focal_loss = quality_focal_loss
+        self.bce_loss = bce_loss
         self.distribution_focal_loss = distribution_focal_loss
         self.iou_loss = iou_loss
 
         self.quality_fn = quality_fn
-
-        self.weight_dict = weight_dict
 
         self.gfocal_reg_max = gfocal_reg_max
 
@@ -33,8 +32,6 @@ class GFocalCriterion(nn.Module):
 
     def forward(self, predicted, label):
         # BBox format: normalized XYXY
-
-        losses = {}
         '''
             cls_score: (N, C, H, W)
             predicted_bbox: (N, H, W, 4)
@@ -71,19 +68,20 @@ class GFocalCriterion(nn.Module):
         if self.strategy_min_quality_score_drop_epoch is not None and self.strategy_min_quality_score_drop_epoch >= self.epoch and self.strategy_min_quality_score > 0:
             quality_score.clamp_(min=self.strategy_min_quality_score, max=None)
 
-        losses['loss_quality_focal'] = self.quality_focal_loss(cls_score, (target_class_label_vector, quality_score, (target_feat_map_indices_batch_id_vector, target_feat_map_indices))) / num_boxes_pos
+        loss_quality_focal = self.quality_focal_loss(cls_score, (target_class_label_vector, quality_score, (target_feat_map_indices_batch_id_vector, target_feat_map_indices))) / num_boxes_pos
+        loss_bce = self.bce_loss(cls_score, target_class_label_vector) / num_boxes_pos
 
         if is_non_positives:
-            losses['loss_distribution_focal'] = torch.mean(bbox_distribution * 0)
+            loss_distribution_focal = torch.mean(bbox_distribution * 0)
         else:
             bbox_distribution = bbox_distribution.view(N, H * W, 4 * (self.gfocal_reg_max + 1))
             bbox_distribution = bbox_distribution[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
-            losses['loss_distribution_focal'] = (self.distribution_focal_loss(bbox_distribution.view(-1, self.gfocal_reg_max + 1), target_bounding_box_label_matrix.view(-1) * self.gfocal_reg_max) * weight_targets[:, None].expand(-1, 4).reshape(-1)).sum() / 4
+            loss_distribution_focal = (self.distribution_focal_loss(bbox_distribution.view(-1, self.gfocal_reg_max + 1), target_bounding_box_label_matrix.view(-1) * self.gfocal_reg_max) * weight_targets[:, None].expand(-1, 4).reshape(-1)).sum() / 4
 
         if is_non_positives:
-            losses['loss_iou'] = torch.mean(predicted_bbox * 0)
+            loss_iou = torch.mean(predicted_bbox * 0)
         else:
-            losses['loss_iou'] = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
+            loss_iou = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
                                                box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
         weight_targets = weight_targets.sum()
         if is_dist_available_and_initialized():
@@ -91,11 +89,10 @@ class GFocalCriterion(nn.Module):
 
         weight_targets = weight_targets / get_world_size()
 
-        losses['loss_iou'] /= weight_targets
-        losses['loss_distribution_focal'] /= weight_targets
+        loss_distribution_focal /= weight_targets
+        loss_iou /= weight_targets
 
-        loss = sum(losses[k] * self.weight_dict[k] for k in losses.keys())
-        return (loss, *do_statistic(losses, self.weight_dict))
+        return loss_quality_focal, loss_bce, loss_distribution_focal, loss_iou
 
 
 def build_gfocal_loss(network_config, train_config):
@@ -121,7 +118,9 @@ def build_gfocal_loss(network_config, train_config):
 
     from models.loss.gfocal_v2 import DistributionFocalLoss
     from .single_class_quality_gfocal.quality_gfocal import QualityFocalLoss
+    from .single_class_quality_gfocal.bce import BCELoss
 
+    bce_loss = BCELoss(reduction='sum')
     qfl = QualityFocalLoss(False, loss_parameters['quality_focal_loss']['beta'], 'sum')
     dfl = DistributionFocalLoss('none')
     iou_loss_type = loss_parameters['iou_loss']['type']
@@ -142,12 +141,6 @@ def build_gfocal_loss(network_config, train_config):
 
     head_bounding_box_format = BoundingBoxFormat[network_config['head']['bounding_box_format']]
 
-    loss_weight = {
-        'loss_quality_focal': loss_parameters['quality_focal_loss']['weight'],
-        'loss_distribution_focal': loss_parameters['distribution_focal_loss']['weight'],
-        'loss_iou': loss_parameters['iou_loss']['weight']
-    }
-
     strategy_min_quality_score = 0
     strategy_min_quality_score_drop_epoch = None
 
@@ -158,5 +151,5 @@ def build_gfocal_loss(network_config, train_config):
             if 'drop_epoch' in qfl_advanced_strategy_parameters['min_quality_score']:
                 strategy_min_quality_score_drop_epoch = qfl_advanced_strategy_parameters['min_quality_score']['drop_epoch']
 
-    return GFocalCriterion(qfl, dfl, iou_loss, qa_func, loss_weight, gfocal_reg_max, head_bounding_box_format,
+    return GFocalCriterion(qfl, bce_loss, dfl, iou_loss, qa_func, gfocal_reg_max, head_bounding_box_format,
                            strategy_min_quality_score, strategy_min_quality_score_drop_epoch)

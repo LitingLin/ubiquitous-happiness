@@ -5,12 +5,11 @@ sys.path.append(root_path)
 config_path = os.path.join(root_path, 'config', 'transt')
 
 import argparse
-from pathlib import Path
 from workarounds.all import apply_all_workarounds
 from miscellanies.torch.print_running_environment import print_running_environment
 from miscellanies.yaml_ops import yaml_load
 from miscellanies.git_status import get_git_status_message
-from training.transt.builder import build_training_dataloader
+from training.transt._old.v3_builder import build_training_dataloader
 from data.tracking.methods.TransT.training.label.viewer.builder import build_data_preprocessing_viewer
 import copy
 

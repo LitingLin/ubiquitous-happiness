@@ -1,6 +1,6 @@
 from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
-from models.TransT.loss.builder import build_criterion
+from models.TransT.loss._old.v3_builder import build_criterion
 from miscellanies.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 from training.transt.logger.builder import build_logger
@@ -29,7 +29,7 @@ def _get_clip_max_norm(train_config: dict):
 
 
 def setup_optimizer(model, network_config: dict, train_config: dict):
-    from .optimization.transt import build_transt_optimizer
+    from ..optimization.transt import build_transt_optimizer
     return build_transt_optimizer(model, train_config)
 
 

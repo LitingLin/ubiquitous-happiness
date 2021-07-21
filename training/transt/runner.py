@@ -9,6 +9,8 @@ class TransTRunner:
                  stage_2_data_processor=None,
                  additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None,
                  epoch_changed_event_slots=None, statistics_collectors=None, multi_stage_handlers=None,
+                 loss_composer=None, train_iteration_begin_hooks=None, train_iteration_end_hooks=None,
+                 epoch_end_hooks=None
                  ):
         self.model = model
         self.criterion = criterion
@@ -24,6 +26,10 @@ class TransTRunner:
         self.epoch_changed_event_slots = epoch_changed_event_slots
         self.statistics_collectors = statistics_collectors
         self.multi_stage_handlers = multi_stage_handlers
+        self.loss_composer = loss_composer
+        self.train_iteration_begin_hooks = train_iteration_begin_hooks
+        self.train_iteration_end_hooks = train_iteration_end_hooks
+        self.epoch_end_hooks = epoch_end_hooks
         self._on_epoch_changed()
 
     def __enter__(self):
@@ -43,10 +49,17 @@ class TransTRunner:
                 slot.stop()
 
     def forward(self, samples, targets, miscellanies_host, miscellanies_device, _):
+        if self.model.training:
+            if self.train_iteration_begin_hooks is not None:
+                for hook in self.train_iteration_begin_hooks:
+                    hook.step()
         if self.stage_2_data_processor is not None:
             samples = self.stage_2_data_processor(samples, miscellanies_host, miscellanies_device)
         outputs = self.model(*samples)
-        loss, loss_value, loss_stats = self.criterion(outputs, targets)
+        if self.loss_composer is None:
+            loss, loss_value, loss_stats = self.criterion(outputs, targets)
+        else:
+            loss, loss_value, loss_stats = self.loss_composer(self.criterion(outputs, targets))
 
         if not math.isfinite(loss_value):
             print("Loss is {}, stopping training".format(loss_value))
@@ -79,6 +92,9 @@ class TransTRunner:
         if self.multi_stage_handlers is not None:
             for handler in self.multi_stage_handlers:
                 handler.on_epoch_changed(self.epoch, self)
+        if self.epoch_end_hooks is not None:
+            for hook in self.epoch_end_hooks:
+                hook.on_next_epoch()
 
     def get_epoch(self):
         return self.epoch
@@ -91,6 +107,9 @@ class TransTRunner:
         self.optimizer.step()
         del self.loss
         self.loss = None
+        if self.train_iteration_end_hooks is not None:
+            for hook in self.train_iteration_end_hooks:
+                hook.on_next_iter()
         return {'lr': self.optimizer.param_groups[0]["lr"]}
 
     def state_dict(self):

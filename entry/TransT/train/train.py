@@ -12,7 +12,7 @@ from miscellanies.yaml_ops import yaml_load
 from miscellanies.git_status import get_git_status_message
 from miscellanies.torch.distributed import get_rank, init_distributed_mode
 from training.transt.training_loop import run_training_loop
-from training.transt.builder import build_training_runner_logger_and_dataloader
+from training.transt._old.v3_builder import build_training_runner_logger_and_dataloader
 
 
 def get_args_parser():
