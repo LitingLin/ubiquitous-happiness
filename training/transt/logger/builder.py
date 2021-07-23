@@ -33,10 +33,16 @@ def build_logger(args, network_config, train_config, initial_step):
         return DummyLogger()
 
     from ._wandb import WandbLogger, has_wandb
+
+    if train_config['version'] > 3:
+        log_step_length = train_config['data']['sampler']['train']['batch_size'] * get_world_size()
+    else:
+        log_step_length = get_world_size()
+
     if has_wandb:
         wandb_project, wandb_tags = _get_wandb_config(network_config)
         return WandbLogger(logger_id, wandb_project, network_config,
-                           wandb_tags, get_world_size(),
+                           wandb_tags, log_step_length,
                            initial_step, args.logging_interval,
                            True, args.watch_model_freq,
                            args.watch_model_parameters, args.watch_model_gradients,

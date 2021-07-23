@@ -51,7 +51,7 @@ class LossComposer:
         self.loss_weight_schedulers = loss_weight_schedulers
         self.display_names = display_names
 
-    def forward(self, losses):
+    def __call__(self, losses):
         loss_list = []
         detached_loss_list = []
         weight_list = []
@@ -72,8 +72,8 @@ class LossComposer:
 
         for detached_loss, weight, display_name in zip(detached_loss_list, weight_list, self.display_names):
             detached_loss = detached_loss.cpu().item()
-            loss_stats_dict[display_name] = detached_loss
-            unscaled_loss_stats_dict[display_name + '_unscaled'] = detached_loss * weight
+            loss_stats_dict[display_name] = detached_loss * weight
+            unscaled_loss_stats_dict[display_name + '_unscaled'] = detached_loss
 
         loss_value = sum(loss_stats_dict.values())
         loss_stats_dict.update(unscaled_loss_stats_dict)

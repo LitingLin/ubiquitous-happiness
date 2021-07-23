@@ -4,7 +4,9 @@ import math
 
 
 class TransTRunner:
-    def __init__(self, model, criterion, optimizer, lr_scheduler,
+    def __init__(self, model, criterion, optimizer,
+                 lr_scheduler_per_epoch,
+                 lr_scheduler_per_iteration,
                  grad_max_norm=None,
                  stage_2_data_processor=None,
                  additional_stateful_objects=None, begin_training_event_slots=None, stop_training_event_slot=None,
@@ -15,7 +17,8 @@ class TransTRunner:
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
-        self.lr_scheduler = lr_scheduler
+        self.lr_scheduler_per_epoch = lr_scheduler_per_epoch
+        self.lr_scheduler_per_iteration = lr_scheduler_per_iteration
         self.grad_max_norm = grad_max_norm
         self.stage_2_data_processor = stage_2_data_processor
         self.epoch = 0
@@ -87,7 +90,8 @@ class TransTRunner:
                 print(statistics_collector.get_status())
                 print('----------------------------')
         self.epoch += 1
-        self.lr_scheduler.step()
+        if self.lr_scheduler_per_epoch is not None:
+            self.lr_scheduler_per_epoch.step()
         self._on_epoch_changed()
         if self.multi_stage_handlers is not None:
             for handler in self.multi_stage_handlers:
@@ -105,6 +109,8 @@ class TransTRunner:
         if self.grad_max_norm is not None:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_max_norm)
         self.optimizer.step()
+        if self.lr_scheduler_per_iteration is not None:
+            self.lr_scheduler_per_iteration.step()
         del self.loss
         self.loss = None
         if self.train_iteration_end_hooks is not None:
@@ -114,8 +120,11 @@ class TransTRunner:
 
     def state_dict(self):
         training_state_dict = {'optimizer': self.optimizer.state_dict(),
-                               'lr_scheduler': self.lr_scheduler.state_dict(),
                                'epoch': self.epoch, 'version': 1}
+        if self.lr_scheduler_per_iteration is not None:
+            training_state_dict['lr_scheduler_per_iteration'] = self.lr_scheduler_per_iteration.state_dict()
+        if self.lr_scheduler_per_epoch is not None:
+            training_state_dict['lr_scheduler'] = self.lr_scheduler_per_epoch.state_dict()
         if self.additional_stateful_objects is not None:
             for state_name, stateful_object in self.additional_stateful_objects.items():
                 training_state_dict[state_name] = stateful_object.get_state()
@@ -126,7 +135,10 @@ class TransTRunner:
         self.get_model().load_state_dict(model_state['model'])
         if training_state is not None:
             self.optimizer.load_state_dict(training_state['optimizer'])
-            self.lr_scheduler.load_state_dict(training_state['lr_scheduler'])
+            if self.lr_scheduler_per_iteration is not None:
+                self.lr_scheduler_per_iteration.load_state_dict(training_state['lr_scheduler_per_iteration'])
+            if self.lr_scheduler_per_epoch is not None:
+                self.lr_scheduler_per_epoch.load_state_dict(training_state['lr_scheduler'])
             self.epoch = training_state['epoch']
             if self.additional_stateful_objects is not None:
                 for state_name, stateful_object in self.additional_stateful_objects.items():

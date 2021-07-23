@@ -19,8 +19,6 @@ def bce_loss(pred, target, use_sigmoid=True):
     Returns:
         torch.Tensor: Loss tensor with shape (N,).
     """
-    assert len(target) == 3, """target for QFL must be a tuple of two elements,
-        including category label and quality label, respectively"""
     # label denotes the category id, score denotes the quality score
     # N, L
     if use_sigmoid:

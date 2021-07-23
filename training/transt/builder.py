@@ -18,16 +18,16 @@ def _get_n_epochs(train_config: dict):
 def _get_clip_max_norm(train_config: dict):
     clip_max_norm = None
     if 'clip_max_norm' in train_config['optimization']['optimizer']:
-        clip_max_norm = train_config['optimization']['clip_max_norm']
+        clip_max_norm = train_config['optimization']['optimizer']['clip_max_norm']
     return clip_max_norm
 
 
-def setup_optimizer(model, network_config: dict, train_config: dict):
+def setup_optimizer(model, network_config: dict, train_config: dict, iterations_per_epoch):
     from .optimization.transt import build_transt_optimizer
-    return build_transt_optimizer(model, train_config)
+    return build_transt_optimizer(model, train_config, iterations_per_epoch)
 
 
-def build_transt_training_runner(args, net_config: dict, train_config: dict,
+def build_transt_training_runner(args, net_config: dict, train_config: dict, iterations_per_epoch,
                                  stage_2_data_processor,
                                  additional_state_objects,
                                  training_start_event_slots, training_stop_event_slots,
@@ -35,11 +35,17 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
-    criterion, loss_composer = build_criterion_and_weight_composer(net_config, train_config)
+    criterion, loss_composer = build_criterion_and_weight_composer(net_config, train_config, iterations_per_epoch)
     additional_state_objects['loss_composer'] = loss_composer
     train_iteration_end_hooks = [loss_composer]
     epoch_end_hooks = [loss_composer]
-    optimizer, lr_scheduler = setup_optimizer(model, net_config, train_config)
+    optimizer, lr_scheduler, lr_scheduler_per_iteration = setup_optimizer(model, net_config, train_config, iterations_per_epoch)
+    per_epoch_lr_scheduler = None
+    per_iteration_lr_scheduler = None
+    if lr_scheduler_per_iteration:
+        per_iteration_lr_scheduler = lr_scheduler
+    else:
+        per_epoch_lr_scheduler = lr_scheduler
 
     if hasattr(criterion, 'set_epoch'):
         epoch_changed_event_slots.append(criterion)
@@ -71,12 +77,14 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict,
 
     grad_max_norm = _get_clip_max_norm(train_config)
 
-    return TransTRunner(model, criterion, optimizer, lr_scheduler,
+    return TransTRunner(model, criterion, optimizer, per_epoch_lr_scheduler, per_epoch_lr_scheduler,
                         grad_max_norm,
                         stage_2_data_processor,
                         additional_state_objects,
                         training_start_event_slots, training_stop_event_slots,
-                        epoch_changed_event_slots, statistics_collectors, loss_composer=loss_composer)
+                        epoch_changed_event_slots, statistics_collectors, loss_composer=loss_composer,
+                        train_iteration_end_hooks=train_iteration_end_hooks,
+                        epoch_end_hooks=epoch_end_hooks)
 
 
 def build_training_dataloader(args, network_config: dict, train_config: dict, train_dataset_config_path: str,
@@ -118,7 +126,13 @@ def build_training_runner_logger_and_dataloader(args, network_config: dict, trai
     (stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots,
      statistics_collectors), \
     stage_2_data_processor = build_training_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)
-    runner = build_transt_training_runner(args, network_config, train_config, stage_2_data_processor, stateful_objects, training_start_event_signal_slots, training_stop_event_signal_slots, epoch_changed_event_slots, statistics_collectors)
+
+    iterations_per_epoch = len(data_loader_train)
+
+    runner = build_transt_training_runner(args, network_config, train_config, iterations_per_epoch,
+                                          stage_2_data_processor, stateful_objects,
+                                          training_start_event_signal_slots, training_stop_event_signal_slots,
+                                          epoch_changed_event_slots, statistics_collectors)
 
     n_epochs = _get_n_epochs(train_config)
 

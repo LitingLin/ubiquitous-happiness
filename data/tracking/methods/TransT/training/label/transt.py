@@ -101,7 +101,7 @@ def generate_target_class_vector(search_feat_size, target_feat_map_indices: Opti
 
 
 def generate_target_class_vector_one_as_positive(search_feat_size, target_feat_map_indices: Optional[torch.Tensor]):
-    target_class_vector = torch.zeros([search_feat_size[0] * search_feat_size[1]], dtype=torch.long)
+    target_class_vector = torch.zeros([search_feat_size[0] * search_feat_size[1]], dtype=torch.float)
     if target_feat_map_indices is not None:
         target_class_vector[target_feat_map_indices] = 1
     return target_class_vector

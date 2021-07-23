@@ -120,7 +120,7 @@ def build_gfocal_loss(network_config, train_config):
     from .single_class_quality_gfocal.quality_gfocal import QualityFocalLoss
     from .single_class_quality_gfocal.bce import BCELoss
 
-    bce_loss = BCELoss(reduction='sum')
+    bce_loss = BCELoss(False, reduction='sum')
     qfl = QualityFocalLoss(False, loss_parameters['quality_focal_loss']['beta'], 'sum')
     dfl = DistributionFocalLoss('none')
     iou_loss_type = loss_parameters['iou_loss']['type']
