@@ -49,9 +49,9 @@ transformer:
   encoder_num_layers: 4
   decoder_num_layers: 2
   activation: "gelu"
-  num_queries: 49
+  num_queries: 196
 
 head:
-  type: TransT
+  type: "TransT"
   parameters:
-    input_size: [7, 7]
+    input_size: [14, 14]

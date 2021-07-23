@@ -52,6 +52,6 @@ transformer:
   num_queries: 784
 
 head:
-  type: TransT
+  type: "TransT"
   parameters:
     input_size: [28, 28]

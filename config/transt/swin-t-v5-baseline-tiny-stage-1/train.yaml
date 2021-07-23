@@ -32,7 +32,7 @@ data:
     val:
       batch_size: 64
 
-      samples_per_epoch: 16384
+      samples_per_epoch: 4096
       negative_sample_ratio: 0
 
       sequence_sampler:

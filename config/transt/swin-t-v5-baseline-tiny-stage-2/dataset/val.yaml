@@ -23,8 +23,8 @@ CONFIG:
 DATASETS:
   GOT10k:
     SPLITS:
-      - val
+      - "val"
 
   LaSOT:
     SPLITS:
-      - val
+      - "val"
