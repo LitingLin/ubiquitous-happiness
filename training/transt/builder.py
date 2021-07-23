@@ -77,7 +77,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, ite
 
     grad_max_norm = _get_clip_max_norm(train_config)
 
-    return TransTRunner(model, criterion, optimizer, per_epoch_lr_scheduler, per_epoch_lr_scheduler,
+    return TransTRunner(model, criterion, optimizer, per_epoch_lr_scheduler, per_iteration_lr_scheduler,
                         grad_max_norm,
                         stage_2_data_processor,
                         additional_state_objects,
