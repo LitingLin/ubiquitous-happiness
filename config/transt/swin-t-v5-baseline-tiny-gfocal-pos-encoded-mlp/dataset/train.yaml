@@ -23,21 +23,24 @@ CONFIG:
 DATASETS:
   GOT10k:
     SPLITS:
-      - train
+      - "train"
+    PARAMETERS:
+      sequence_filter: "got10k_vot_train_split"
+    Sampling:
+      weight: 1
 
   LaSOT:
     SPLITS:
-      - train
-  YoutubeBB:
+      - "train"
+    Sampling:
+      weight: 1
+
+  TrackingNet:
+    SPLITS:
+      - "train"
+    Sampling:
+      weight: 1
 
   COCO:
     Sampling:
-      weight: 0.5
-
-  ILSVRC_DET:
-    Sampling:
-      weight: 0.5
-
-  ILSVRC_VID:
-    Sampling:
-      weight: 0.5
+      weight: 1

@@ -27,21 +27,21 @@ data:
           frame_range: 100
           enforce_fine_positive_sample: true
           enable_adaptive_frame_range: true
-          sampling_method: "causal"
+          sampling_method: "interval"
 
     val:
       batch_size: 64
 
-      samples_per_epoch: 16384
-      negative_sample_ratio: 0.3
+      samples_per_epoch: 4096
+      negative_sample_ratio: 0
 
       sequence_sampler:
         type: "Siamese"
         parameters:
           frame_range: 100
-          enforce_fine_positive_sample: false
+          enforce_fine_positive_sample: true
           enable_adaptive_frame_range: true
-          sampling_method: "causal"
+          sampling_method: "interval"
 
 optimization:
   epochs: 300

@@ -23,24 +23,4 @@ CONFIG:
 DATASETS:
   GOT10k:
     SPLITS:
-      - "train"
-    PARAMETERS:
-      sequence_filter: "got10k_vot_train_split"
-    Sampling:
-      weight: 1
-
-  LaSOT:
-    SPLITS:
-      - "train"
-    Sampling:
-      weight: 1
-
-  TrackingNet:
-    SPLITS:
-      - "train"
-    Sampling:
-      weight: 1
-
-  COCO:
-    Sampling:
-      weight: 1
+      - val

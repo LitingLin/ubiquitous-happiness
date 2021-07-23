@@ -1,4 +1,4 @@
-version: 3
+version: 4
 
 data:
   augmentation:
@@ -32,14 +32,14 @@ data:
     val:
       batch_size: 64
 
-      samples_per_epoch: 16384
-      negative_sample_ratio: 0.3
+      samples_per_epoch: 4096
+      negative_sample_ratio: 0
 
       sequence_sampler:
         type: "Siamese"
         parameters:
           frame_range: 100
-          enforce_fine_positive_sample: false
+          enforce_fine_positive_sample: true
           enable_adaptive_frame_range: true
           sampling_method: "causal"
 
@@ -48,12 +48,27 @@ optimization:
   optimizer:
     type: "AdamW"
     lr: 1.e-4
-    lr_backbone: 1.e-5
+    advanced_strategy:
+      type: "Backbone-Pretrained"
+      lr_backbone: 1.e-5
     weight_decay: 1.e-4
     clip_max_norm: 0.1
     lr_scheduler:
-      type: StepLR
-      lr_drop: 30
+      type: "MultiStepLR"
+      values: [1, 0.1]
+      milestones: [0.5, 1]
+      per_iteration: true
 
   loss:
-    use_template: "transt"
+    cross_entropy_loss:
+      display_name: "loss_cls"
+      num_classes: 1
+      background_class_weight: 0.0625
+      weight: 8.334
+    L1_loss:
+      display_name: "loss_bbox"
+      weight: 5
+    IoU_loss:
+      display_name: "loss_iou"
+      type: "GIoU"
+      weight: 2

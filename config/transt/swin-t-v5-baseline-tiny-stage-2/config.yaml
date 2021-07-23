@@ -3,13 +3,12 @@ name: "Swin-T-Baseline"
 version: 5
 
 logging:
-  category: "Swin-T-v4"
+  category: "Swin-T-v3"
   tags:
     - "Swin-Transformer"
     - "baseline"
     - "tiny"
     - "Positive-samples-only"
-    - "GFocal"
 
 type: "T-Baseline"
 
@@ -21,9 +20,6 @@ data:
   search_size: [224, 224]
   imagenet_normalization: true
   interpolation_mode: "bicubic"
-  bounding_box_normalization_protocol:
-    interval: "[)"
-    range: [0, 1]
 
 backbone:
   type: "swin_transformer"
@@ -56,18 +52,6 @@ transformer:
   num_queries: 49
 
 head:
-  type: "GFocal-v2"
-  bounding_box_format: 'CXCYWH'
+  type: TransT
   parameters:
-    input_dim: 384
-    hidden_dim: 384
     input_size: [7, 7]
-
-    reg_max: 16
-    v2:
-      topk: 4
-      reg_channels: 64
-      add_mean: true
-
-    position_encoding: true
-

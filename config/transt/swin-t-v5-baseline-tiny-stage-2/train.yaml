@@ -16,8 +16,9 @@ data:
     version: 2
 
     train:
-      batch_size: 16
-      samples_per_epoch: 65536
+      batch_size: 64
+
+      samples_per_epoch: 1048576
       negative_sample_ratio: 0
 
       sequence_sampler:
@@ -29,9 +30,9 @@ data:
           sampling_method: "causal"
 
     val:
-      batch_size: 16
+      batch_size: 64
 
-      repeat_times_per_epoch: 1
+      samples_per_epoch: 16384
       negative_sample_ratio: 0
 
       sequence_sampler:
@@ -43,7 +44,7 @@ data:
           sampling_method: "causal"
 
 optimization:
-  epochs: 1000
+  epochs: 60
   optimizer:
     type: "AdamW"
     lr: 1.e-4
@@ -53,8 +54,10 @@ optimization:
     weight_decay: 1.e-4
     clip_max_norm: 0.1
     lr_scheduler:
-      type: "StepLR"
-      lr_drop: 500
+      type: "MultiStepLR"
+      values: [1, 0.1]
+      milestones: [0.5, 1]
+      per_iteration: true
 
   loss:
     cross_entropy_loss:
