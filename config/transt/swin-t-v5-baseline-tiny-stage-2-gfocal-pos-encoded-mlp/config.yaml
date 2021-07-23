@@ -3,12 +3,14 @@ name: "Swin-T-Baseline"
 version: 5
 
 logging:
-  category: "Swin-T-v3"
+  category: "Swin-T-v4"
   tags:
     - "Swin-Transformer"
     - "baseline"
     - "tiny"
     - "Positive-samples-only"
+    - "GFocal"
+    - "Stack datasets"
 
 type: "T-Baseline"
 
