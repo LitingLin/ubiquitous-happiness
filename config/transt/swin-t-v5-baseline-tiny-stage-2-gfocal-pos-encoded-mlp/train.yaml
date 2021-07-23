@@ -44,7 +44,7 @@ data:
           sampling_method: "interval"
 
 optimization:
-  epochs: 60
+  epochs: 300
   optimizer:
     type: "AdamW"
     lr: 1.e-4
