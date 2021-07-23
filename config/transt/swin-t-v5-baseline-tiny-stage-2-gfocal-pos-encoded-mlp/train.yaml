@@ -44,7 +44,7 @@ data:
           sampling_method: "interval"
 
 optimization:
-  epochs: 300
+  epochs: 45
   optimizer:
     type: "AdamW"
     lr: 1.e-4
@@ -55,8 +55,8 @@ optimization:
     clip_max_norm: 0.1
     lr_scheduler:
       type: "MultiStepLR"
-      values: [1, 0.1]
-      milestones: [0.5, 1]
+      values: [1, 0.1, 0.01]
+      milestones: [0.33, 0.66, 1]
       per_iteration: true
 
       warmup:
