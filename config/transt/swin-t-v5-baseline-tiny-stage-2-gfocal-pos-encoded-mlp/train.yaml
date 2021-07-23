@@ -44,7 +44,7 @@ data:
           sampling_method: "interval"
 
 optimization:
-  epochs: 300
+  epochs: 60
   optimizer:
     type: "AdamW"
     lr: 1.e-4
@@ -59,16 +59,34 @@ optimization:
       milestones: [0.5, 1]
       per_iteration: true
 
+      warmup:
+        initial_factor: 0.001
+        length: 0.01
+        method: "linear" # linear or constant
+
   loss:
-    cross_entropy_loss:
-      display_name: "loss_cls"
-      num_classes: 1
-      background_class_weight: 0.0625
-      weight: 8.334
-    L1_loss:
-      display_name: "loss_bbox"
-      weight: 5
-    IoU_loss:
+    quality_focal_loss:
+      display_name: "loss_quality_focal"
+      beta: 2
+      quality_function: "IoU"
+      weight:
+        scheduler: "linear"
+        initial_value: 0
+        ultimate_value: 1
+        length: 0.1
+        per_iteration: true
+    binary_cross_entropy_loss:
+      display_name: "loss_bce"
+      weight:
+        scheduler: "linear"
+        initial_value: 1
+        ultimate_value: 0
+        length: 0.1
+        per_iteration: true
+    distribution_focal_loss:
+      display_name: "loss_distribution_focal"
+      weight: 0.25
+    iou_loss:
       display_name: "loss_iou"
       type: "GIoU"
-      weight: 2
+      weight: 2.0
