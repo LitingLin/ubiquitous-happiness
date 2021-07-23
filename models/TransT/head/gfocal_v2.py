@@ -1,7 +1,100 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from models.modules.mlp import MLP
+from timm.models.layers import to_2tuple, trunc_normal_
+import math
+
+
+class DWConv(nn.Module):
+    def __init__(self, dim=768):
+        super(DWConv, self).__init__()
+        self.dwconv = nn.Conv2d(dim, dim, to_2tuple(3), to_2tuple(1), 1, bias=True, groups=dim)
+
+    def forward(self, x, H, W):
+        B, N, C = x.shape
+        x = x.transpose(1, 2).view(B, C, H, W)
+        x = self.dwconv(x)
+        x = x.flatten(2).transpose(1, 2)
+
+        return x
+
+
+class MlpPosEncoded(nn.Module):
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        self.fc1 = nn.Linear(in_features, hidden_features)
+        self.dwconv1 = DWConv(hidden_features)
+        self.fc2 = nn.Linear(hidden_features, hidden_features)
+        self.dwconv2 = DWConv(hidden_features)
+        self.fc3 = nn.Linear(hidden_features, out_features)
+
+        self.act = act_layer()
+        self.drop = nn.Dropout(drop)
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            trunc_normal_(m.weight, std=.02)
+            if isinstance(m, nn.Linear) and m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
+        elif isinstance(m, nn.Conv2d):
+            fan_out = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+            fan_out //= m.groups
+            m.weight.data.normal_(0, math.sqrt(2.0 / fan_out))
+            if m.bias is not None:
+                m.bias.data.zero_()
+
+    def forward(self, x, H, W):
+        x = self.fc1(x)
+        x = self.dwconv1(x, H, W)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc2(x)
+        x = self.dwconv2(x, H, W)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc3(x)
+        x = self.drop(x)
+        return x
+
+
+class Mlp(nn.Module):
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        self.fc1 = nn.Linear(in_features, hidden_features)
+        self.fc2 = nn.Linear(hidden_features, hidden_features)
+        self.fc3 = nn.Linear(hidden_features, out_features)
+
+        self.act = act_layer()
+        self.drop = nn.Dropout(drop)
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            trunc_normal_(m.weight, std=.02)
+            if isinstance(m, nn.Linear) and m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
+
+    def forward(self, x, H, W):
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc2(x)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc3(x)
+        x = self.drop(x)
+        return x
 
 
 class Integral(nn.Module):
@@ -42,27 +135,34 @@ class Integral(nn.Module):
 
 class GFocalV2Head(nn.Module):
     def __init__(self, input_dim: int, hidden_dim: int, shape,
+                 enable_v2: bool, pos_encoded: bool,
                  gfocal_reg_max: int,  # bbox in range [0, reg_max]
                  gfocal_v2_topk: int, gfocal_v2_reg_channels: int, gfocal_v2_add_mean: bool):
         super(GFocalV2Head, self).__init__()
-        self.classification_branch = MLP(input_dim, hidden_dim, 1, 3)
-        self.regression_branch = MLP(input_dim, hidden_dim, 4 * (gfocal_reg_max + 1), 3)
+        if not pos_encoded:
+            self.classification_branch = Mlp(input_dim, hidden_dim, 1)
+            self.regression_branch = Mlp(input_dim, hidden_dim, 4 * (gfocal_reg_max + 1))
+        else:
+            self.classification_branch = MlpPosEncoded(input_dim, hidden_dim, 1)
+            self.regression_branch = MlpPosEncoded(input_dim, hidden_dim, 4 * (gfocal_reg_max + 1))
         self.shape = shape  # (W, H)
         self.integral = Integral(gfocal_reg_max)
         self.gfocal_reg_max = gfocal_reg_max
-        self.gfocal_v2_topk = gfocal_v2_topk
-        self.gfocal_v2_reg_channels = gfocal_v2_reg_channels
-        self.gfocal_v2_add_mean = gfocal_v2_add_mean
-        self.gfocal_v2_total_dim = gfocal_v2_topk
-        if gfocal_v2_add_mean:
-            self.gfocal_v2_total_dim += 1
+        self.enable_v2 = enable_v2
+        if enable_v2:
+            self.gfocal_v2_topk = gfocal_v2_topk
+            self.gfocal_v2_reg_channels = gfocal_v2_reg_channels
+            self.gfocal_v2_add_mean = gfocal_v2_add_mean
+            self.gfocal_v2_total_dim = gfocal_v2_topk
+            if gfocal_v2_add_mean:
+                self.gfocal_v2_total_dim += 1
 
-        self.reg_conf = nn.Sequential(
-            nn.Conv2d(4 * self.gfocal_v2_total_dim, self.gfocal_v2_reg_channels, 1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(self.gfocal_v2_reg_channels, 1, 1),
-            nn.Sigmoid()
-        )
+            self.reg_conf = nn.Sequential(
+                nn.Conv2d(4 * self.gfocal_v2_total_dim, self.gfocal_v2_reg_channels, 1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.gfocal_v2_reg_channels, 1, 1),
+                nn.Sigmoid()
+            )
 
     def forward(self, x):
         '''
@@ -74,20 +174,23 @@ class GFocalV2Head(nn.Module):
         N = x.shape[0]
         H = self.shape[1]
         W = self.shape[0]
-        reg_pred = self.regression_branch(x)  # (N, H * W, 4 * (gfocal_reg_max + 1))
-        prob = F.softmax(reg_pred.transpose(1, 2).reshape(N, 4, self.gfocal_reg_max + 1, H, W), dim=2)
+        reg_pred = self.regression_branch(x, H, W)  # (N, H * W, 4 * (gfocal_reg_max + 1))
 
-        prob_topk, _ = prob.topk(self.gfocal_v2_topk, dim=2)
-        if self.gfocal_v2_add_mean:
-            stat = torch.cat([prob_topk, prob_topk.mean(dim=2, keepdim=True)],
-                             dim=2)
-        else:
-            stat = prob_topk
-
-        quality_score = self.reg_conf(stat.reshape(N, -1, H, W))
-
-        cls_score = self.classification_branch(x).transpose(1, 2).reshape(N, -1, H, W)
+        cls_score = self.classification_branch(x, H, W).transpose(1, 2).reshape(N, -1, H, W)
         cls_score.sigmoid_()
-        cls_score = cls_score * quality_score
+
+        if self.enable_v2:
+            prob = F.softmax(reg_pred.transpose(1, 2).reshape(N, 4, self.gfocal_reg_max + 1, H, W), dim=2)
+
+            prob_topk, _ = prob.topk(self.gfocal_v2_topk, dim=2)
+            if self.gfocal_v2_add_mean:
+                stat = torch.cat([prob_topk, prob_topk.mean(dim=2, keepdim=True)],
+                                 dim=2)
+            else:
+                stat = prob_topk
+
+            quality_score = self.reg_conf(stat.reshape(N, -1, H, W))
+
+            cls_score = cls_score * quality_score
 
         return cls_score, self.integral(reg_pred).view(N, H, W, 4) / self.gfocal_reg_max, reg_pred.view(N, H, W, 4 * (self.gfocal_reg_max + 1))

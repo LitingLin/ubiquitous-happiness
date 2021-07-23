@@ -64,9 +64,10 @@ head:
     input_size: [7, 7]
 
     reg_max: 16
-    topk: 4
-    reg_channels: 64
-    add_mean: true
+    v2:
+      topk: 4
+      reg_channels: 64
+      add_mean: true
 
-    pos_encoded: true
+    position_encoding: true
 
