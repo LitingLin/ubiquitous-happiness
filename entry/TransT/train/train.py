@@ -45,6 +45,7 @@ def get_args_parser():
     parser.add_argument('--enable_profile', action='store_true', help='enable profiling')
     parser.add_argument('--profile_logging_path', default='', help='logging path of profiling, cannot be empty when enabled')
     parser.add_argument('--pin_memory', action='store_true', help='move tensors to pinned memory before transferring to GPU')
+    parser.add_argument('--save_memory', action='store_true', help='No stage 2 processor')
     return parser
 
 
@@ -65,6 +66,9 @@ def main(args):
     val_dataset_config_path = os.path.join(config_path, args.config_name, 'dataset', 'val.yaml')
     network_config = yaml_load(network_config_path)
     train_config = yaml_load(train_config_path)
+
+    if args.save_memory:
+        train_config['data']['augmentation']['stage_2_on_host_process'] = False
 
     n_epochs, runner, logger, profiler, train_data_loader, val_data_loader, efficiency_assessor = \
         build_training_runner_logger_and_dataloader(args, network_config, train_config, train_dataset_config_path, val_dataset_config_path)

@@ -39,7 +39,7 @@ def TransT_training_data_preprocessing_pipeline(image, bbox, area_factor, output
         if origin_type == torch.uint8:
             image = image.float()
             image /= 255.0
-        image = do_SiamFC_curation(image, output_size, curation_parameter, interpolation_mode)
+        image, _ = do_SiamFC_curation(image, output_size, curation_parameter, interpolation_mode)
         image = transform(image)
         if origin_type == torch.uint8:
             image *= 255.0
