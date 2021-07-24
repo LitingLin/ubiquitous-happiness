@@ -16,7 +16,7 @@ data:
     version: 2
 
     train:
-      batch_size: 64
+      batch_size: 16
 
       samples_per_epoch: 131072
       negative_sample_ratio: 0
@@ -30,7 +30,7 @@ data:
           sampling_method: "interval"
 
     val:
-      batch_size: 64
+      batch_size: 16
 
       samples_per_epoch: 4096
       negative_sample_ratio: 0
