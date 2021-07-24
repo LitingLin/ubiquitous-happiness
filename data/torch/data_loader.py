@@ -26,7 +26,7 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
                                      train_batch_size, val_batch_size,
                                      train_num_workers,
                                      val_num_workers,
-                                     device, distributed,
+                                     device, device_index, distributed,
                                      epoch_changed_event_signal_slots,
                                      training_do_shuffle=True,
                                      device_tensor_selection_filter=None,
@@ -62,6 +62,8 @@ def build_torch_train_val_dataloader(train_dataset, val_dataset,
             from data.performance.cuda_prefetcher import CUDAPrefetcher
         else:
             from data.performance.cuda_prefetcher_thread import CUDAPrefetcher
+        if device == 'cuda' and device_index is not None:
+            device = f'cuda:{device_index}'
         device = torch.device(device)
         data_loader_train = CUDAPrefetcher(data_loader_train, device, device_tensor_selection_filter)
         data_loader_val = CUDAPrefetcher(data_loader_val, device, device_tensor_selection_filter)

@@ -56,13 +56,18 @@ def build_siamfc_sampling_dataloader(args, train_config: dict, train_dataset_con
 
     epoch_changed_event_signal_slots = []
 
+    if 'gpu' in args:
+        device_index = args.gpu
+    else:
+        device_index = None
+
     train_data_loader, val_data_loader = build_torch_train_val_dataloader(train_dataset, val_dataset,
                                                                           train_config['data']['sampler']['train'][
                                                                               'batch_size'],
                                                                           train_config['data']['sampler']['val'][
                                                                               'batch_size'],
                                                                           args.num_workers, args.num_workers,
-                                                                          args.device, args.distributed,
+                                                                          args.device, device_index, args.distributed,
                                                                           epoch_changed_event_signal_slots,
                                                                           False,
                                                                           device_tensor_selection_filter,
