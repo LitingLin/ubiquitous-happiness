@@ -61,7 +61,7 @@ optimization:
 
       warmup:
         initial_factor: 0.001
-        length: 0.06
+        length: 0.01
         method: "linear" # linear or constant
 
   loss:
