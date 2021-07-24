@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.distributed
-from miscellanies.torch.distributed import is_dist_available_and_initialized, get_world_size
-from ._do_statistic import do_statistic
+from miscellanies.torch.distributed.reduce_mean import reduce_mean_
 from data.types.bounding_box_format import BoundingBoxFormat
 from data.operator.bbox.spatial.vectorized.torch.cxcywh_to_xyxy import box_cxcywh_to_xyxy
 
@@ -40,10 +39,8 @@ class GFocalCriterion(nn.Module):
         cls_score, predicted_bbox, bbox_distribution = predicted
 
         num_boxes_pos, target_feat_map_indices_batch_id_vector, target_feat_map_indices, target_class_label_vector, target_bounding_box_label_matrix = label
-        if is_dist_available_and_initialized():
-            torch.distributed.all_reduce(num_boxes_pos)
-
-        num_boxes_pos = max((num_boxes_pos / get_world_size()).item(), 1)
+        reduce_mean_(num_boxes_pos)
+        num_boxes_pos = max(num_boxes_pos.item(), 1e-4)
 
         is_non_positives = target_feat_map_indices_batch_id_vector is None
 
@@ -84,11 +81,7 @@ class GFocalCriterion(nn.Module):
             loss_iou = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
                                                box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
         weight_targets = weight_targets.sum()
-        if is_dist_available_and_initialized():
-            torch.distributed.all_reduce(weight_targets)
-
-        weight_targets = weight_targets / get_world_size()
-
+        reduce_mean_(weight_targets)
         loss_distribution_focal /= weight_targets
         loss_iou /= weight_targets
 
