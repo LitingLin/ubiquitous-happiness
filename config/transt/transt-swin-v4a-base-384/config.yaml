@@ -50,3 +50,4 @@ head:
   type: TransT
   parameters:
     input_size: [24, 24]
+    position_encoding: true

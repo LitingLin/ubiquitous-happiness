@@ -59,15 +59,17 @@ optimization:
       per_iteration: true
 
   loss:
-    cross_entropy_loss:
-      display_name: "loss_cls"
-      num_classes: 1
-      background_class_weight: 0.0625
-      weight: 8.334
-    L1_loss:
-      display_name: "loss_bbox"
-      weight: 5
-    IoU_loss:
-      display_name: "loss_iou"
-      type: "GIoU"
-      weight: 2
+    classification:
+      cross_entropy_loss:
+        display_name: "loss_cls"
+        num_classes: 1
+        background_class_weight: 0.0625
+        weight: 8.334
+    bbox_regression:
+      L1_loss:
+        display_name: "loss_bbox"
+        weight: 5
+      IoU_loss:
+        display_name: "loss_iou"
+        type: "GIoU"
+        weight: 2

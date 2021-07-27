@@ -65,28 +65,30 @@ optimization:
         method: "linear" # linear or constant
 
   loss:
-    quality_focal_loss:
-      display_name: "loss_quality_focal"
-      beta: 2
-      quality_function: "IoU"
-      weight:
-        scheduler: "linear"
-        initial_value: 0
-        ultimate_value: 1
-        length: 0.1
-        per_iteration: true
-    binary_cross_entropy_loss:
-      display_name: "loss_bce"
-      weight:
-        scheduler: "linear"
-        initial_value: 1
-        ultimate_value: 0
-        length: 0.1
-        per_iteration: true
-    distribution_focal_loss:
-      display_name: "loss_distribution_focal"
-      weight: 0.25
-    iou_loss:
-      display_name: "loss_iou"
-      type: "GIoU"
-      weight: 2.0
+    classification:
+      quality_focal:
+        display_name: "loss_quality_focal"
+        beta: 2
+        quality_function: "IoU"
+        weight:
+          scheduler: "linear"
+          initial_value: 0
+          ultimate_value: 1
+          length: 0.1
+          per_iteration: true
+      binary_cross_entropy:
+        display_name: "loss_bce"
+        weight:
+          scheduler: "linear"
+          initial_value: 1
+          ultimate_value: 0
+          length: 0.1
+          per_iteration: true
+    bbox_regression:
+      distribution_focal:
+        display_name: "loss_distribution_focal"
+        weight: 0.25
+      IoU:
+        display_name: "loss_iou"
+        type: "GIoU"
+        weight: 2.0

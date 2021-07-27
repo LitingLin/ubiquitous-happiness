@@ -18,7 +18,7 @@ class FeatureMerging(nn.Module):
             search_positional_encoding = generate_transformer_2d_sine_positional_encoding(
                 search_feature_size[1], search_feature_size[0], feature_dim)
         self.register_buffer('positional_encoding',
-                             torch.cat((template_positional_encoding, search_positional_encoding), dim=1))
+                             torch.cat((template_positional_encoding, search_positional_encoding), dim=1), persistent=False)
 
     def forward(self, z, x):
         return torch.cat((z, x), dim=1), self.positional_encoding
