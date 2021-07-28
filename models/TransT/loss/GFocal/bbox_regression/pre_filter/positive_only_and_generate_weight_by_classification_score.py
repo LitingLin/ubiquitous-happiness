@@ -1,4 +1,4 @@
-def positive_only_weight_by_cls_score_sample_filter(predicted, label, context):
+def positive_only_generate_weight_by_classification_score_sample_filter(predicted, label, context):
     '''
         cls_score: (N, C, H, W)
         predicted_bbox: (N, H, W, 4)
@@ -18,11 +18,11 @@ def positive_only_weight_by_cls_score_sample_filter(predicted, label, context):
 
         weight_targets = cls_score.detach().flatten(2).transpose(1, 2).flatten(1)
         weight_targets = weight_targets[target_feat_map_indices_batch_id_vector, target_feat_map_indices].flatten()
-        context['target_weights'] = weight_targets
+        context['sample_weight'] = weight_targets
         predicted_bbox = predicted_bbox[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
         bbox_distribution = bbox_distribution[target_feat_map_indices_batch_id_vector, target_feat_map_indices]
         return (cls_score, predicted_bbox, bbox_distribution), (num_boxes_pos, target_bounding_box_label_matrix)
 
 
-def build_sample_filter(network_config: dict):
-    return positive_only_weight_by_cls_score_sample_filter
+def build_data_filter(_):
+    return positive_only_generate_weight_by_classification_score_sample_filter

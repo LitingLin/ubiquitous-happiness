@@ -1,13 +1,14 @@
 import torch.nn as nn
 
 
-def _compute_loss(pred, label, context, input_hook, loss_functions, loss_data_adaptors, loss_reduce_function):
-    if input_hook is not None:
-        pred, label = input_hook(pred, label, context)
+def _compute_loss(pred, label, input_data_filter, loss_functions, loss_data_adaptors, loss_reduction_functions, output_data_filter):
+    context = {}
+    if input_data_filter is not None:
+        pred, label = input_data_filter(pred, label, context)
     losses = []
-    for loss_fn, loss_data_adaptor in zip(loss_functions, loss_data_adaptors):
-        shall_skip, loss_fn_inputs = loss_data_adaptor(pred, label, context)
-        if shall_skip:
+    for loss_fn, loss_data_adaptor, loss_reduction_function in zip(loss_functions, loss_data_adaptors, loss_reduction_functions):
+        ok, loss_fn_inputs = loss_data_adaptor(pred, label, context)
+        if not ok:
             loss = loss_fn_inputs
         else:
             if isinstance(loss_fn_inputs, (list, tuple)):
@@ -16,25 +17,33 @@ def _compute_loss(pred, label, context, input_hook, loss_functions, loss_data_ad
                 loss = loss_fn(**loss_fn_inputs)
             else:
                 loss = loss_fn(loss_fn_inputs)
-            loss = loss_reduce_function(loss, pred, label, context)
+            loss = loss_reduction_function(loss, pred, label, context)
         losses.append(loss)
+    if output_data_filter is not None:
+        losses = output_data_filter(losses, pred, label, context)
     return losses
 
 
 class SingleScaleCriterion(nn.Module):
-    def __init__(self, global_data_filter, loss_modules):
+    def __init__(self, global_data_filter, loss_modules, loss_composer):
         super(SingleScaleCriterion, self).__init__()
         self.global_data_filter = global_data_filter
-        for module_name, module_input_hook, module_loss_functions, module_loss_reduce_function in loss_modules:
+        for module_name, module_data_pre_filter, module_loss_functions, loss_data_adaptors, loss_reduction_functions, module_data_post_filter in loss_modules:
             self.__setattr__(module_name, nn.ModuleList(module_loss_functions))
         self.loss_modules = loss_modules
+        self.loss_composer = loss_composer
+
+    def set_state(self, state):
+        self.loss_composer.set_state(state)
+
+    def get_state(self):
+        return self.loss_composer.get_state()
 
     def forward(self, pred, label):
-        context = {}
         if self.global_data_filter is not None:
-            pred, label = self.global_data_filter(pred, label, context)
+            pred, label = self.global_data_filter(pred, label)
         losses = []
-        for module_name, module_data_filter, _, loss_data_adaptors, module_loss_reduce_function in self.loss_modules:
+        for module_name, module_data_pre_filter, _, loss_data_adaptors, loss_reduction_functions, module_data_post_filter in self.loss_modules:
             module_loss_functions = self.__getattr__(module_name)
-            losses.extend(_compute_loss(pred, label, context, module_data_filter, module_loss_functions, loss_data_adaptors, module_loss_reduce_function))
-        return losses
+            losses.extend(_compute_loss(pred, label, module_data_pre_filter, module_loss_functions, loss_data_adaptors, loss_reduction_functions, module_data_post_filter))
+        return self.loss_composer(losses)

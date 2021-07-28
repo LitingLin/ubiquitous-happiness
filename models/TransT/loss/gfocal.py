@@ -78,8 +78,7 @@ class GFocalCriterion(nn.Module):
         if is_non_positives:
             loss_iou = torch.mean(predicted_bbox * 0)
         else:
-            loss_iou = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox),
-                                               box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
+            loss_iou = (self.iou_loss(box_cxcywh_to_xyxy(predicted_bbox), box_cxcywh_to_xyxy(target_bounding_box_label_matrix)) * weight_targets).sum()
         weight_targets = weight_targets.sum()
         reduce_mean_(weight_targets)
         loss_distribution_focal /= weight_targets

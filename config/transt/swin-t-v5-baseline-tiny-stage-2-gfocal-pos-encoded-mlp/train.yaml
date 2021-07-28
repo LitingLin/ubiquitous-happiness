@@ -66,10 +66,13 @@ optimization:
 
   loss:
     classification:
+      post_filter:
+        type: "reweight_by_num_pos"
       quality_focal:
-        display_name: "loss_quality_focal"
         beta: 2
         quality_function: "IoU"
+        display_name: "loss_quality_focal"
+        reduce: "sum"
         weight:
           scheduler: "linear"
           initial_value: 0
@@ -78,6 +81,7 @@ optimization:
           per_iteration: true
       binary_cross_entropy:
         display_name: "loss_bce"
+        reduce: "sum"
         weight:
           scheduler: "linear"
           initial_value: 1
@@ -85,10 +89,16 @@ optimization:
           length: 0.1
           per_iteration: true
     bbox_regression:
+      pre_filter:
+        type: "positive_only_and_generate_weight_by_classification_score"
+      post_filter:
+        type: "reweight_by_sample_weight"
       distribution_focal:
         display_name: "loss_distribution_focal"
+        reduce: "weighted"
         weight: 0.25
       IoU:
-        display_name: "loss_iou"
         type: "GIoU"
+        display_name: "loss_iou"
+        reduce: "weighted"
         weight: 2.0

@@ -1,6 +1,6 @@
 from training.transt.runner import TransTRunner
 from models.TransT.builder import build_transt
-from models.TransT.loss.builder import build_criterion_and_weight_composer
+from models.TransT.loss.builder import build_criterion
 from miscellanies.torch.checkpoint import load_checkpoint
 from data.tracking.methods.TransT.training.builder import build_stage_2_data_processor
 from training.transt.logger.builder import build_logger
@@ -35,7 +35,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, ite
     model = build_transt(net_config, True)
     device = torch.device(args.device)
 
-    criterion, loss_composer = build_criterion_and_weight_composer(net_config, train_config, iterations_per_epoch)
+    criterion, loss_composer = build_criterion(net_config, train_config, iterations_per_epoch)
     additional_state_objects['loss_composer'] = loss_composer
     train_iteration_end_hooks = [loss_composer]
     epoch_end_hooks = [loss_composer]
@@ -82,7 +82,7 @@ def build_transt_training_runner(args, net_config: dict, train_config: dict, ite
                         stage_2_data_processor,
                         additional_state_objects,
                         training_start_event_slots, training_stop_event_slots,
-                        epoch_changed_event_slots, statistics_collectors, loss_composer=loss_composer,
+                        epoch_changed_event_slots, statistics_collectors,
                         train_iteration_end_hooks=train_iteration_end_hooks,
                         epoch_end_hooks=epoch_end_hooks)
 
