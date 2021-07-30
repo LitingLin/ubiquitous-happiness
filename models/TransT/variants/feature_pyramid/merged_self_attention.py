@@ -14,7 +14,8 @@ class PVTMergedSelfAttention(nn.Module):
         self.scale = qk_scale or head_dim ** -0.5
 
         self.q = nn.Linear(dim, dim, bias=qkv_bias)
-        self.kv = nn.Linear(dim, dim * 2, bias=qkv_bias)
+        self.k = nn.Linear(dim, dim, bias=qkv_bias)
+        self.v = nn.Linear(dim, dim, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -24,9 +25,9 @@ class PVTMergedSelfAttention(nn.Module):
             self.sr = nn.Conv2d(dim, dim, kernel_size=to_2tuple(sr_ratio), stride=to_2tuple(sr_ratio))
             self.norm = nn.LayerNorm(dim)
 
-    def forward(self, merged, z_H, z_W, x_H, x_W):
+    def forward(self, merged, z_H, z_W, x_H, x_W, merged_q_pos, merged_k_pos):
         B, N, C = merged.shape
-        q = self.q(merged).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+        q = self.q(merged + merged_q_pos).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
 
         if self.sr_ratio > 1:
             z_size = z_H * z_W
@@ -43,10 +44,12 @@ class PVTMergedSelfAttention(nn.Module):
             x = x.permute(0, 2, 1).reshape(B, C, x_H, x_W)
             x = self.sr(x).reshape(B, C, -1).permute(0, 2, 1)
             x = self.norm(x)
-            merged = torch.cat((z, x), dim=1)
+            merged_downsampled = torch.cat((z, x), dim=1)
+        else:
+            merged_downsampled = merged
 
-        kv = self.kv(merged).reshape(B, -1, 2, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
-        k, v = kv[0], kv[1]
+        k = self.k(merged_downsampled + merged_k_pos).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
+        v = self.v(merged_downsampled).reshape(B, N, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)

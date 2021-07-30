@@ -1,40 +1,43 @@
+import torch
 import torch.nn as nn
 
 
-class TransformerSelfAttention(nn.Module):
-    def __init__(self, dim, num_heads, mlp_ratio=4., dropout=0.1):
-        super().__init__()
-        self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
-        # Implementation of Feedforward model
-        self.linear1 = nn.Linear(d_model, dim_feedforward)
-        self.dropout = nn.Dropout(dropout)
-        self.linear2 = nn.Linear(dim_feedforward, d_model)
-
-        self.norm1 = nn.LayerNorm(d_model)
-        self.norm2 = nn.LayerNorm(d_model)
-        self.dropout1 = nn.Dropout(dropout)
-        self.dropout2 = nn.Dropout(dropout)
-
-        self.activation = nn.GELU()
-
-    def with_pos_embed(self, tensor, pos: Optional[Tensor]):
-        return tensor if pos is None else tensor + pos
-
-    def forward(self, src,
-                src_mask: Optional[Tensor] = None,
-                src_key_padding_mask: Optional[Tensor] = None,
-                pos: Optional[Tensor] = None):
-        q = k = self.with_pos_embed(src, pos)
-        src2 = self.self_attn(q, k, value=src, attn_mask=src_mask,
-                              key_padding_mask=src_key_padding_mask)[0]
-        src = src + self.dropout1(src2)
-        src = self.norm1(src)
-        src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
-        src = src + self.dropout2(src2)
-        src = self.norm2(src)
-        return src
-
-
-
 class PyramidModule(nn.Module):
-    def __init__(self, level_0_num_cross_attn_modules, level_1_num_cross_attn_modules):
+    def __init__(self, level_0_self_attention_modules, level_1_self_attention_modules, level_0_1_z_cross_attention_module, level_0_1_x_cross_attention_module):
+        super(PyramidModule, self).__init__()
+        self.level_0_self_attentions = nn.ModuleList(level_0_self_attention_modules)
+        self.level_1_self_attentions = nn.ModuleList(level_1_self_attention_modules)
+        self.level_0_1_z_cross_attention = level_0_1_z_cross_attention_module
+        self.level_0_1_x_cross_attention = level_0_1_x_cross_attention_module
+
+    def forward(self,
+                level_0_z, level_0_x, level_0_z_H, level_0_z_W, level_0_x_H, level_0_x_W,
+                level_1_z, level_1_x, level_1_z_H, level_1_z_W, level_1_x_H, level_1_x_W,
+                level_0_self_attention_q_positional_encodings, level_0_self_attention_k_positional_encodings,
+                level_1_self_attention_q_positional_encodings, level_1_self_attention_k_positional_encodings,
+                level_0_z_cross_attention_positional_encoding, level_0_x_cross_attention_positional_encoding,
+                level_1_z_cross_attention_positional_encoding, level_1_x_cross_attention_positional_encoding):
+        level_0_z_size = level_0_z_H * level_0_z_W
+        level_0_x_size = level_0_x_H * level_0_x_W
+        assert level_0_z_size == level_0_z.shape[1]
+        assert level_0_x_size == level_0_x.shape[1]
+        merged_0 = torch.cat((level_0_z, level_0_x), dim=1)
+        for level_0_self_attention, level_0_self_attention_q_positional_encoding, level_0_self_attention_k_positional_encoding in zip(
+                self.level_0_self_attentions, level_0_self_attention_q_positional_encodings, level_0_self_attention_k_positional_encodings):
+            merged_0 = level_0_self_attention(merged_0, level_0_z_H, level_0_z_W, level_0_x_H, level_0_x_W, level_0_self_attention_q_positional_encoding, level_0_self_attention_k_positional_encoding)
+        level_0_z, level_0_x = merged_0[:, :level_0_z_size, :], merged_0[:, level_0_z_size:, :]
+
+        level_1_z_size = level_1_z_H * level_1_z_W
+        level_1_x_size = level_1_x_H * level_1_x_W
+        assert level_1_z_size == level_1_z.shape[1]
+        assert level_1_x_size == level_1_x.shape[1]
+        merged_1 = torch.cat((level_1_z, level_1_x), dim=1)
+        for level_1_self_attention, level_1_self_attention_q_positional_encoding, level_1_self_attention_k_positional_encoding in zip(
+                self.level_1_self_attentions, level_1_self_attention_q_positional_encodings, level_1_self_attention_k_positional_encodings):
+            merged_1 = level_1_self_attention(merged_1, level_1_z_H, level_1_z_W, level_1_x_H, level_1_x_W, level_1_self_attention_q_positional_encoding, level_1_self_attention_k_positional_encoding)
+        level_1_z, level_1_x = merged_1[:, :level_1_z_size, :], merged_1[:, level_1_z_size:, :]
+
+        level_0_z, level_1_z = self.level_0_1_z_cross_attention(level_0_z, level_1_z, level_0_z_H, level_0_z_W, level_1_z_H, level_1_z_W, level_0_z_cross_attention_positional_encoding, level_1_z_cross_attention_positional_encoding)
+        level_0_x, level_1_x = self.level_0_1_x_cross_attention(level_0_x, level_1_x, level_0_x_H, level_0_x_W, level_1_x_H, level_1_x_W, level_0_x_cross_attention_positional_encoding, level_1_x_cross_attention_positional_encoding)
+
+        return level_0_z, level_0_x, level_1_z, level_1_x
