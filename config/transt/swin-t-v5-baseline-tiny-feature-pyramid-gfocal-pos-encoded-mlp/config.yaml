@@ -1,0 +1,141 @@
+name: "Swin-T-Baseline"
+
+version: 5
+
+logging:
+  category: "Swin-T-v4"
+  tags:
+    - "Swin-Transformer"
+    - "baseline"
+    - "tiny"
+    - "Positive-samples-only"
+    - "GFocal"
+    - "Stack datasets"
+
+type: "T-Baseline-Feature-Pyramid"
+
+data:
+  area_factor:
+    template: 2.0
+    search: 4.0
+  template_size: [112, 112]
+  search_size: [224, 224]
+  imagenet_normalization: true
+  interpolation_mode: "bicubic"
+  bounding_box_normalization_protocol:
+    interval: "[)"
+    range: [0, 1]
+
+backbone:
+  type: "swin_transformer"
+  parameters:
+    name: "swin_tiny_patch4_window7_224"
+    output_layers: [1, 2]
+
+transformer:
+  position_embedding:
+    type: "sine"
+    parameters:
+      indexed: true
+  scales:
+    - dim: 192
+      drop_path_rate: 0.1
+      backbone:
+        stage: 1
+        template:
+          shape: [14, 14]
+        search:
+          shape: [28, 28]
+      encoders:
+        - num_heads: 8
+          mlp_ratio: 4
+          qkv_bias: true
+          drop_rate: 0
+          attn_drop_rate: 0
+          sr_ratio: 1
+        - num_heads: 8
+          mlp_ratio: 4
+          qkv_bias: true
+          drop_rate: 0
+          attn_drop_rate: 0
+          sr_ratio: 1
+      feature_fusion:
+        - index: 0
+        - index: 1
+      decoder:
+        num_heads: 8
+        mlp_ratio: 4
+        qkv_bias: true
+        drop_rate: 0
+        attn_drop_rate: 0
+        sr_ratio: 1
+    - dim: 384
+      drop_path_rate: 0.1
+      backbone:
+        stage: 2
+        template:
+          shape: [7, 7]
+        search:
+          shape: [14, 14]
+      encoders:
+        - num_heads: 8
+          mlp_ratio: 4
+          qkv_bias: true
+          drop_rate: 0
+          attn_drop_rate: 0
+          sr_ratio: 1
+        - num_heads: 8
+          mlp_ratio: 4
+          qkv_bias: true
+          drop_rate: 0
+          attn_drop_rate: 0
+          sr_ratio: 1
+        feature_fusion:
+          - index: 0
+          - index: 1
+        decoder:
+          num_heads: 8
+          mlp_ratio: 4
+          qkv_bias: true
+          drop_rate: 0
+          attn_drop_rate: 0
+          sr_ratio: 1
+  feature_fusion:
+    - num_heads: 8
+      mlp_ratio: 4
+      qkv_bias: true
+      drop_rate: 0
+      attn_drop_rate: 0
+      sr_ratio: 1
+    - num_heads: 8
+      mlp_ratio: 4
+      qkv_bias: true
+      drop_rate: 0
+      attn_drop_rate: 0
+      sr_ratio: 1
+
+head:
+  type: "GFocal-v2"
+  bounding_box_format: 'CXCYWH'
+  output_protocol: "GFocal"
+  parameters:
+    scales:
+      - input_dim: 192
+        hidden_dim: 192
+        input_size: [28, 28]
+
+        reg_max: 16
+        v2:
+          topk: 4
+          reg_channels: 64
+          add_mean: true
+      - input_dim: 384
+        hidden_dim: 384
+        input_size: [14, 14]
+
+        reg_max: 16
+        v2:
+          topk: 4
+          reg_channels: 64
+          add_mean: true
+    position_encoding: true

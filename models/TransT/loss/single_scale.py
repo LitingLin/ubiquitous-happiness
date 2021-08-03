@@ -33,12 +33,6 @@ class SingleScaleCriterion(nn.Module):
         self.loss_modules = loss_modules
         self.loss_composer = loss_composer
 
-    def set_state(self, state):
-        self.loss_composer.set_state(state)
-
-    def get_state(self):
-        return self.loss_composer.get_state()
-
     def forward(self, pred, label):
         if self.global_data_filter is not None:
             pred, label = self.global_data_filter(pred, label)

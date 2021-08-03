@@ -62,3 +62,6 @@ def build_criterion(network_config: dict, train_config: dict, iterations_per_epo
     criterion = SingleScaleCriterion(global_data_filter, loss_modules, loss_composer)
 
     return criterion, loss_composer
+
+
+def build_single_scale(loss_parameters, head_parameters, )

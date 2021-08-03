@@ -24,7 +24,7 @@ class CrossLevelAttention(nn.Module):
         # NOTE: drop path for stochastic depth, we shall see if this is better than dropout here
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
-    def forward(self, x, y, x_H, x_W, y_H, y_W, x_pos, y_pos):
+    def forward(self, x, y, x_H, x_W, y_H, y_W, x_y_cross_x_pos, x_y_cross_y_pos, y_x_cross_x_pos, y_x_cross_y_pos):
         B, x_N, C = x.shape
         assert x_N == x_H * x_W
         assert B == y.shape[0]
@@ -32,8 +32,8 @@ class CrossLevelAttention(nn.Module):
 
         x_ = self.x_cross_norm(x)
         y_ = self.y_cross_norm(y)
-        x = x + self.drop_path(self.x_y_cross_attn(x_, y_, y_H, y_W, x_pos, y_pos))
-        y = y + self.drop_path(self.y_x_cross_attn(y_, x_, x_H, x_W, y_pos, x_pos))
+        x = x + self.drop_path(self.x_y_cross_attn(x_, y_, y_H, y_W, x_y_cross_x_pos, x_y_cross_y_pos))
+        y = y + self.drop_path(self.y_x_cross_attn(y_, x_, x_H, x_W, y_x_cross_x_pos, y_x_cross_y_pos))
 
         x = x + self.drop_path(self.x_mlp(self.x_mlp_norm(x)))
         y = y + self.drop_path(self.y_mlp(self.y_mlp_norm(y)))

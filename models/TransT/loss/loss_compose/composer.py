@@ -47,9 +47,11 @@ class ConstantWeightScheduler:
 
 
 class LossComposer:
-    def __init__(self, loss_weight_schedulers, display_names):
+    def __init__(self, loss_weight_schedulers, display_names, display_prefix, display_postfix):
         self.loss_weight_schedulers = loss_weight_schedulers
         self.display_names = display_names
+        self.display_prefix = display_prefix
+        self.display_postfix = display_postfix
 
     def __call__(self, losses):
         loss_list = []
